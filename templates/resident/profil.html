@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Profilim{% endblock %}
+{% block topbar_title %}Profil Bilgilerim{% endblock %}
+
+{% block content %}
+
+<div class="card" style="max-width:640px;">
+  <h2 style="font-size:16px; margin-bottom:8px;">Profil Bilgileriniz</h2>
+
+  {% if apartment %}
+    <p style="font-size:12px; color:#4b5563; margin-bottom:10px;">
+      Daireniz: <strong>{{ apartment.block }} Blok • Kat {{ apartment.floor }} • No {{ apartment.number }}</strong>
+    </p>
+  {% endif %}
+
+  <form method="post" style="display:flex; flex-direction:column; gap:10px;">
+
+    <div>
+      <label for="name" style="display:block; font-size:13px; margin-bottom:3px;">Ad Soyad</label>
+      <input
+        type="text"
+        id="name"
+        name="name"
+        required
+        value="{{ user.name }}"
+        style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+    </div>
+
+    <div>
+      <label for="email" style="display:block; font-size:13px; margin-bottom:3px;">E-posta</label>
+      <input
+        type="email"
+        id="email"
+        name="email"
+        value="{{ user.email }}"
+        disabled
+        style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px; background:#f9fafb;">
+      <p style="font-size:11px; color:#6b7280; margin-top:3px;">
+        E-posta adresiniz değiştirilmek isteniyorsa yönetici ile iletişime geçebilirsiniz.
+      </p>
+    </div>
+
+    <div>
+      <label for="phone" style="display:block; font-size:13px; margin-bottom:3px;">Telefon</label>
+      <input
+        type="text"
+        id="phone"
+        name="phone"
+        value="{{ user.phone or '' }}"
+        placeholder="+90 5xx xxx xx xx"
+        style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+    </div>
+
+    <hr style="border:none; border-top:1px solid #e5e7eb; margin:8px 0;">
+
+    <div>
+      <label style="display:block; font-size:13px; margin-bottom:3px;">Şifre Güncelle (opsiyonel)</label>
+      <p style="font-size:11px; color:#6b7280; margin-bottom:4px;">
+        Şifrenizi değiştirmek istemiyorsanız bu alanları boş bırakabilirsiniz.
+      </p>
+    </div>
+
+    <div>
+      <label for="password" style="display:block; font-size:13px; margin-bottom:3px;">Yeni Şifre</label>
+      <input
+        type="password"
+        id="password"
+        name="password"
+        placeholder="En az 6 karakter"
+        style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+    </div>
+
+    <div>
+      <label for="password_confirm" style="display:block; font-size:13px; margin-bottom:3px;">Yeni Şifre (Tekrar)</label>
+      <input
+        type="password"
+        id="password_confirm"
+        name="password_confirm"
+        placeholder="Yeni şifre ile aynı olmalı"
+        style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+    </div>
+
+    <div style="margin-top:6px;">
+      <button type="submit"
+              style="padding:8px 12px; border-radius:999px; border:none; background:#2563eb; color:white; font-size:13px; cursor:pointer;">
+        Profilimi Güncelle
+      </button>
+    </div>
+
+  </form>
+</div>
+
+{% endblock %}

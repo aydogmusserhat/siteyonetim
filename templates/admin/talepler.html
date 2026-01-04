@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Talepler{% endblock %}
+{% block topbar_title %}Sakin Talepleri{% endblock %}
+
+{% block content %}
+
+<div class="card">
+  <h2 style="font-size:16px; margin-bottom:8px;">Sakin Talepleri</h2>
+
+  <form method="get" style="margin-bottom:10px; display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+    <label for="status" style="font-size:13px; color:#4b5563;">Duruma göre filtre:</label>
+    <select
+      id="status"
+      name="status"
+      onchange="this.form.submit()"
+      style="padding:6px 9px; border-radius:999px; border:1px solid #e5e7eb; font-size:13px;">
+      <option value="all" {% if status_filter == 'all' %}selected{% endif %}>Tümü</option>
+      <option value="open" {% if status_filter == 'open' %}selected{% endif %}>Açık</option>
+      <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>Devam ediyor</option>
+      <option value="closed" {% if status_filter == 'closed' %}selected{% endif %}>Kapalı</option>
+    </select>
+  </form>
+
+  {% if tickets %}
+    <div style="width:100%; overflow-x:auto;">
+      <table style="width:100%; border-collapse:collapse; font-size:12px;">
+        <thead>
+          <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
+            <th style="text-align:left; padding:6px 4px;">Tarih</th>
+            <th style="text-align:left; padding:6px 4px;">Daire</th>
+            <th style="text-align:left; padding:6px 4px;">Sakin</th>
+            <th style="text-align:left; padding:6px 4px;">Başlık</th>
+            <th style="text-align:left; padding:6px 4px;">Durum</th>
+            <th style="text-align:left; padding:6px 4px;">Öncelik</th>
+            <th style="text-align:left; padding:6px 4px;">İşlem</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t, apt, u in tickets %}
+            <tr style="border-bottom:1px solid #f3f4f6;">
+              <td style="padding:6px 4px; white-space:nowrap;">
+                {% if t.created_at %}
+                  {{ t.created_at.strftime('%d.%m.%Y %H:%M') }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+              <td style="padding:6px 4px; white-space:nowrap;">
+                {% if apt %}
+                  {{ apt.block }} Blok • {{ apt.floor }}/{{ apt.number }}
+                {% else %}
+                  <span style="color:#9ca3af;">Belirtilmemiş</span>
+                {% endif %}
+              </td>
+              <td style="padding:6px 4px; white-space:nowrap;">
+                {% if u %}
+                  {{ u.name }}
+                {% else %}
+                  <span style="color:#9ca3af;">-</span>
+                {% endif %}
+              </td>
+              <td style="padding:6px 4px; max-width:260px;">
+                <div style="font-weight:600; margin-bottom:2px;">
+                  {{ t.title }}
+                </div>
+                <div style="font-size:11px; color:#6b7280; max-width:260px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                  {{ t.description }}
+                </div>
+              </td>
+              <td style="padding:6px 4px; white-space:nowrap;">
+                {% if t.status == 'closed' %}
+                  <span style="padding:2px 8px; border-radius:999px; background:#dcfce7; color:#15803d;">Kapalı</span>
+                {% elif t.status == 'in_progress' %}
+                  <span style="padding:2px 8px; border-radius:999px; background:#fef9c3; color:#854d0e;">Devam ediyor</span>
+                {% else %}
+                  <span style="padding:2px 8px; border-radius:999px; background:#fee2e2; color:#b91c1c;">Açık</span>
+                {% endif %}
+              </td>
+              <td style="padding:6px 4px; white-space:nowrap;">
+                {% if t.priority == 'high' %}
+                  <span style="color:#b91c1c;">Yüksek</span>
+                {% elif t.priority == 'low' %}
+                  <span style="color:#15803d;">Düşük</span>
+                {% else %}
+                  Normal
+                {% endif %}
+              </td>
+              <td style="padding:6px 4px; white-space:nowrap;">
+                <form method="post"
+                      action="{{ url_for('admin.update_ticket_status', ticket_id=t.id, status=status_filter) }}"
+                      style="display:inline-flex; gap:4px; align-items:center;">
+                  <select name="status"
+                          style="padding:3px 7px; border-radius:999px; border:1px solid #e5e7eb; font-size:11px;">
+                    <option value="open" {% if t.status == 'open' %}selected{% endif %}>Açık</option>
+                    <option value="in_progress" {% if t.status == 'in_progress' %}selected{% endif %}>Devam</option>
+                    <option value="closed" {% if t.status == 'closed' %}selected{% endif %}>Kapalı</option>
+                  </select>
+                  <button type="submit"
+                          style="padding:4px 8px; border-radius:999px; border:none; background:#2563eb; color:white; font-size:11px; cursor:pointer;">
+                    Kaydet
+                  </button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p style="font-size:13px; color:#6b7280;">
+      Kayıtlı talep bulunmuyor.
+    </p>
+  {% endif %}
+
+</div>
+
+{% endblock %}

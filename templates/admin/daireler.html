@@ -1,0 +1,340 @@
+{% extends "base.html" %}
+
+{% block title %}Daireler{% endblock %}
+{% block topbar_title %}Daire Yönetimi{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-grid">
+
+  <!-- SOL: YENİ DAİRE FORMU (KOMPAKT & AÇILIP KAPANABİLİR) -->
+  <section>
+    <div class="card card--compact">
+      <div class="card-header-inline">
+        <div>
+          <h2 style="font-size:15px; margin:0 0 4px;">Yeni Daire Ekle</h2>
+          <p style="font-size:12px; color:#6b7280; margin:0;">
+            Blok, kat ve daire numarası zorunludur. Diğer alanlar isteğe bağlıdır.
+          </p>
+        </div>
+
+        <button type="button"
+                class="btn-mini btn-toggle-new-apt"
+                aria-expanded="false">
+          Yeni daire ekle
+        </button>
+      </div>
+
+      <!-- Başlangıçta kapalı; butonla açılacak -->
+      <div id="new-apt-form" class="collapsible-form">
+        <form method="post" style="display:flex; flex-direction:column; gap:10px; margin-top:8px;">
+
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <div style="flex:1; min-width:80px;">
+              <label for="block" style="display:block; font-size:13px; margin-bottom:3px;">Blok</label>
+              <input type="text" id="block" name="block" required
+                     placeholder="Örn: A"
+                     style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+            </div>
+            <div style="flex:1; min-width:80px;">
+              <label for="floor" style="display:block; font-size:13px; margin-bottom:3px;">Kat</label>
+              <input type="text" id="floor" name="floor" required
+                     placeholder="Örn: 3"
+                     style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+            </div>
+            <div style="flex:1; min-width:80px;">
+              <label for="number" style="display:block; font-size:13px; margin-bottom:3px;">Daire No</label>
+              <input type="text" id="number" name="number" required
+                     placeholder="Örn: 7"
+                     style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+            </div>
+          </div>
+
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <div style="flex:1; min-width:120px;">
+              <label for="area_m2" style="display:block; font-size:13px; margin-bottom:3px;">Metrekare (m²)</label>
+              <input type="text" id="area_m2" name="area_m2"
+                     placeholder="Örn: 120"
+                     style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+            </div>
+          </div>
+
+          <div>
+            <label for="owner_name" style="display:block; font-size:13px; margin-bottom:3px;">Mülk Sahibi Adı</label>
+            <input type="text" id="owner_name" name="owner_name"
+                   placeholder="Ad Soyad"
+                   style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+          </div>
+
+          <div>
+            <label for="owner_phone" style="display:block; font-size:13px; margin-bottom:3px;">Mülk Sahibi Telefonu</label>
+            <input type="text" id="owner_phone" name="owner_phone"
+                   placeholder="+90 5xx xxx xx xx"
+                   style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+          </div>
+
+          <div>
+            <label for="notes" style="display:block; font-size:13px; margin-bottom:3px;">Not / Açıklama</label>
+            <textarea id="notes" name="notes" rows="3"
+                      placeholder="Örn: Kiracı bilgisi, özel notlar..."
+                      style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px; resize:vertical;"></textarea>
+          </div>
+
+          <div style="margin-top:2px;">
+            <button type="submit"
+                    style="padding:8px 12px; border-radius:999px; border:none; background:#2563eb; color:white; font-size:13px; cursor:pointer;">
+              Daireyi Kaydet
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- SAĞ: DAİRE LİSTESİ -->
+  <section>
+    <div class="card">
+      <h2 style="font-size:16px; margin-bottom:8px;">Daire Listesi</h2>
+
+      <style>
+        .btn-table {
+          padding: 4px 10px;
+          border-radius: 999px;
+          border: none;
+          font-size: 11px;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+        }
+        .btn-edit-apt {
+          background: #e5e7eb;
+          color: #111827;
+        }
+        .btn-save-apt {
+          background: #16a34a;
+          color: #ffffff;
+        }
+        .btn-cancel-apt {
+          background: #e5e7eb;
+          color: #111827;
+        }
+        .btn-danger {
+          background: #dc2626;
+          color: #ffffff;
+        }
+        tr.apt-editing {
+          background: #f9fafb;
+        }
+      </style>
+
+      {% if apartments %}
+        <div style="width:100%; overflow-x:auto;">
+          <table style="width:100%; border-collapse:collapse; font-size:12px;">
+            <thead>
+              <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
+                <th style="text-align:left; padding:6px 4px;">Blok</th>
+                <th style="text-align:left; padding:6px 4px;">Kat</th>
+                <th style="text-align:left; padding:6px 4px;">No</th>
+                <th style="text-align:left; padding:6px 4px;">m²</th>
+                <th style="text-align:left; padding:6px 4px;">Mülk Sahibi</th>
+                <th style="text-align:left; padding:6px 4px;">Telefon</th>
+                <th style="text-align:left; padding:6px 4px;">Not</th>
+                <th style="text-align:left; padding:6px 4px;">İşlemler</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for apt in apartments %}
+                <tr class="apt-row" data-apartment-id="{{ apt.id }}" style="border-bottom:1px solid #f3f4f6;">
+                  <td data-field="block" style="padding:6px 4px; white-space:nowrap;">{{ apt.block }}</td>
+                  <td data-field="floor" style="padding:6px 4px; white-space:nowrap;">{{ apt.floor }}</td>
+                  <td data-field="number" style="padding:6px 4px; white-space:nowrap;">{{ apt.number }}</td>
+                  <td data-field="area_m2" style="padding:6px 4px; white-space:nowrap;">
+                    {% if apt.area_m2 %}
+                      {{ "%.0f"|format(apt.area_m2) }}
+                    {% else %}
+                      <span style="color:#9ca3af;">-</span>
+                    {% endif %}
+                  </td>
+                  <td data-field="owner_name" style="padding:6px 4px;">
+                    {% if apt.owner_name %}
+                      {{ apt.owner_name }}
+                    {% else %}
+                      <span style="color:#9ca3af;">Belirtilmemiş</span>
+                    {% endif %}
+                  </td>
+                  <td data-field="owner_phone" style="padding:6px 4px; white-space:nowrap;">
+                    {% if apt.owner_phone %}
+                      {{ apt.owner_phone }}
+                    {% else %}
+                      <span style="color:#9ca3af;">-</span>
+                    {% endif %}
+                  </td>
+                  <td data-field="notes" style="padding:6px 4px; max-width:200px;">
+                    {% if apt.notes %}
+                      <span style="display:inline-block; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                        {{ apt.notes }}
+                      </span>
+                    {% else %}
+                      <span style="color:#9ca3af;">-</span>
+                    {% endif %}
+                  </td>
+                  <td style="padding:6px 4px; white-space:nowrap;">
+                    <button type="button" class="btn-table btn-edit-apt">Düzenle</button>
+                    <button type="button" class="btn-table btn-save-apt" style="display:none;">Kaydet</button>
+                    <button type="button" class="btn-table btn-cancel-apt" style="display:none;">Vazgeç</button>
+
+                    <form method="post"
+                          action="{{ url_for('admin.delete_apartment', apartment_id=apt.id) }}"
+                          style="display:inline;">
+                      <button type="submit"
+                              class="btn-table btn-danger"
+                              onclick="return confirm('Bu daireyi silmek istediğinize emin misiniz?');">
+                        Sil
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p style="font-size:13px; color:#6b7280;">Henüz tanımlı daire bulunmuyor.</p>
+      {% endif %}
+    </div>
+  </section>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  /* === YENİ DAİRE FORMUNU AÇ/KAPA === */
+  const toggleBtn = document.querySelector(".btn-toggle-new-apt");
+  const formContainer = document.getElementById("new-apt-form");
+
+  if (toggleBtn && formContainer) {
+    let isOpen = false;
+
+    const updateState = () => {
+      if (isOpen) {
+        formContainer.classList.add("is-open");
+        toggleBtn.textContent = "Yeni daire formunu gizle";
+        toggleBtn.setAttribute("aria-expanded", "true");
+      } else {
+        formContainer.classList.remove("is-open");
+        toggleBtn.textContent = "Yeni daire ekle";
+        toggleBtn.setAttribute("aria-expanded", "false");
+      }
+    };
+
+    updateState(); // başlangıçta kapalı
+
+    toggleBtn.addEventListener("click", function () {
+      isOpen = !isOpen;
+      updateState();
+    });
+  }
+
+  /* === DAİRE SATIR İÇİ DÜZENLEME === */
+  const rows = document.querySelectorAll("tr.apt-row");
+
+  rows.forEach(function (row) {
+    const editBtn = row.querySelector(".btn-edit-apt");
+    const saveBtn = row.querySelector(".btn-save-apt");
+    const cancelBtn = row.querySelector(".btn-cancel-apt");
+
+    if (!editBtn) return;
+
+    // Düzenle -> satır içi inputlara çevir
+    editBtn.addEventListener("click", function () {
+      if (row.classList.contains("apt-editing")) return;
+      row.classList.add("apt-editing");
+
+      row.querySelectorAll("td[data-field]").forEach(function (td) {
+        const field = td.dataset.field;
+        const original = td.innerText.trim();
+        td.dataset.original = original;
+
+        const isNotes = field === "notes";
+        let input;
+
+        if (isNotes) {
+          input = document.createElement("textarea");
+          input.rows = 2;
+        } else {
+          input = document.createElement("input");
+          input.type = "text";
+        }
+
+        input.name = field;
+        input.value = (original === "-" || original === "Belirtilmemiş") ? "" : original;
+        input.style.width = "100%";
+        input.style.fontSize = "12px";
+        input.style.padding = "4px 6px";
+        input.style.borderRadius = "6px";
+        input.style.border = "1px solid #d1d5db";
+
+        td.innerHTML = "";
+        td.appendChild(input);
+      });
+
+      editBtn.style.display = "none";
+      saveBtn.style.display = "inline-flex";
+      cancelBtn.style.display = "inline-flex";
+    });
+
+    // Vazgeç -> eski değerleri geri yükle
+    cancelBtn.addEventListener("click", function () {
+      if (!row.classList.contains("apt-editing")) return;
+
+      row.querySelectorAll("td[data-field]").forEach(function (td) {
+        const original = td.dataset.original || "";
+        const field = td.dataset.field;
+
+        if (!original) {
+          if (field === "owner_name") {
+            td.innerHTML = '<span style="color:#9ca3af;">Belirtilmemiş</span>';
+          } else if (field === "owner_phone" || field === "notes" || field === "area_m2") {
+            td.innerHTML = '<span style="color:#9ca3af;">-</span>';
+          } else {
+            td.textContent = "";
+          }
+        } else {
+          td.textContent = original;
+        }
+      });
+
+      row.classList.remove("apt-editing");
+      editBtn.style.display = "inline-flex";
+      saveBtn.style.display = "none";
+      cancelBtn.style.display = "none";
+    });
+
+    // Kaydet -> gizli form ile /admin/apartments/<id>/update'e POST
+    saveBtn.addEventListener("click", function () {
+      const aptId = row.dataset.apartmentId;
+      if (!aptId) return;
+
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = "/admin/apartments/" + encodeURIComponent(aptId) + "/update";
+
+      row.querySelectorAll("td[data-field] input, td[data-field] textarea").forEach(function (input) {
+        const hidden = document.createElement("input");
+        hidden.type = "hidden";
+        hidden.name = input.name;
+        hidden.value = input.value;
+        form.appendChild(hidden);
+      });
+
+      document.body.appendChild(form);
+      form.submit();
+    });
+  });
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,530 @@
+{% extends "base.html" %}
+
+{% block title %}Aidatlar / Borçlar{% endblock %}
+{% block topbar_title %}Aidatlar / Borçlar{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-grid">
+
+  <!-- SOL: YENİ BORÇ / AİDAT EKLE -->
+  <section>
+    <div class="card">
+      <h2 style="font-size:16px; margin-bottom:12px;">Yeni Borç / Aidat Kaydı</h2>
+
+      <form method="post" style="display:flex; flex-direction:column; gap:10px;">
+
+        <div>
+          <label for="apartment_id" style="display:block; font-size:13px; margin-bottom:3px;">Daire</label>
+          <select
+            id="apartment_id"
+            name="apartment_id"
+            style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+            <option value="">Daire seçin...</option>
+            {% for apt in apartments %}
+              <option value="{{ apt.id }}">
+                {{ apt.block }} Blok • Kat {{ apt.floor }} • No {{ apt.number }}
+              </option>
+            {% endfor %}
+          </select>
+
+          <!-- ✅ Tüm daireler için borç -->
+          <label style="display:flex; align-items:center; gap:6px; margin-top:6px; font-size:12px; color:#4b5563;">
+            <input type="checkbox" id="for_all" name="for_all" value="1">
+            Bu borcu tüm daireler için oluştur
+          </label>
+          <p style="font-size:11px; color:#9ca3af; margin-top:2px;">
+            Eğer işaretlerseniz, üstteki daire seçimi yok sayılır ve tüm dairelere aynı borç eklenir.
+          </p>
+        </div>
+
+        <div>
+          <label for="description" style="display:block; font-size:13px; margin-bottom:3px;">Açıklama</label>
+          <input
+            type="text"
+            id="description"
+            name="description"
+            required
+            placeholder="Örn: Ocak 2026 Aidatı"
+            style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px;">
+          <div>
+            <label for="amount" style="display:block; font-size:13px; margin-bottom:3px;">Tutar (₺)</label>
+            <input
+              type="text"
+              id="amount"
+              name="amount"
+              required
+              placeholder="Örn: 750"
+              style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+          </div>
+
+          <div>
+            <label for="due_date" style="display:block; font-size:13px; margin-bottom:3px;">Vade Tarihi</label>
+            <input
+              type="date"
+              id="due_date"
+              name="due_date"
+              style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+          </div>
+        </div>
+
+        <div>
+          <label for="type" style="display:block; font-size:13px; margin-bottom:3px;">Tür (opsiyonel)</label>
+          <select
+            id="type"
+            name="type"
+            style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+            <option value="">Seçilmedi</option>
+            <option value="aidat">Aidat</option>
+            <option value="elektrik">Elektrik</option>
+            <option value="su">Su</option>
+            <option value="dogalgaz">Doğalgaz</option>
+            <option value="ekstra">Ekstra Gider</option>
+          </select>
+        </div>
+
+        <div style="margin-top:4px;">
+          <button type="submit"
+                  style="padding:8px 12px; border-radius:999px; border:none; background:#2563eb; color:white; font-size:13px; cursor:pointer;">
+            Borç Kaydını Oluştur
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </section>
+  <!-- SAĞ: BORÇ / AİDAT LİSTESİ + ÖZET -->
+  <section>
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <h2 style="font-size:16px;">Mevcut Borç / Aidat Kayıtları</h2>
+
+        <!-- 🔎 Filtre Formu -->
+        <form method="get" style="display:flex; gap:6px; align-items:center; font-size:11px;">
+          <input type="hidden" name="sort" value="{{ current_sort }}">
+          <input type="hidden" name="dir" value="{{ current_dir }}">
+
+          <label style="color:#6b7280;">Durum</label>
+          <select name="status"
+                  style="padding:4px 6px; border-radius:999px; border:1px solid #e5e7eb; font-size:11px;">
+            <option value="" {{ '' == filter_status and 'selected' or '' }}>Hepsi</option>
+            <option value="open" {{ filter_status == 'open' and 'selected' or '' }}>Açık</option>
+            <option value="partial" {{ filter_status == 'partial' and 'selected' or '' }}>Kısmi</option>
+            <option value="paid" {{ filter_status == 'paid' and 'selected' or '' }}>Ödendi</option>
+          </select>
+
+          <label style="color:#6b7280;">Tür</label>
+          <select name="bill_type"
+                  style="padding:4px 6px; border-radius:999px; border:1px solid #e5e7eb; font-size:11px;">
+            <option value="" {{ '' == filter_type and 'selected' or '' }}>Hepsi</option>
+            <option value="aidat" {{ filter_type == 'aidat' and 'selected' or '' }}>Aidat</option>
+            <option value="elektrik" {{ filter_type == 'elektrik' and 'selected' or '' }}>Elektrik</option>
+            <option value="su" {{ filter_type == 'su' and 'selected' or '' }}>Su</option>
+            <option value="dogalgaz" {{ filter_type == 'dogalgaz' and 'selected' or '' }}>Doğalgaz</option>
+            <option value="ekstra" {{ filter_type == 'ekstra' and 'selected' or '' }}>Ekstra Gider</option>
+          </select>
+
+          <button type="submit"
+                  style="padding:4px 10px; border-radius:999px; border:none; background:#2563eb; color:white; cursor:pointer;">
+            Filtrele
+          </button>
+        </form>
+      </div>
+
+      {% if bills %}
+        <div style="width:100%; overflow-x:auto;">
+          <table style="width:100%; border-collapse:collapse; font-size:12px;">
+            <thead>
+              <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
+
+                {# Başlıklara tıklayınca sıralama #}
+                {% macro sort_link(label, field) %}
+                  {%- set is_current = (current_sort == field) -%}
+                  {%- set next_dir = 'asc' if (not is_current or current_dir == 'desc') else 'desc' -%}
+                  <a href="{{ url_for('admin.manage_bills',
+                                      sort=field,
+                                      dir=next_dir,
+                                      page=1,
+                                      status=filter_status,
+                                      bill_type=filter_type) }}"
+                     style="color:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:3px;">
+                    <span>{{ label }}</span>
+                    {% if is_current %}
+                      <span style="font-size:10px;">{{ '▲' if current_dir == 'asc' else '▼' }}</span>
+                    {% endif %}
+                  </a>
+                {% endmacro %}
+
+                <th style="text-align:left; padding:6px 4px;">
+                  {{ sort_link('Daire', 'apartment') }}
+                </th>
+                <th style="text-align:left; padding:6px 4px;">
+                  {{ sort_link('Açıklama', 'description') }}
+                </th>
+                <th style="text-align:left; padding:6px 4px;">
+                  {{ sort_link('Tür', 'type') }}
+                </th>
+                <th style="text-align:left; padding:6px 4px;">
+                  {{ sort_link('Tutar', 'amount') }}
+                </th>
+                <th style="text-align:left; padding:6px 4px;">
+                  {{ sort_link('Vade', 'due_date') }}
+                </th>
+                <th style="text-align:left; padding:6px 4px;">
+                  {{ sort_link('Durum', 'status') }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for bill, apt in bills %}
+                <tr style="border-bottom:1px solid #f3f4f6;">
+                  <td style="padding:6px 4px; white-space:nowrap;">
+                    {{ apt.block }} Blok • {{ apt.floor }}/{{ apt.number }}
+                  </td>
+                  <td style="padding:6px 4px;">
+                    {{ bill.description }}
+                  </td>
+                  <td style="padding:6px 4px; white-space:nowrap;">
+                    {% if bill.type %}
+                      {{ bill.type|capitalize }}
+                    {% else %}
+                      <span style="color:#9ca3af;">Belirtilmedi</span>
+                    {% endif %}
+                  </td>
+                  <td style="padding:6px 4px; white-space:nowrap;">
+                    ₺ {{ "%.2f"|format(bill.amount) }}
+                  </td>
+                  <td style="padding:6px 4px; white-space:nowrap;">
+                    {% if bill.due_date %}
+                      {{ bill.due_date.strftime('%d.%m.%Y') }}
+                    {% else %}
+                      <span style="color:#9ca3af;">Yok</span>
+                    {% endif %}
+                  </td>
+                  <td style="padding:6px 4px; white-space:nowrap;">
+                    {% if bill.status == 'paid' %}
+                      <span style="padding:2px 8px; border-radius:999px; background:#dcfce7; color:#15803d;">Ödendi</span>
+                    {% elif bill.status == 'partial' %}
+                      <span style="padding:2px 8px; border-radius:999px; background:#fef9c3; color:#854d0e;">Kısmi</span>
+                    {% else %}
+                      <span style="padding:2px 8px; border-radius:999px; background:#fee2e2; color:#b91c1c;">Açık</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 📄 Sayfalama -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:12px; color:#6b7280;">
+          <div>
+            Toplam {{ total_bills }} kayıt •
+            Sayfa {{ page }} / {{ pages }}
+          </div>
+          <div style="display:flex; gap:4px;">
+            {% if page > 1 %}
+              <a href="{{ url_for('admin.manage_bills',
+                                  page=1,
+                                  sort=current_sort,
+                                  dir=current_dir,
+                                  status=filter_status,
+                                  bill_type=filter_type) }}"
+                 style="padding:3px 8px; border-radius:999px; border:1px solid #e5e7eb; text-decoration:none; color:#374151;">
+                İlk
+              </a>
+              <a href="{{ url_for('admin.manage_bills',
+                                  page=page-1,
+                                  sort=current_sort,
+                                  dir=current_dir,
+                                  status=filter_status,
+                                  bill_type=filter_type) }}"
+                 style="padding:3px 8px; border-radius:999px; border:1px solid #e5e7eb; text-decoration:none; color:#374151;">
+                Önceki
+              </a>
+            {% endif %}
+
+            {% if page < pages %}
+              <a href="{{ url_for('admin.manage_bills',
+                                  page=page+1,
+                                  sort=current_sort,
+                                  dir=current_dir,
+                                  status=filter_status,
+                                  bill_type=filter_type) }}"
+                 style="padding:3px 8px; border-radius:999px; border:1px solid #e5e7eb; text-decoration:none; color:#374151;">
+                Sonraki
+              </a>
+              <a href="{{ url_for('admin.manage_bills',
+                                  page=pages,
+                                  sort=current_sort,
+                                  dir=current_dir,
+                                  status=filter_status,
+                                  bill_type=filter_type) }}"
+                 style="padding:3px 8px; border-radius:999px; border:1px solid #e5e7eb; text-decoration:none; color:#374151;">
+                Son
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      {% else %}
+        <p style="font-size:13px; color:#6b7280;">
+          Henüz kayıtlı bir borç / aidat bulunmuyor. Soldaki formdan ilk kaydı ekleyebilirsiniz.
+        </p>
+      {% endif %}
+    </div>
+
+
+    <!-- ✅ DAİRE BAZINDA TOPLAM BORÇ ÖZETİ -->
+    <div class="card">
+      <h2 style="font-size:16px; margin-bottom:10px;">Daire Bazında Toplam Borç Özeti</h2>
+
+      {% if apartment_summaries %}
+        <div style="width:100%; overflow-x:auto;">
+          <table style="width:100%; border-collapse:separate; border-spacing:0 6px; font-size:12px;">
+            <thead>
+              <tr style="background:#f9fafb;">
+                <th style="text-align:left; padding:6px 8px;">Daire</th>
+                <th style="text-align:center; padding:6px 8px;">Borç Türleri</th>
+                <th style="text-align:right; padding:6px 8px;">Toplam</th>
+                <th style="text-align:right; padding:6px 8px;">Ödenen</th>
+                <th style="text-align:right; padding:6px 8px;">Kalan</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for row in apartment_summaries %}
+                {% set has_debt = row.remaining > 0 %}
+                <tr>
+                  <td colspan="5" style="padding:0;">
+                    <div style="
+                      display:grid;
+                      grid-template-columns: 1.2fr 2fr 1fr 1fr 1fr;
+                      padding:8px 10px;
+                      border-radius:12px;
+                      border:1px solid {{ '#fee2e2' if has_debt else '#dcfce7' }};
+                      background:{{ '#fef2f2' if has_debt else '#f0fdf4' }};
+                    ">
+
+                      <!-- Daire -->
+                      <div style="font-weight:600;">
+                        {{ row.apartment.block }} Blok • {{ row.apartment.floor }}/{{ row.apartment.number }}
+                      </div>
+
+                      <!-- 🔹 Tür + Tutar listesi -->
+                      <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                        {% for t,val in row.type_totals.items() %}
+                          <span style="
+                            padding:3px 8px;
+                            border-radius:999px;
+                            background:white;
+                            border:1px solid #e5e7eb;
+                            font-size:11px;
+                          ">
+                            {{ t|capitalize }}: ₺ {{ "%.2f"|format(val) }}
+                          </span>
+                        {% endfor %}
+                      </div>
+
+                      <!-- Toplam -->
+                      <div style="text-align:right;">
+                        ₺ {{ "%.2f"|format(row.total_debt) }}
+                      </div>
+
+                      <!-- Ödenen -->
+                      <div style="text-align:right; color:#16a34a;">
+                        ₺ {{ "%.2f"|format(row.total_paid) }}
+                      </div>
+
+                      <!-- Kalan -->
+                      <div style="text-align:right; color:{{ '#b91c1c' if has_debt else '#15803d' }};">
+                        ₺ {{ "%.2f"|format(row.remaining) }}
+                      </div>
+
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+
+          </table>
+        </div>
+      {% else %}
+        <p style="font-size:13px; color:#6b7280;">
+          Henüz özetlenecek borç kaydı bulunmuyor.
+        </p>
+      {% endif %}
+    </div>
+
+
+  </section>
+
+</div>
+
+<!-- ✅ Checkbox işaretliyken daire seçimini devre dışı bırak -->
+<script>
+  (function () {
+    const checkbox = document.getElementById('for_all');
+    const select = document.getElementById('apartment_id');
+    if (!checkbox || !select) return;
+
+    function sync() {
+      if (checkbox.checked) {
+        select.value = '';
+        select.disabled = true;
+      } else {
+        select.disabled = false;
+      }
+    }
+
+    checkbox.addEventListener('change', sync);
+    // Sayfa yüklenince ilk durumu ayarla
+    sync();
+  })();
+</script>
+<script>
+  // Satırı "view" moddan "edit" moda al
+  function enterEditMode(rowId) {
+    const row = document.querySelector(`.bill-row[data-row-id="${rowId}"]`);
+    if (!row) return;
+
+    row.classList.add("editing");
+
+    // Inputları aktif et
+    row.querySelectorAll(".bill-input-text").forEach(inp => {
+      inp.readOnly = false;
+      inp.style.border = "1px solid #e5e7eb";
+      inp.style.background = "#ffffff";
+    });
+
+    row.querySelectorAll(".bill-input-select").forEach(sel => {
+      sel.disabled = false;
+      sel.style.border = "1px solid #e5e7eb";
+      sel.style.background = "#ffffff";
+    });
+
+    // Buton görünürlükleri
+    const btnEdit = row.querySelector(".btn-bill-edit");
+    const btnSave = row.querySelector(".btn-bill-save");
+    const btnCancel = row.querySelector(".btn-bill-cancel");
+
+    if (btnEdit) btnEdit.style.display = "none";
+    if (btnSave) btnSave.style.display = "inline-block";
+    if (btnCancel) btnCancel.style.display = "inline-block";
+
+    // Eski değerleri data-* olarak sakla (Vazgeç için)
+    row.querySelectorAll(".bill-input").forEach(inp => {
+      inp.dataset.originalValue = inp.value;
+    });
+  }
+
+  // Satırı tekrar "view" moda al ve değişiklikleri geri al (Vazgeç)
+  function cancelEditMode(rowId) {
+    const row = document.querySelector(`.bill-row[data-row-id="${rowId}"]`);
+    if (!row) return;
+
+    row.classList.remove("editing");
+
+    row.querySelectorAll(".bill-input").forEach(inp => {
+      if (inp.dataset.originalValue !== undefined) {
+        inp.value = inp.dataset.originalValue;
+      }
+      if (inp.classList.contains("bill-input-text")) {
+        inp.readOnly = true;
+        inp.style.border = "none";
+        inp.style.background = "transparent";
+      }
+      if (inp.classList.contains("bill-input-select")) {
+        inp.disabled = true;
+        inp.style.border = "none";
+        inp.style.background = "transparent";
+      }
+    });
+
+    const btnEdit = row.querySelector(".btn-bill-edit");
+    const btnSave = row.querySelector(".btn-bill-save");
+    const btnCancel = row.querySelector(".btn-bill-cancel");
+
+    if (btnEdit) btnEdit.style.display = "inline-block";
+    if (btnSave) btnSave.style.display = "none";
+    if (btnCancel) btnCancel.style.display = "none";
+  }
+
+  // Girilen tarihleri normalize et (1.1.2026 / 01-01-2026 / 2026/1/1 → 2026-01-01)
+  function normalizeDateString(text) {
+    if (!text) return "";
+
+    const raw = text.trim();
+
+    // Zaten 2026-01-05 gibi ise dokunma
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+      return raw;
+    }
+
+    // GG.AA.YYYY veya GG/AA/YYYY veya GG-AA-YYYY
+    let m = raw.match(/^(\d{1,2})[.\-\/](\d{1,2})[.\-\/](\d{2,4})$/);
+    if (m) {
+      let d = m[1].padStart(2, "0");
+      let mo = m[2].padStart(2, "0");
+      let y = m[3];
+      if (y.length === 2) {
+        // 2 haneli yıl gelirse 20xx varsayımı
+        y = "20" + y;
+      }
+      return `${y}-${mo}-${d}`;
+    }
+
+    // YYYY/MM/DD veya YYYY.MM.DD
+    m = raw.match(/^(\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})$/);
+    if (m) {
+      let y = m[1];
+      let mo = m[2].padStart(2, "0");
+      let d = m[3].padStart(2, "0");
+      return `${y}-${mo}-${d}`;
+    }
+
+    // Hiçbirine uymuyorsa olduğu gibi dön (backend de tekrar deneyecek)
+    return raw;
+  }
+
+  // Form gönderilmeden önce tarih input'unu normalize et
+  function attachFormHandlers() {
+    document.querySelectorAll(".bill-edit-form").forEach(form => {
+      form.addEventListener("submit", function (e) {
+        const row = form.closest(".bill-row");
+        if (!row) return;
+
+        const dateInput = row.querySelector(".bill-input-date");
+        if (dateInput) {
+          const normalized = normalizeDateString(dateInput.value);
+          dateInput.value = normalized;
+        }
+      });
+    });
+  }
+
+  // Event binding
+  document.addEventListener("DOMContentLoaded", function () {
+    // Düzenle butonları
+    document.querySelectorAll(".btn-bill-edit").forEach(btn => {
+      btn.addEventListener("click", function () {
+        const rowId = btn.dataset.rowId;
+        enterEditMode(rowId);
+      });
+    });
+
+    // Vazgeç butonları
+    document.querySelectorAll(".btn-bill-cancel").forEach(btn => {
+      btn.addEventListener("click", function () {
+        const rowId = btn.dataset.rowId;
+        cancelEditMode(rowId);
+      });
+    });
+
+    attachFormHandlers();
+  });
+</script>
+
+{% endblock %}

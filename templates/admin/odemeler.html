@@ -1,0 +1,426 @@
+{% extends "base.html" %}
+
+{% block title %}Ödeme Yönetimi{% endblock %}
+{% block topbar_title %}Ödeme Yönetimi{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-grid">
+
+  <!-- SOL: YENİ ÖDEME EKLE -->
+  <section>
+    <div class="card">
+      <h2 style="font-size:16px; margin-bottom:12px;">Yeni Ödeme Kaydı</h2>
+
+      <form method="post" style="display:flex; flex-direction:column; gap:10px;">
+
+        <div>
+          <label for="apartment_id" style="display:block; font-size:13px; margin-bottom:3px;">Daire</label>
+          <select
+            id="apartment_id"
+            name="apartment_id"
+            required
+            style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+            <option value="">Daire seçin...</option>
+            {% for apt in apartments %}
+              <option value="{{ apt.id }}">
+                {{ apt.block }} Blok • Kat {{ apt.floor }} • No {{ apt.number }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Borç türü -->
+        <div>
+          <label for="bill_type" style="display:block; font-size:13px; margin-bottom:3px;">Borç Türü</label>
+          <select
+            id="bill_type"
+            name="bill_type"
+            required
+            style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+            <option value="aidat">Aidat</option>
+            <option value="elektrik">Elektrik</option>
+            <option value="su">Su</option>
+            <option value="dogalgaz">Doğalgaz</option>
+            <option value="ekstra">Ekstra Gider</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="user_id" style="display:block; font-size:13px; margin-bottom:3px;">Ödemeyi Yapan (opsiyonel)</label>
+          <select
+            id="user_id"
+            name="user_id"
+            style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+            <option value="">Belirtilmedi</option>
+            {% for u in users %}
+              <option value="{{ u.id }}">{{ u.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px;">
+          <div>
+            <label for="amount" style="display:block; font-size:13px; margin-bottom:3px;">Tutar (₺)</label>
+            <input
+              type="text"
+              id="amount"
+              name="amount"
+              required
+              placeholder="Örn: 500"
+              style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+          </div>
+
+          <div>
+            <label for="payment_date" style="display:block; font-size:13px; margin-bottom:3px;">Ödeme Tarihi</label>
+            <input
+              type="date"
+              id="payment_date"
+              name="payment_date"
+              style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+          </div>
+        </div>
+
+        <div>
+          <label for="method" style="display:block; font-size:13px; margin-bottom:3px;">Ödeme Yöntemi (opsiyonel)</label>
+          <select
+            id="method"
+            name="method"
+            style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+            <option value="">Seçilmedi</option>
+            <option value="nakit">Nakit</option>
+            <option value="banka">Banka Havalesi / EFT</option>
+            <option value="pos">POS / Kredi Kartı</option>
+            <option value="online">Online Ödeme</option>
+          </select>
+        </div>
+
+        <div style="margin-top:4px;">
+          <button type="submit"
+                  style="padding:8px 12px; border-radius:999px; border:none; background:#16a34a; color:white; font-size:13px; cursor:pointer;">
+            Ödemeyi Kaydet
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </section>
+
+  <!-- SAĞ: ÖDEME LİSTESİ -->
+  <section>
+    <div class="card">
+      <h2 style="font-size:16px; margin-bottom:10px;">Kayıtlı Ödemeler</h2>
+
+      {% if payments %}
+        <div style="width:100%; overflow-x:auto;">
+          <table style="width:100%; border-collapse:collapse; font-size:12px;">
+            <thead>
+              <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
+                <th style="text-align:left; padding:6px 4px;">Daire</th>
+                <th style="text-align:left; padding:6px 4px;">Ödeyen</th>
+                <th style="text-align:left; padding:6px 4px;">İlgili Borç</th>
+                <th style="text-align:left; padding:6px 4px;">Tutar</th>
+                <th style="text-align:left; padding:6px 4px;">Yöntem</th>
+                <th style="text-align:left; padding:6px 4px;">Tarih</th>
+                <th style="text-align:right; padding:6px 4px;">İşlemler</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for payment, apt, user, bill in payments %}
+                <tr class="payment-row"
+                    data-payment-id="{{ payment.id }}"
+                    data-update-url="{{ url_for('admin.update_payment', payment_id=payment.id) }}"
+                    data-delete-url="{{ url_for('admin.delete_payment', payment_id=payment.id) }}"
+                    style="border-bottom:1px solid #f3f4f6;">
+                  <!-- Daire -->
+                  <td style="padding:6px 4px; white-space:nowrap;">
+                    {{ apt.block }} Blok • {{ apt.floor }}/{{ apt.number }}
+                  </td>
+
+                  <!-- Ödeyen -->
+                  <td style="padding:6px 4px; white-space:nowrap;">
+                    {% if user %}
+                      {{ user.name }}
+                    {% else %}
+                      <span style="color:#9ca3af;">Belirtilmedi</span>
+                    {% endif %}
+                  </td>
+
+                  <!-- İlgili Borç: sadece tür -->
+                  <td style="padding:6px 4px;">
+                    {% set t = None %}
+                    {% if bill and bill.type %}
+                      {% set t = bill.type %}
+                    {% elif payment.bill_type is defined and payment.bill_type %}
+                      {% set t = payment.bill_type %}
+                    {% endif %}
+
+                    {% if t %}
+                      {% if t == 'aidat' %}
+                        Aidat
+                      {% elif t == 'elektrik' %}
+                        Elektrik
+                      {% elif t == 'su' %}
+                        Su
+                      {% elif t == 'dogalgaz' %}
+                        Doğalgaz
+                      {% elif t == 'ekstra' %}
+                        Ekstra Gider
+                      {% else %}
+                        {{ t|capitalize }}
+                      {% endif %}
+                    {% else %}
+                      <span style="color:#9ca3af;">Belirtilmedi</span>
+                    {% endif %}
+                  </td>
+
+                  <!-- TUTAR: inline edit -->
+                  <td style="padding:6px 4px; white-space:nowrap; color:#16a34a;">
+                    <span class="editable-view amount-display">
+                      ₺ {{ "%.2f"|format(payment.amount) }}
+                    </span>
+                    <input
+                      type="text"
+                      class="editable-input amount-input"
+                      value="{{ "%.2f"|format(payment.amount) }}"
+                      style="display:none; width:90px; padding:3px 6px; border-radius:6px; border:1px solid #e5e7eb; font-size:11px; text-align:right;">
+                  </td>
+
+                  <!-- YÖNTEM: inline select -->
+                  <td style="padding:6px 4px; white-space:nowrap;">
+                    <span class="editable-view method-display">
+                      {% if payment.method %}
+                        {{ payment.method|capitalize }}
+                      {% else %}
+                        <span style="color:#9ca3af;">-</span>
+                      {% endif %}
+                    </span>
+                    <select
+                      class="editable-input method-input"
+                      style="display:none; padding:3px 6px; border-radius:6px; border:1px solid #e5e7eb; font-size:11px;">
+                      <option value="">Seçilmedi</option>
+                      <option value="nakit" {% if payment.method == 'nakit' %}selected{% endif %}>Nakit</option>
+                      <option value="banka" {% if payment.method == 'banka' %}selected{% endif %}>Banka Havalesi / EFT</option>
+                      <option value="pos" {% if payment.method == 'pos' %}selected{% endif %}>POS / Kredi Kartı</option>
+                      <option value="online" {% if payment.method == 'online' %}selected{% endif %}>Online Ödeme</option>
+                    </select>
+                  </td>
+
+                  <!-- TARİH: inline edit -->
+                  <td style="padding:6px 4px; white-space:nowrap;">
+                    <span class="editable-view date-display">
+                      {% if payment.payment_date %}
+                        {{ payment.payment_date.strftime('%d.%m.%Y') }}
+                      {% else %}
+                        <span style="color:#9ca3af;">-</span>
+                      {% endif %}
+                    </span>
+                    <input
+                      type="text"
+                      class="editable-input date-input"
+                      value="{% if payment.payment_date %}{{ payment.payment_date.strftime('%d.%m.%Y') }}{% endif %}"
+                      placeholder="Örn: 04.01.2026"
+                      style="display:none; width:110px; padding:3px 6px; border-radius:6px; border:1px solid #e5e7eb; font-size:11px;">
+                  </td>
+
+                  <!-- İŞLEMLER -->
+                  <td style="padding:6px 4px; white-space:nowrap; text-align:right;">
+                    <button type="button"
+                            class="btn btn-sm btn-outline-primary me-1 btn-edit"
+                            style="padding:3px 8px; font-size:11px;">
+                      Düzenle
+                    </button>
+                    <button type="button"
+                            class="btn btn-sm btn-outline-danger btn-delete"
+                            style="padding:3px 8px; font-size:11px;">
+                      Sil
+                    </button>
+
+                    <button type="button"
+                            class="btn btn-sm btn-success me-1 btn-save"
+                            style="padding:3px 8px; font-size:11px; display:none;">
+                      Kaydet
+                    </button>
+                    <button type="button"
+                            class="btn btn-sm btn-secondary btn-cancel"
+                            style="padding:3px 8px; font-size:11px; display:none;">
+                      Vazgeç
+                    </button>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p style="font-size:13px; color:#6b7280;">
+          Henüz kayıtlı bir ödeme bulunmuyor. Soldaki formdan ödeme kaydı oluşturabilirsiniz.
+        </p>
+      {% endif %}
+    </div>
+  </section>
+
+</div>
+
+<script>
+  (function () {
+    const rows = document.querySelectorAll(".payment-row");
+    if (!rows.length) return;
+
+    function enterEdit(row) {
+      if (row.dataset.editing === "1") return;
+      row.dataset.editing = "1";
+
+      row.querySelectorAll(".editable-view").forEach(el => el.style.display = "none");
+      row.querySelectorAll(".editable-input").forEach(el => el.style.display = "");
+
+      const editBtn = row.querySelector(".btn-edit");
+      const deleteBtn = row.querySelector(".btn-delete");
+      const saveBtn = row.querySelector(".btn-save");
+      const cancelBtn = row.querySelector(".btn-cancel");
+
+      if (editBtn) editBtn.style.display = "none";
+      if (deleteBtn) deleteBtn.style.display = "none";
+      if (saveBtn) saveBtn.style.display = "";
+      if (cancelBtn) cancelBtn.style.display = "";
+
+      const amountInput = row.querySelector(".amount-input");
+      const methodInput = row.querySelector(".method-input");
+      const dateInput = row.querySelector(".date-input");
+
+      row.dataset.originalAmount = amountInput ? amountInput.value : "";
+      row.dataset.originalMethod = methodInput ? methodInput.value : "";
+      row.dataset.originalDate = dateInput ? dateInput.value : "";
+    }
+
+    function exitEdit(row, restore) {
+      row.dataset.editing = "0";
+
+      const amountInput = row.querySelector(".amount-input");
+      const methodInput = row.querySelector(".method-input");
+      const dateInput = row.querySelector(".date-input");
+
+      if (restore) {
+        if (amountInput) amountInput.value = row.dataset.originalAmount || "";
+        if (methodInput) methodInput.value = row.dataset.originalMethod || "";
+        if (dateInput) dateInput.value = row.dataset.originalDate || "";
+      }
+
+      row.querySelectorAll(".editable-view").forEach(el => el.style.display = "");
+      row.querySelectorAll(".editable-input").forEach(el => el.style.display = "none");
+
+      const editBtn = row.querySelector(".btn-edit");
+      const deleteBtn = row.querySelector(".btn-delete");
+      const saveBtn = row.querySelector(".btn-save");
+      const cancelBtn = row.querySelector(".btn-cancel");
+
+      if (editBtn) editBtn.style.display = "";
+      if (deleteBtn) deleteBtn.style.display = "";
+      if (saveBtn) saveBtn.style.display = "none";
+      if (cancelBtn) cancelBtn.style.display = "none";
+    }
+
+    rows.forEach(row => {
+      const editBtn = row.querySelector(".btn-edit");
+      const deleteBtn = row.querySelector(".btn-delete");
+      const saveBtn = row.querySelector(".btn-save");
+      const cancelBtn = row.querySelector(".btn-cancel");
+
+      if (editBtn) {
+        editBtn.addEventListener("click", () => enterEdit(row));
+      }
+
+      if (cancelBtn) {
+        cancelBtn.addEventListener("click", () => exitEdit(row, true));
+      }
+
+      if (saveBtn) {
+        saveBtn.addEventListener("click", async () => {
+          const updateUrl = row.dataset.updateUrl;
+          if (!updateUrl) return;
+
+          const amountInput = row.querySelector(".amount-input");
+          const methodInput = row.querySelector(".method-input");
+          const dateInput = row.querySelector(".date-input");
+
+          const body = new URLSearchParams();
+          body.append("amount", amountInput ? amountInput.value.trim() : "");
+          body.append("method", methodInput ? methodInput.value.trim() : "");
+          body.append("payment_date", dateInput ? dateInput.value.trim() : "");
+
+          try {
+            const res = await fetch(updateUrl, {
+              method: "POST",
+              headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+              },
+              body
+            });
+
+            const data = await res.json();
+            if (!data.ok) {
+              alert(data.error || "Güncelleme başarısız.");
+              return;
+            }
+
+            const amountDisplay = row.querySelector(".amount-display");
+            const dateDisplay = row.querySelector(".date-display");
+            const methodDisplay = row.querySelector(".method-display");
+
+            if (amountDisplay && data.amount) {
+              amountDisplay.textContent = data.amount;
+            }
+            if (dateDisplay) {
+              if (data.payment_date) {
+                dateDisplay.textContent = data.payment_date;
+              } else {
+                dateDisplay.innerHTML = '<span style="color:#9ca3af;">-</span>';
+              }
+            }
+            if (methodDisplay && methodInput) {
+              const opt = methodInput.options[methodInput.selectedIndex];
+              if (methodInput.value) {
+                methodDisplay.textContent = opt ? opt.textContent : methodInput.value;
+              } else {
+                methodDisplay.innerHTML = '<span style="color:#9ca3af;">-</span>';
+              }
+            }
+
+            exitEdit(row, false);
+          } catch (err) {
+            console.error(err);
+            alert("Ödeme güncellenirken bir hata oluştu.");
+          }
+        });
+      }
+
+      if (deleteBtn) {
+        deleteBtn.addEventListener("click", async () => {
+          const deleteUrl = row.dataset.deleteUrl;
+          if (!deleteUrl) return;
+
+          if (!confirm("Bu ödeme kaydını silmek istediğinizden emin misiniz?")) return;
+
+          try {
+            const res = await fetch(deleteUrl, {
+              method: "POST",
+              headers: { "X-Requested-With": "XMLHttpRequest" },
+            });
+            const data = await res.json();
+            if (!data.ok) {
+              alert(data.error || "Ödeme silinemedi.");
+              return;
+            }
+            row.remove();
+          } catch (err) {
+            console.error(err);
+            alert("Ödeme silinirken bir hata oluştu.");
+          }
+        });
+      }
+    });
+  })();
+</script>
+
+{% endblock %}

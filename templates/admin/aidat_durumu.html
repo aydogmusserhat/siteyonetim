@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Aidat Durumu{% endblock %}
+{% block topbar_title %}Yıllık Aidat Durumu{% endblock %}
+
+{% block content %}
+
+<div class="card" style="overflow-x:auto;">
+
+  <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap;">
+    <div>
+      <h2 style="font-size:16px; margin:0 0 4px;">Daire Bazlı Aidat Tablosu</h2>
+      <p style="font-size:12px; color:#6b7280; margin:0;">
+        Her satır bir daireyi, sütunlar Ocak–Aralık aylarını gösterir. Varsa daireye atanmış sakin bilgisi sol tarafta gösterilir.
+      </p>
+    </div>
+
+    <form method="get" style="display:flex; gap:6px; align-items:center;">
+      <label for="year" style="font-size:12px; color:#4b5563;">Yıl:</label>
+      <input
+        type="number"
+        id="year"
+        name="year"
+        value="{{ year }}"
+        min="{{ current_year - 5 }}"
+        max="{{ current_year + 1 }}"
+        style="width:80px; padding:5px 7px; border-radius:999px; border:1px solid #e5e7eb; font-size:12px; text-align:center;">
+      <button type="submit"
+              style="padding:6px 10px; border-radius:999px; border:none; background:#2563eb; color:white; font-size:12px; cursor:pointer;">
+        Göster
+      </button>
+    </form>
+  </div>
+
+  {% if rows %}
+    <div style="width:100%; overflow-x:auto;">
+      <table style="border-collapse:collapse; min-width:720px; font-size:11px;">
+        <thead>
+          <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
+            <th style="text-align:left; padding:6px 6px;">Daire</th>
+            <th style="text-align:left; padding:6px 6px;">Sakin</th>
+            {% for m_num, m_label in months %}
+              <th style="text-align:center; padding:6px 4px; min-width:60px;">{{ m_label }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            {% set apt = row.apartment %}
+            {% set res = row.resident %}
+            <tr style="border-bottom:1px solid #f3f4f6;">
+              <!-- Daire -->
+              <td style="padding:6px 6px; white-space:nowrap;">
+                {% if apt %}
+                  {{ apt.block }} Blok • {{ apt.floor }}/{{ apt.number }}
+                  {% if apt.owner_name %}
+                    <div style="font-size:10px; color:#9ca3af;">
+                      Mal Sahibi: {{ apt.owner_name }}
+                    </div>
+                  {% endif %}
+                {% else %}
+                  <span style="color:#9ca3af;">(Tanımsız daire)</span>
+                {% endif %}
+              </td>
+
+              <!-- Sakin bilgisi -->
+              <td style="padding:6px 6px; white-space:nowrap;">
+                {% if res %}
+                  {{ res.name }}
+                  <div style="font-size:10px; color:#9ca3af;">
+                    {{ res.email }}
+                  </div>
+                {% else %}
+                  <span style="color:#9ca3af; font-size:11px;">Atanmış sakin yok</span>
+                {% endif %}
+              </td>
+
+              <!-- Aylar -->
+              {% for m_num, m_label in months %}
+                {% set st = row.monthly[m_num] %}
+                <td style="padding:4px 4px; text-align:center;">
+                  {% if st == 'paid' %}
+                    <span style="display:inline-flex; align-items:center; justify-content:center;
+                                 padding:3px 6px; border-radius:999px; font-size:10px;
+                                 background:#dcfce7; color:#15803d;">
+                      Ödendi
+                    </span>
+                  {% elif st == 'partial' %}
+                    <span style="display:inline-flex; align-items:center; justify-content:center;
+                                 padding:3px 6px; border-radius:999px; font-size:10px;
+                                 background:#fef9c3; color:#854d0e;">
+                      Kısmi
+                    </span>
+                  {% elif st == 'open' %}
+                    <span style="display:inline-flex; align-items:center; justify-content:center;
+                                 padding:3px 6px; border-radius:999px; font-size:10px;
+                                 background:#fee2e2; color:#b91c1c;">
+                      Ödenmedi
+                    </span>
+                  {% else %}
+                    <span style="display:inline-flex; align-items:center; justify-content:center;
+                                 padding:3px 6px; border-radius:999px; font-size:10px;
+                                 background:#f3f4f6; color:#9ca3af;">
+                      -
+                    </span>
+                  {% endif %}
+                </td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div style="margin-top:10px; font-size:11px; color:#6b7280; display:flex; flex-wrap:wrap; gap:10px;">
+      <div><span style="display:inline-block; width:12px; height:12px; border-radius:999px; background:#dcfce7; border:1px solid #bbf7d0; margin-right:4px;"></span>Ödendi</div>
+      <div><span style="display:inline-block; width:12px; height:12px; border-radius:999px; background:#fef9c3; border:1px solid #fef3c7; margin-right:4px;"></span>Kısmi</div>
+      <div><span style="display:inline-block; width:12px; height:12px; border-radius:999px; background:#fee2e2; border:1px solid #fecaca; margin-right:4px;"></span>Ödenmedi</div>
+      <div><span style="display:inline-block; width:12px; height:12px; border-radius:999px; background:#f3f4f6; border:1px solid #e5e7eb; margin-right:4px;"></span>Aidat tanımlı değil</div>
+    </div>
+
+  {% else %}
+    <p style="font-size:13px; color:#6b7280; margin-top:8px;">
+      Görüntülenecek daire veya aidat kaydı bulunamadı.
+    </p>
+  {% endif %}
+</div>
+
+{% endblock %}

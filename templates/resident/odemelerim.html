@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Ödemelerim{% endblock %}
+{% block topbar_title %}Ödeme Geçmişim{% endblock %}
+
+{% block content %}
+
+<div class="card">
+  <h2 style="font-size:16px; margin-bottom:6px;">Ödeme Geçmişiniz</h2>
+
+  {% if apartment %}
+    <p style="font-size:12px; color:#4b5563; margin-bottom:10px;">
+      Daireniz: <strong>{{ apartment.block }} Blok • Kat {{ apartment.floor }} • No {{ apartment.number }}</strong>
+    </p>
+  {% endif %}
+
+  {% if payments %}
+    <div style="width:100%; overflow-x:auto;">
+      <table style="width:100%; border-collapse:collapse; font-size:12px;">
+        <thead>
+          <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
+            <th style="text-align:left; padding:6px 4px;">Tutar</th>
+            <th style="text-align:left; padding:6px 4px;">Tarih</th>
+            <th style="text-align:left; padding:6px 4px;">Yöntem</th>
+            <th style="text-align:left; padding:6px 4px;">İlgili Borç</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for payment, bill in payments %}
+            <tr style="border-bottom:1px solid #f3f4f6;">
+              <td style="padding:6px 4px; white-space:nowrap; color:#16a34a;">
+                ₺ {{ "%.2f"|format(payment.amount) }}
+              </td>
+              <td style="padding:6px 4px; white-space:nowrap;">
+                {% if payment.payment_date %}
+                  {{ payment.payment_date.strftime('%d.%m.%Y') }}
+                {% else %}
+                  <span style="color:#9ca3af;">-</span>
+                {% endif %}
+              </td>
+              <td style="padding:6px 4px; white-space:nowrap;">
+                {% if payment.method %}
+                  {{ payment.method|capitalize }}
+                {% else %}
+                  <span style="color:#9ca3af;">-</span>
+                {% endif %}
+              </td>
+              <td style="padding:6px 4px;">
+                {% if bill %}
+                  #{{ bill.id }} • {{ bill.description }}
+                {% else %}
+                  <span style="color:#9ca3af;">Eşleştirilmemiş</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p style="font-size:13px; color:#6b7280;">
+      Henüz kayıtlı bir ödeme hareketiniz bulunmuyor.
+    </p>
+  {% endif %}
+</div>
+
+{% endblock %}

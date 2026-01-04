@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}Apartman Yönetim Paneli{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar__header">
+      <img src="{{ url_for('static', filename='logo1.png') }}" alt="Logo" class="sidebar__logo-img" style="width:220px; height:150px; object-fit:contain;">
+      <button class="sidebar__close-btn" id="sidebarCloseBtn" aria-label="Menüyü kapat">
+        ✕
+      </button>
+    </div>
+
+    <div class="sidebar__user">
+      {% if session.get("user_name") %}
+        <div class="sidebar__user-name">{{ session.get("user_name") }}</div>
+        <div class="sidebar__user-role">
+          {% if session.get("user_role") == "admin" %}
+            Yönetici
+          {% elif session.get("user_role") == "resident" %}
+            Sakin
+          {% else %}
+            Kullanıcı
+          {% endif %}
+        </div>
+      {% else %}
+        <div class="sidebar__user-name">Misafir</div>
+      {% endif %}
+    </div>
+
+    {% set ep = request.endpoint or '' %}
+
+    <nav class="sidebar__nav">
+      {% if session.get("user_role") == "admin" %}
+        <a href="{{ url_for('admin.dashboard') }}"
+           class="sidebar__link {% if ep == 'admin.dashboard' %}sidebar__link--active{% endif %}">
+          Yönetim Paneli
+        </a>
+
+        <a href="{{ url_for('admin.manage_apartments') }}"
+           class="sidebar__link {% if ep == 'admin.manage_apartments' %}sidebar__link--active{% endif %}">
+          Daireler
+        </a>
+
+        <a href="{{ url_for('admin.manage_users') }}"
+           class="sidebar__link {% if ep == 'admin.manage_users' %}sidebar__link--active{% endif %}">
+          Kullanıcılar
+        </a>
+
+        <a href="{{ url_for('admin.manage_bills') }}"
+           class="sidebar__link {% if ep == 'admin.manage_bills' %}sidebar__link--active{% endif %}">
+          Aidatlar / Borçlar
+        </a>
+
+        <a href="{{ url_for('admin.dues_summary') }}"
+           class="sidebar__link {% if ep == 'admin.dues_summary' %}sidebar__link--active{% endif %}">
+          Aidat Durumu
+        </a>
+
+        <a href="{{ url_for('admin.manage_payments') }}"
+           class="sidebar__link {% if ep == 'admin.manage_payments' %}sidebar__link--active{% endif %}">
+          Ödemeler
+        </a>
+
+        <a href="{{ url_for('admin.manage_tickets') }}"
+           class="sidebar__link {% if ep == 'admin.manage_tickets' %}sidebar__link--active{% endif %}">
+          Talepler
+        </a>
+
+        <a href="{{ url_for('admin.manage_announcements') }}"
+           class="sidebar__link {% if ep == 'admin.manage_announcements' %}sidebar__link--active{% endif %}">
+          Duyurular
+        </a>
+
+        <a href="{{ url_for('admin.settings') }}"
+           class="sidebar__link {% if ep == 'admin.settings' %}sidebar__link--active{% endif %}">
+          Ayarlar
+        </a>
+
+      {% elif session.get("user_role") == "resident" %}
+
+        <a href="{{ url_for('resident.dashboard') }}"
+           class="sidebar__link {% if ep == 'resident.dashboard' %}sidebar__link--active{% endif %}">
+          Ana Panel
+        </a>
+
+        <a href="{{ url_for('resident.borclarim') }}"
+           class="sidebar__link {% if ep == 'resident.borclarim' %}sidebar__link--active{% endif %}">
+          Borçlarım
+        </a>
+
+        <a href="{{ url_for('resident.odemelerim') }}"
+           class="sidebar__link {% if ep == 'resident.odemelerim' %}sidebar__link--active{% endif %}">
+          Ödemelerim
+        </a>
+
+        <a href="{{ url_for('resident.taleplerim') }}"
+           class="sidebar__link {% if ep == 'resident.taleplerim' %}sidebar__link--active{% endif %}">
+          Taleplerim
+        </a>
+
+        <a href="{{ url_for('resident.profil') }}"
+           class="sidebar__link {% if ep == 'resident.profil' %}sidebar__link--active{% endif %}">
+          Profil
+        </a>
+
+      {% else %}
+        <a href="{{ url_for('index') }}" class="sidebar__link">
+          Ana Sayfa
+        </a>
+      {% endif %}
+    </nav>
+
+    {% if session.get("user_id") %}
+      <div class="sidebar__footer">
+        <a href="{{ url_for('auth.logout') }}" class="sidebar__logout-btn">
+          Çıkış Yap
+        </a>
+      </div>
+    {% endif %}
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button class="topbar__menu-btn" id="sidebarToggleBtn" aria-label="Menüyü aç">
+        ☰
+      </button>
+
+      <div class="topbar__title">
+        {% block topbar_title %}
+          Apartman Yönetim Paneli
+        {% endblock %}
+      </div>
+
+      {% if session.get("user_name") %}
+        <div class="topbar__user">
+          <span class="topbar__user-name">{{ session.get("user_name") }}</span>
+          <span class="topbar__user-role">
+            {% if session.get("user_role") == "admin" %}
+              Yönetici
+            {% elif session.get("user_role") == "resident" %}
+              Sakin
+            {% else %}
+              Kullanıcı
+            {% endif %}
+          </span>
+        </div>
+      {% endif %}
+    </header>
+
+    <!-- FLASH MESAJLAR -->
+    <div class="flash-container">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="flash flash--{{ category }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+    </div>
+
+    <!-- SAYFA İÇERİĞİ -->
+    <main class="content">
+      {% block content %}
+        <div class="card">
+          <h1>Hoş geldiniz 👋</h1>
+          <p>
+            Bu ekran, apartman / site yönetim panelinin temel iskeletidir.
+          </p>
+        </div>
+      {% endblock %}
+    </main>
+
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

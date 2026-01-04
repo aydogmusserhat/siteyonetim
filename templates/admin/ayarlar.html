@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Sistem Ayarları{% endblock %}
+{% block topbar_title %}Sistem Ayarları{% endblock %}
+
+{% block content %}
+
+<div class="card">
+  <h2 style="font-size:16px; margin-bottom:10px;">Site / Apartman Bilgileri</h2>
+
+  <form method="post" style="display:flex; flex-direction:column; gap:10px; max-width:540px;">
+
+    <div>
+      <label for="site_name" style="display:block; font-size:13px; margin-bottom:3px;">Site / Apartman Adı</label>
+      <input
+        type="text"
+        id="site_name"
+        name="site_name"
+        value="{{ settings.site_name }}"
+        style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+    </div>
+
+    <div>
+      <label for="address" style="display:block; font-size:13px; margin-bottom:3px;">Adres</label>
+      <textarea
+        id="address"
+        name="address"
+        rows="2"
+        style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px; resize:vertical;">{{ settings.address }}</textarea>
+    </div>
+
+    <div style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px;">
+      <div>
+        <label for="manager_name" style="display:block; font-size:13px; margin-bottom:3px;">Yönetici Adı</label>
+        <input
+          type="text"
+          id="manager_name"
+          name="manager_name"
+          value="{{ settings.manager_name }}"
+          style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+      </div>
+
+      <div>
+        <label for="manager_phone" style="display:block; font-size:13px; margin-bottom:3px;">Telefon</label>
+        <input
+          type="text"
+          id="manager_phone"
+          name="manager_phone"
+          value="{{ settings.manager_phone }}"
+          style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+      </div>
+    </div>
+
+    <div>
+      <label for="manager_email" style="display:block; font-size:13px; margin-bottom:3px;">E-posta</label>
+      <input
+        type="email"
+        id="manager_email"
+        name="manager_email"
+        value="{{ settings.manager_email }}"
+        style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+    </div>
+
+    <!-- ✅ Varsayılan aylık aidat tutarı -->
+    <div>
+      <label for="default_monthly_dues_amount" style="display:block; font-size:13px; margin-bottom:3px;">
+        Varsayılan Aylık Aidat Tutarı (₺)
+      </label>
+      <input
+        type="number"
+        step="0.01"
+        min="0"
+        id="default_monthly_dues_amount"
+        name="default_monthly_dues_amount"
+        value="{{ '%.2f'|format(settings.default_monthly_dues_amount or 0) }}"
+        style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+      <p style="font-size:12px; color:#6b7280; margin-top:4px;">
+        Bu tutar, yeni ay başında tüm daireler için otomatik oluşturulan aidat borçlarında kullanılacaktır.
+      </p>
+    </div>
+
+    <p style="font-size:12px; color:#6b7280; margin-top:4px;">
+      Buradaki bilgiler ve aidat tutarı kaydedildikten sonra sistem genelinde kullanılacaktır.
+    </p>
+
+    <div style="margin-top:4px;">
+      <button type="submit"
+              style="padding:8px 12px; border-radius:999px; border:none; background:#2563eb; color:white; font-size:13px; cursor:pointer;">
+        Kaydet
+      </button>
+    </div>
+
+  </form>
+</div>
+
+{% endblock %}

@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Taleplerim{% endblock %}
+{% block topbar_title %}Taleplerim / Arızalarım{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-grid">
+
+  <!-- SOL: YENİ TALEP -->
+  <section>
+    <div class="card">
+      <h2 style="font-size:16px; margin-bottom:8px;">Yeni Talep Oluştur</h2>
+
+      <form method="post" style="display:flex; flex-direction:column; gap:10px;">
+
+        <div>
+          <label for="title" style="display:block; font-size:13px; margin-bottom:3px;">Başlık</label>
+          <input
+            type="text"
+            id="title"
+            name="title"
+            required
+            placeholder="Örn: Asansör arızası"
+            style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+        </div>
+
+        <div>
+          <label for="description" style="display:block; font-size:13px; margin-bottom:3px;">Açıklama</label>
+          <textarea
+            id="description"
+            name="description"
+            rows="4"
+            required
+            placeholder="Sorunu mümkün olduğunca detaylı açıklayın..."
+            style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px; resize:vertical;"></textarea>
+        </div>
+
+        <div>
+          <label for="priority" style="display:block; font-size:13px; margin-bottom:3px;">Öncelik</label>
+          <select
+            id="priority"
+            name="priority"
+            style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+            <option value="normal">Normal</option>
+            <option value="high">Yüksek</option>
+            <option value="low">Düşük</option>
+          </select>
+        </div>
+
+        <div style="margin-top:4px;">
+          <button type="submit"
+                  style="padding:8px 12px; border-radius:999px; border:none; background:#2563eb; color:white; font-size:13px; cursor:pointer;">
+            Talep Oluştur
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </section>
+
+  <!-- SAĞ: TALEP LİSTESİ -->
+  <section>
+    <div class="card">
+      <h2 style="font-size:16px; margin-bottom:8px;">Mevcut Taleplerim</h2>
+
+      {% if tickets %}
+        <div style="max-height:360px; overflow:auto;">
+          <table style="width:100%; border-collapse:collapse; font-size:12px;">
+            <thead>
+              <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
+                <th style="text-align:left; padding:6px 4px;">Başlık</th>
+                <th style="text-align:left; padding:6px 4px;">Durum</th>
+                <th style="text-align:left; padding:6px 4px;">Öncelik</th>
+                <th style="text-align:left; padding:6px 4px;">Tarih</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for t in tickets %}
+                <tr style="border-bottom:1px solid #f3f4f6;">
+                  <td style="padding:6px 4px; max-width:220px;">
+                    <span style="display:inline-block; max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                      {{ t.title }}
+                    </span>
+                  </td>
+                  <td style="padding:6px 4px; white-space:nowrap;">
+                    {% if t.status == 'closed' %}
+                      <span style="padding:2px 8px; border-radius:999px; background:#dcfce7; color:#15803d;">Kapalı</span>
+                    {% elif t.status == 'in_progress' %}
+                      <span style="padding:2px 8px; border-radius:999px; background:#fef9c3; color:#854d0e;">Devam ediyor</span>
+                    {% else %}
+                      <span style="padding:2px 8px; border-radius:999px; background:#fee2e2; color:#b91c1c;">Açık</span>
+                    {% endif %}
+                  </td>
+                  <td style="padding:6px 4px; white-space:nowrap;">
+                    {% if t.priority == 'high' %}
+                      <span style="color:#b91c1c;">Yüksek</span>
+                    {% elif t.priority == 'low' %}
+                      <span style="color:#15803d;">Düşük</span>
+                    {% else %}
+                      Normal
+                    {% endif %}
+                  </td>
+                  <td style="padding:6px 4px; white-space:nowrap;">
+                    {% if t.created_at %}
+                      {{ t.created_at.strftime('%d.%m.%Y') }}
+                    {% else %}
+                      <span style="color:#9ca3af;">-</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p style="font-size:13px; color:#6b7280;">
+          Henüz bir talep oluşturmadınız.
+        </p>
+      {% endif %}
+    </div>
+  </section>
+
+</div>
+
+{% endblock %}

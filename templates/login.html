@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <title>Giriş Yap - Apartman Yönetimi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body class="login-body">
+
+<div class="login-wrapper">
+  <div class="login-card">
+    <div class="login-card__header">
+      <h1>Apartman Yönetimi</h1>
+      <p>Lütfen hesabınıza giriş yapın.</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="login-card__flash">
+          {% for category, message in messages %}
+            <div class="flash flash--{{ category }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form action="{{ url_for('auth.login') }}" method="post" class="login-form">
+      <div class="form-group">
+        <label for="email">E-posta</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          required
+          placeholder="ornek@site.com"
+          value="{{ email or '' }}"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="password">Şifre</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          required
+          placeholder="Şifrenizi girin"
+        >
+      </div>
+
+      <button type="submit" class="btn btn--primary btn--full">
+        Giriş Yap
+      </button>
+    </form>
+  </div>
+</div>
+
+</body>
+</html>
