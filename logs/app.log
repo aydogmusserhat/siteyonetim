@@ -3142,3 +3142,30 @@ sqlalchemy.exc.IntegrityError: (raised as a result of Query-invoked autoflush; c
 2026-01-04 20:22:27,159 [INFO] werkzeug: 127.0.0.1 - - [04/Jan/2026 20:22:27] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
 2026-01-04 20:22:27,192 [INFO] werkzeug: 127.0.0.1 - - [04/Jan/2026 20:22:27] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
 2026-01-04 20:22:27,210 [INFO] werkzeug: 127.0.0.1 - - [04/Jan/2026 20:22:27] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-04 23:37:36,495 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-01-04 23:37:36,496 [INFO] werkzeug: [33mPress CTRL+C to quit[0m
+2026-01-04 23:37:36,522 [INFO] werkzeug:  * Restarting with watchdog (windowsapi)
+2026-01-04 23:37:37,852 [WARNING] werkzeug:  * Debugger is active!
+2026-01-04 23:37:37,861 [INFO] werkzeug:  * Debugger PIN: 494-376-843
+2026-01-04 23:37:39,216 [INFO] werkzeug: 127.0.0.1 - - [04/Jan/2026 23:37:39] "[32mGET / HTTP/1.1[0m" 302 -
+2026-01-04 23:37:39,537 [INFO] werkzeug: 127.0.0.1 - - [04/Jan/2026 23:37:39] "GET /admin/dashboard HTTP/1.1" 200 -
+2026-01-04 23:37:40,306 [INFO] werkzeug: 127.0.0.1 - - [04/Jan/2026 23:37:40] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-04 23:37:40,345 [INFO] werkzeug: 127.0.0.1 - - [04/Jan/2026 23:37:40] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-04 23:37:40,354 [INFO] werkzeug: 127.0.0.1 - - [04/Jan/2026 23:37:40] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-04 23:40:52,801 [INFO] werkzeug: 127.0.0.1 - - [04/Jan/2026 23:40:52] "GET /admin/dashboard HTTP/1.1" 200 -
+2026-01-04 23:40:52,829 [INFO] werkzeug: 127.0.0.1 - - [04/Jan/2026 23:40:52] "GET /static/css/app.css HTTP/1.1" 200 -
+2026-01-04 23:40:52,834 [INFO] werkzeug: 127.0.0.1 - - [04/Jan/2026 23:40:52] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-04 23:40:52,836 [INFO] werkzeug: 127.0.0.1 - - [04/Jan/2026 23:40:52] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-04 23:50:23,911 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-01-04 23:50:23,911 [INFO] werkzeug: [33mPress CTRL+C to quit[0m
+2026-01-04 23:50:23,926 [INFO] werkzeug:  * Restarting with watchdog (windowsapi)
+2026-01-04 23:50:25,155 [WARNING] werkzeug:  * Debugger is active!
+2026-01-04 23:50:25,161 [INFO] werkzeug:  * Debugger PIN: 494-376-843
+2026-01-04 23:50:26,482 [INFO] werkzeug: 127.0.0.1 - - [04/Jan/2026 23:50:26] "[32mGET / HTTP/1.1[0m" 302 -
+2026-01-04 23:50:26,776 [INFO] werkzeug: 127.0.0.1 - - [04/Jan/2026 23:50:26] "GET /admin/dashboard HTTP/1.1" 200 -
+2026-01-04 23:50:27,522 [INFO] werkzeug: 127.0.0.1 - - [04/Jan/2026 23:50:27] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-04 23:50:27,564 [INFO] werkzeug: 127.0.0.1 - - [04/Jan/2026 23:50:27] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-04 23:50:27,567 [INFO] werkzeug: 127.0.0.1 - - [04/Jan/2026 23:50:27] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-04 23:50:27,656 [INFO] werkzeug: 127.0.0.1 - - [04/Jan/2026 23:50:27] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
