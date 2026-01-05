@@ -4497,3 +4497,29 @@ sqlalchemy.exc.IntegrityError: (raised as a result of Query-invoked autoflush; c
 2026-01-05 21:08:43,280 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 21:08:43] "GET /admin/dashboard HTTP/1.1" 200 -
 2026-01-05 21:08:43,313 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 21:08:43] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
 2026-01-05 21:08:43,315 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 21:08:43] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 21:47:20,294 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-01-05 21:47:20,295 [INFO] werkzeug: [33mPress CTRL+C to quit[0m
+2026-01-05 21:47:20,315 [INFO] werkzeug:  * Restarting with watchdog (windowsapi)
+2026-01-05 21:47:21,759 [WARNING] werkzeug:  * Debugger is active!
+2026-01-05 21:47:21,766 [INFO] werkzeug:  * Debugger PIN: 494-376-843
+2026-01-05 21:47:23,030 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 21:47:23] "[32mGET / HTTP/1.1[0m" 302 -
+2026-01-05 21:47:23,354 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 21:47:23] "GET /admin/dashboard HTTP/1.1" 200 -
+2026-01-05 21:47:23,844 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 21:47:23] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 21:47:23,865 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 21:47:23] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 22:01:09,788 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-01-05 22:01:09,789 [INFO] werkzeug: [33mPress CTRL+C to quit[0m
+2026-01-05 22:01:09,808 [INFO] werkzeug:  * Restarting with watchdog (windowsapi)
+2026-01-05 22:01:11,189 [WARNING] werkzeug:  * Debugger is active!
+2026-01-05 22:01:11,194 [INFO] werkzeug:  * Debugger PIN: 494-376-843
+2026-01-05 22:01:12,449 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 22:01:12] "[32mGET / HTTP/1.1[0m" 302 -
+2026-01-05 22:01:12,774 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 22:01:12] "GET /admin/dashboard HTTP/1.1" 200 -
+2026-01-05 22:01:13,261 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 22:01:13] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 22:01:13,284 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 22:01:13] "GET /static/css/app.css HTTP/1.1" 200 -
+2026-01-05 22:01:36,339 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 22:01:36] "GET /admin/apartments HTTP/1.1" 200 -
+2026-01-05 22:01:36,379 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 22:01:36] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 22:01:36,381 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 22:01:36] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 22:01:47,123 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 22:01:47] "GET /admin/users HTTP/1.1" 200 -
+2026-01-05 22:01:47,154 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 22:01:47] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 22:01:47,160 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 22:01:47] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
