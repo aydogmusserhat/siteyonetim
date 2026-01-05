@@ -11,7 +11,20 @@
   <section>
     <!-- GENEL ÖZET KARTI -->
     <div class="card">
-      <h2 style="font-size:16px; margin-bottom:8px;">Genel Özet</h2>
+      {% set MONTH_TR = {
+          1:"Ocak", 2:"Şubat", 3:"Mart", 4:"Nisan",
+          5:"Mayıs", 6:"Haziran", 7:"Temmuz", 8:"Ağustos",
+          9:"Eylül", 10:"Ekim", 11:"Kasım", 12:"Aralık"
+        } %}
+        <h2 style="font-size:16px; margin-bottom:8px;">
+          Genel Özet
+          <span style="color:#6b7280; font-weight:500;">
+            — {{ MONTH_TR[today.month] }} {{ today.year }}
+          </span>
+        </h2>
+
+
+
       <p style="font-size:13px; color:#6b7280; margin-bottom:10px;">
         Siteye ait daire, kullanıcı, borç ve talep durumunun kısa özeti.
       </p>

@@ -150,15 +150,20 @@ def dashboard():
         "resident_users": 0,
         "admin_users": 0,
         "total_bills": 0,
+        # 👉 Bu kartta gösterilecek: bu ay beklenen gelir - bu ay ödenen
         "total_open_amount": Decimal("0.00"),
+        # 👉 Bu kartta artık sadece bu aya ait ödemeler var
         "total_paid_amount": Decimal("0.00"),
-        "expected_income_this_month": Decimal("0.00"),  # ✅ Bu ay beklenen gelir
+        # 👉 Bu ay oluşturulan borçların toplamı
+        "expected_income_this_month": Decimal("0.00"),
         "open_tickets": 0,
     }
 
-    today = date.today()  # 🔹 bugünün tarihi
+    today = date.today()
 
-    # Apartman / kullanıcı sayıları
+    # =========================
+    #  GENEL SAYILAR
+    # =========================
     try:
         stats["total_apartments"] = Apartment.query.count()
         stats["total_users"] = User.query.count()
@@ -167,57 +172,20 @@ def dashboard():
     except SQLAlchemyError as exc:
         current_app.logger.exception("Dashboard kullanıcı istatistikleri alınamadı: %s", exc)
 
-    # Borç / ödeme özetleri
+    # =========================
+    #  BORÇ / ÖDEME ÖZETLERİ
+    # =========================
     try:
         stats["total_bills"] = Bill.query.count()
 
-        # --- NET AÇIK BORÇ HESABI ---
-
-        # 1) Açık / kısmi borçları al
-        open_bills = Bill.query.filter(Bill.status.in_(["open", "partial"])).all()
-        bill_ids = [b.id for b in open_bills]
-
-        # Brüt borç toplamı
-        total_open_gross = sum(Decimal(b.amount or 0) for b in open_bills)
-
-        # 2) Bu borçlara yapılmış ödemeleri topla
-        total_paid_for_open = Decimal("0")
-        if bill_ids:
-            rows = (
-                db.session.query(
-                    Payment.bill_id,
-                    func.coalesce(func.sum(Payment.amount), 0).label("paid_sum")
-                )
-                .filter(Payment.bill_id.in_(bill_ids))
-                .group_by(Payment.bill_id)
-                .all()
-            )
-            for _bill_id, paid_sum in rows:
-                total_paid_for_open += Decimal(paid_sum or 0)
-
-        # 3) Net açık borç = brüt – ödenen
-        net_open = total_open_gross - total_paid_for_open
-        if net_open < 0:
-            net_open = Decimal("0")  # güvenlik: fazla ödeme durumunda eksiye düşmesin
-
-        stats["total_open_amount"] = net_open
-
-        # --- TOPLAM ÖDENMİŞ (ÖDEMELERDEN) ---
-        total_paid = (
-            db.session.query(func.coalesce(func.sum(Payment.amount), 0))
-            .scalar()
-        )
-        stats["total_paid_amount"] = Decimal(total_paid or 0)
-
-        # --- ✅ BU AY BEKLENEN TOPLAM GELİR ---
-        # Bu ay OLUŞTURULAN (created_at) borçların toplamı
-        today = date.today()
+        # Bu ayın başlangıcı ve bir sonraki ayın başlangıcı
         month_start = date(today.year, today.month, 1)
         if today.month == 12:
             month_end = date(today.year + 1, 1, 1)
         else:
             month_end = date(today.year, today.month + 1, 1)
 
+        # Bu ay oluşturulan borçların toplamı (beklenen gelir)
         month_bills_sum = (
             db.session.query(func.coalesce(func.sum(Bill.amount), 0))
             .filter(
@@ -226,12 +194,36 @@ def dashboard():
             )
             .scalar()
         )
-        stats["expected_income_this_month"] = Decimal(month_bills_sum or 0)
+        billed_dec = Decimal(month_bills_sum or 0)
+
+        # Bu ay yapılan ödemelerin toplamı
+        month_payments_sum = (
+            db.session.query(func.coalesce(func.sum(Payment.amount), 0))
+            .filter(
+                Payment.payment_date >= month_start,
+                Payment.payment_date < month_end,
+            )
+            .scalar()
+        )
+        paid_dec = Decimal(month_payments_sum or 0)
+
+        # Kartlar:
+        # "Bu Ay Beklenen Toplam Gelir"
+        stats["expected_income_this_month"] = billed_dec
+        # "Toplam Ödenmiş" kartı → bu aya ait ödemeler
+        stats["total_paid_amount"] = paid_dec
+        # "Açık / Kısmi Borç" kartı → bu ayın farkı
+        diff = billed_dec - paid_dec
+        if diff < 0:
+            diff = Decimal("0.00")
+        stats["total_open_amount"] = diff
 
     except SQLAlchemyError as exc:
         current_app.logger.exception("Dashboard borç istatistikleri alınamadı: %s", exc)
 
-    # Açık talepler
+    # =========================
+    #  AÇIK TALEP SAYISI
+    # =========================
     try:
         stats["open_tickets"] = Ticket.query.filter(
             Ticket.status.in_(["open", "in_progress"])
@@ -239,12 +231,15 @@ def dashboard():
     except SQLAlchemyError as exc:
         current_app.logger.exception("Dashboard talep istatistikleri alınamadı: %s", exc)
 
-    # Son kayıtlar
+    # =========================
+    #  SON KAYITLAR
+    # =========================
     recent_bills = []
     recent_payments = []
     recent_tickets = []
     recent_announcements = []
 
+    # Son borçlar
     try:
         recent_bills = (
             db.session.query(Bill, Apartment)
@@ -256,6 +251,7 @@ def dashboard():
     except SQLAlchemyError:
         pass
 
+    # Son ödemeler
     try:
         recent_payments = (
             db.session.query(Payment, Apartment, User)
@@ -268,6 +264,7 @@ def dashboard():
     except SQLAlchemyError:
         pass
 
+    # Son talepler
     try:
         recent_tickets = (
             db.session.query(Ticket, Apartment, User)
@@ -280,6 +277,7 @@ def dashboard():
     except SQLAlchemyError:
         pass
 
+    # Son duyurular
     try:
         recent_announcements = (
             db.session.query(Announcement, User)
@@ -292,11 +290,13 @@ def dashboard():
         pass
 
     # =========================
-    #  ✅ SON 12 AYLIK ÖZET
+    #  SON 12 AYLIK ÖZET
+    # =========================
+      # =========================
+    #  SON 12 AYLIK ÖZET
     # =========================
     monthly_overview = []
     try:
-        # Türkçe ay isimleri
         MONTH_LABELS_TR = {
             1: "Ocak",
             2: "Şubat",
@@ -312,90 +312,81 @@ def dashboard():
             12: "Aralık",
         }
 
-        today = date.today()
-        cur_y, cur_m = today.year, today.month
+        # Bugünün yılı / ayı
+        cur_y = today.year
+        cur_m = today.month
 
-        # 11 ay öncesinin ilk günü
-        start_y, start_m = cur_y, cur_m
-        for _ in range(11):
-            start_m -= 1
-            if start_m == 0:
-                start_m = 12
-                start_y -= 1
+        from dateutil.relativedelta import relativedelta
 
-        first_month_start = date(start_y, start_m, 1)
-        if cur_m == 12:
-            last_month_end = date(cur_y + 1, 1, 1)
-        else:
-            last_month_end = date(cur_y, cur_m + 1, 1)
+        # 12 ay geriye kadar verileri gruplayacağız
+        start_date = date(cur_y, cur_m, 1) - relativedelta(months=11)
+        end_date = date(cur_y, cur_m, 1) + relativedelta(months=1)
 
-        # İlgili aralıktaki tüm borç ve ödemeleri çek
         bills_in_range = (
             Bill.query
             .filter(
-                Bill.created_at >= first_month_start,
-                Bill.created_at < last_month_end,
+                Bill.created_at >= start_date,
+                Bill.created_at < end_date,
             )
             .all()
         )
+
         payments_in_range = (
             Payment.query
             .filter(
-                Payment.payment_date >= first_month_start,
-                Payment.payment_date < last_month_end,
+                Payment.payment_date >= start_date,
+                Payment.payment_date < end_date,
             )
             .all()
         )
 
-        bill_totals = defaultdict(Decimal)   # (y, m) -> toplam borç
-        pay_totals = defaultdict(Decimal)    # (y, m) -> toplam ödeme
+        bill_totals = defaultdict(Decimal)
+        pay_totals = defaultdict(Decimal)
 
+        # Borçlar → aya göre grupla
         for b in bills_in_range:
             if not b.created_at:
                 continue
-            dt = b.created_at
-            if isinstance(dt, datetime):
-                dt = dt.date()
-            key = (dt.year, dt.month)
-            bill_totals[key] += Decimal(b.amount or 0)
+            d = b.created_at.date()
+            bill_totals[(d.year, d.month)] += Decimal(b.amount or 0)
 
+        # Ödemeler → aya göre grupla
         for p in payments_in_range:
             if not p.payment_date:
                 continue
-            dt = p.payment_date
-            if isinstance(dt, datetime):
-                dt = dt.date()
-            key = (dt.year, dt.month)
-            pay_totals[key] += Decimal(p.amount or 0)
+            d = p.payment_date.date()
+            pay_totals[(d.year, d.month)] += Decimal(p.amount or 0)
 
-        # 12 aylık listeyi kronolojik üret
-        y, m = start_y, start_m
+        # 🔥 EN ÖNEMLİ KISIM:
+        # Liste güncel aydan geriye doğru gelecek
+        y = cur_y
+        m = cur_m
+
         for _ in range(12):
             key = (y, m)
             total_billed = bill_totals.get(key, Decimal("0"))
             total_paid = pay_totals.get(key, Decimal("0"))
 
-            monthly_overview.append(
-                {
-                    "year": y,
-                    "month": m,
-                    "label": f"{MONTH_LABELS_TR.get(m, str(m))} {y}",
-                    "total_billed": total_billed,
-                    "total_paid": total_paid,
-                    "delta": total_paid - total_billed,
-                }
-            )
+            monthly_overview.append({
+                "year": y,
+                "month": m,
+                "label": f"{MONTH_LABELS_TR[m]} {y}",
+                "total_billed": total_billed,
+                "total_paid": total_paid,
+                "delta": total_paid - total_billed
+            })
 
-            # bir sonraki aya geç
-            if m == 12:
-                y += 1
-                m = 1
+            # bir önceki aya git
+            if m == 1:
+                m = 12
+                y -= 1
             else:
-                m += 1
+                m -= 1
 
-    except SQLAlchemyError as exc:
+    except Exception as exc:
         current_app.logger.exception("Aylık özet hesaplanamadı: %s", exc)
         monthly_overview = []
+
 
     return render_template(
         "admin/dashboard.html",
@@ -406,8 +397,9 @@ def dashboard():
         recent_tickets=recent_tickets,
         recent_announcements=recent_announcements,
         today=today,
-        monthly_overview=monthly_overview,  # ✅ yeni veri
+        monthly_overview=monthly_overview,
     )
+
 
 # ======================
 #  DAİRELER
