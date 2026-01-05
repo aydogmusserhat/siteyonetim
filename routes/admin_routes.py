@@ -80,15 +80,15 @@ def _get_current_admin():
         current_app.logger.exception("Admin bilgisi alınamadı: %s", exc)
         return None
 
-# ======================
-#  SETTINGS
-# ======================
 
+# ======================
+#  SETTINGS / SITE NAME
+# ======================
 
 def get_default_monthly_dues_amount() -> Decimal:
     """
     Varsayılan aylık aidat tutarını ayarlar tablosundan (SystemSetting)
-    okur. Herhangi bir hata ya da kayıt bulunamazsa 1000.00 TL döner.
+    okur. Herhangi bir hata ya da kayıt bulunamazsa 500.00 TL döner.
     Böylece tek bir doğruluk kaynağı kullanılmış olur.
     """
     fallback = Decimal("500.00")
@@ -100,6 +100,40 @@ def get_default_monthly_dues_amount() -> Decimal:
         current_app.logger.exception("Varsayılan aidat tutarı okunamadı: %s", exc)
 
     return fallback
+
+
+def get_site_display_name() -> str:
+    """
+    Sistem ayarlarından (SystemSetting) site / apartman adını okur.
+    Bulamazsa güvenli bir varsayılan değer döner.
+    """
+    default_name = "Site / Apartman"
+    try:
+        settings = SystemSetting.get_singleton()
+        if settings and getattr(settings, "site_name", None):
+            name = (settings.site_name or "").strip()
+            if name:
+                return name
+    except SQLAlchemyError as exc:
+        current_app.logger.exception("Site adı okunamadı: %s", exc)
+
+    return default_name
+
+
+@admin_bp.app_context_processor
+def inject_site_name():
+    """
+    Tüm admin template'lerine current_site_name verir.
+    Önce session'dan okur, yoksa DB'den çeker ve session'a yazar.
+    """
+    name = session.get("site_name")
+
+    if not name:
+        name = get_site_display_name()  # DB'den oku (SystemSetting)
+        session["site_name"] = name
+
+    return {"current_site_name": name}
+
 
 
 # ======================== Tarih formatlarını anlama ==========================
@@ -299,9 +333,6 @@ def dashboard():
     # =========================
     #  SON 12 AYLIK ÖZET
     # =========================
-      # =========================
-    #  SON 12 AYLIK ÖZET
-    # =========================
     monthly_overview = []
     try:
         MONTH_LABELS_TR = {
@@ -364,7 +395,6 @@ def dashboard():
             d = p.payment_date.date()
             pay_totals[(d.year, d.month)] += Decimal(p.amount or 0)
 
-        # 🔥 EN ÖNEMLİ KISIM:
         # Liste güncel aydan geriye doğru gelecek
         y = cur_y
         m = cur_m
@@ -393,7 +423,6 @@ def dashboard():
     except Exception as exc:
         current_app.logger.exception("Aylık özet hesaplanamadı: %s", exc)
         monthly_overview = []
-
 
     return render_template(
         "admin/dashboard.html",
@@ -428,7 +457,7 @@ def manage_apartments():
             flash("Blok, kat ve daire numarası zorunludur.", "error")
         else:
             try:
-                # 🔴 DUPLICATE KONTROLÜ: Aynı blok+kat+no var mı?
+                # DUPLICATE KONTROLÜ: Aynı blok+kat+no var mı?
                 existing_apt = (
                     Apartment.query
                     .filter_by(block=block, floor=floor, number=number)
@@ -499,7 +528,7 @@ def update_apartment(apartment_id: int):
             flash("Blok, kat ve daire numarası zorunludur.", "error")
             return redirect(url_for("admin.manage_apartments"))
 
-        # 🔴 DUPLICATE KONTROLÜ: Bu id dışındaki kayıtlar içinde aynı blok+kat+no var mı?
+        # DUPLICATE KONTROLÜ: Bu id dışındaki kayıtlar içinde aynı blok+kat+no var mı?
         duplicate_apt = (
             Apartment.query
             .filter(
@@ -517,7 +546,7 @@ def update_apartment(apartment_id: int):
             )
             return redirect(url_for("admin.manage_apartments"))
 
-        # 🔵 Buraya geldiysek: çakışma yok, güvenle güncelleyebiliriz
+        # Buraya geldiysek: çakışma yok, güvenle güncelleyebiliriz
         apt.block = block
         apt.floor = floor
         apt.number = number
@@ -541,6 +570,7 @@ def update_apartment(apartment_id: int):
 
     return redirect(url_for("admin.manage_apartments"))
 
+
 @admin_bp.route("/apartments/<int:apartment_id>/delete", methods=["POST"])
 @admin_required
 def delete_apartment(apartment_id: int):
@@ -555,8 +585,7 @@ def delete_apartment(apartment_id: int):
             flash("Daire bulunamadı.", "error")
             return redirect(url_for("admin.manage_apartments"))
 
-        # 🔍 Bu daireye ait ödenmemiş borç var mı?
-        # bill.amount > ödenen toplamı olan en az 1 kayıt varsa silme.
+        # Bu daireye ait ödenmemiş borç var mı?
         unpaid_bill = (
             db.session.query(Bill.id)
             .outerjoin(Payment, Payment.bill_id == Bill.id)
@@ -567,7 +596,6 @@ def delete_apartment(apartment_id: int):
         )
 
         if unpaid_bill:
-            # ✅ İstediğin uyarı metni:
             flash("Bu dairenin silinebilmesi için TÜM borçlarının tamamen ödenmiş olması gerekir.", "error")
             return redirect(url_for("admin.manage_apartments"))
 
@@ -676,9 +704,7 @@ def toggle_user_active(user_id: int):
 # ======================
 #  AİDATLAR / BORÇLAR
 # ======================
-# ======================
-#  AİDATLAR / BORÇLAR
-# ======================
+
 @admin_bp.route("/bills", methods=["GET", "POST"])
 @admin_required
 def manage_bills():
@@ -692,7 +718,7 @@ def manage_bills():
     if page < 1:
         page = 1
 
-    per_page = 20  # ✅ max 20 satır
+    per_page = 20  # max 20 satır
     sort = (request.args.get("sort") or "created_at").strip()
     direction = (request.args.get("dir") or "desc").strip().lower()
     if direction not in ("asc", "desc"):
@@ -745,7 +771,6 @@ def manage_bills():
                             flash("Vade tarihi anlaşılamadı. Örnek: 04.01.2026", "error")
                             return redirect(url_for("admin.manage_bills"))
 
-
                     created_count = 0
                     for apt in target_apartments:
                         if not apt:
@@ -791,7 +816,7 @@ def manage_bills():
             .all()
         )
 
-        # ---- Detay borç listesi (filtre + sıralama + sayfalama) ----
+        # Detay borç listesi (filtre + sıralama + sayfalama)
         base_query = (
             db.session.query(Bill, Apartment)
             .outerjoin(Apartment, Bill.apartment_id == Apartment.id)
@@ -856,7 +881,7 @@ def manage_bills():
 
         pages = (total_bills + per_page - 1) // per_page if total_bills > 0 else 1
 
-        # 🔹 DAİRE + TÜR BAZINDA TOPLAMLAR (borç / ödenen)
+        # DAİRE + TÜR BAZINDA TOPLAMLAR (borç / ödenen)
         rows = (
             db.session.query(
                 Apartment,
@@ -934,7 +959,7 @@ def manage_bills():
         total_bills = 0
         pages = 1
 
-    # ✅ HER DURUMDA BİR RESPONSE DÖNÜYOR
+    # HER DURUMDA BİR RESPONSE DÖNÜYOR
     return render_template(
         "admin/aidatlar.html",
         apartments=apartments,
@@ -950,6 +975,7 @@ def manage_bills():
         filter_status=filter_status,
         filter_type=filter_type,
     )
+
 
 # ==================================== borç silme ========================
 @admin_bp.route("/bills/<int:bill_id>/delete", methods=["POST"])
@@ -970,6 +996,7 @@ def delete_bill(bill_id: int):
         flash("Borç silinirken bir hata oluştu.", "error")
 
     return redirect(url_for("admin.manage_bills"))
+
 
 @admin_bp.route("/bills/<int:bill_id>/update", methods=["POST"])
 @admin_required
@@ -999,7 +1026,6 @@ def update_bill(bill_id: int):
             bill.amount = Decimal(amount_str.replace(",", "."))
 
         # Vade tarihi (esnek format)
-# Vade tarihi (esnek format)
         if due_date_str:
             try:
                 bill.due_date = _parse_date_flex(due_date_str)
@@ -1007,9 +1033,7 @@ def update_bill(bill_id: int):
                 # Eski davranışı koruyalım: sadece uyarı, eski tarih kalsın
                 flash("Tarih formatı anlaşılamadı, mevcut tarih korunuyor. Örnek: 04.01.2026", "warning")
 
-
         # Tür
-        # (Tür listesi HTML tarafında sabit; burada sadece gelen değeri yazıyoruz)
         bill.type = bill_type
 
         db.session.commit()
@@ -1023,10 +1047,6 @@ def update_bill(bill_id: int):
     return redirect(url_for("admin.manage_bills"))
 
 
-# ========================================================================
-
-
-
 # ===== AİDAT DURUMU (YILLIK ÖZET TABLOSU + OTOMATİK AYLIK BORÇ) =====
 
 @admin_bp.route("/dues-summary", methods=["GET"])
@@ -1034,22 +1054,12 @@ def update_bill(bill_id: int):
 def dues_summary():
     """
     Her DAİRE için, seçilen yılda Ocak–Aralık aidat durumlarını özetleyen tablo.
-
-    - Satır = Apartment (daire)
-    - Varsa o daireye atanmış ilk aktif resident kullanıcı "sakin" sütununda gösterilir.
-    - Özet durumu (paid / partial / open), (apartment_id, ay) bazında hesaplanır.
-
-    Ek olarak:
-    - İçinde bulunulan yılda ve AY'da:
-      Tüm daireler için, eğer o ay için borç kaydı yoksa
-      otomatik bir 'aidat' Bill kaydı açılır (status='open').
     """
-
     now = datetime.utcnow()
     current_year = now.year
     current_month = now.month
 
-    # Yıl seçimi (query string: ?year=2026 gibi)
+    # Yıl seçimi
     year = request.args.get("year", type=int) or current_year
 
     # 1..12 ay listesi (etiketler Türkçe)
@@ -1069,7 +1079,7 @@ def dues_summary():
     ]
     month_labels = dict(months)
 
-    # 1) Tüm daireleri çek (satır bazımız bu olacak)
+    # 1) Tüm daireleri çek
     apartments = []
     try:
         apartments = (
@@ -1086,9 +1096,7 @@ def dues_summary():
         flash("Daire listesi alınırken bir hata oluştu.", "error")
         apartments = []
 
-    # 2) Eğer seçilen yıl, içinde bulunduğumuz yıl ise:
-    #    - Tüm daireler için, mevcut ayda (current_month)
-    #      borç kaydı yoksa otomatik 'aidat' Bill oluştur.
+    # 2) İçinde bulunulan yıl ve ay için otomatik aidat oluştur
     if year == current_year and apartments:
         try:
             active_apartment_ids = {apt.id for apt in apartments if apt.id is not None}
@@ -1120,7 +1128,7 @@ def dues_summary():
                 auto_bill = Bill(
                     apartment_id=apt_id,
                     description=desc,
-                    amount=get_default_monthly_dues_amount(),  # ✅ artık ayarlardan
+                    amount=get_default_monthly_dues_amount(),
                     status="open",
                     type="aidat",
                     due_date=month_start,
@@ -1135,7 +1143,7 @@ def dues_summary():
             current_app.logger.exception("Otomatik aylık aidat oluşturulamadı: %s", exc)
             flash("Otomatik aidat oluşturulurken bir hata oluştu.", "error")
 
-    # 3) Seçilen yıl için tüm Bill kayıtlarını çek (due_date'e göre)
+    # 3) Seçilen yıl için tüm Bill kayıtlarını çek
     start_date = date(year, 1, 1)
     end_date = date(year + 1, 1, 1)
 
@@ -1173,7 +1181,7 @@ def dues_summary():
             payments = []
 
         # Ödenen toplamlar
-        paid_totals = defaultdict(Decimal)   # key: (apartment_id, month) -> toplam ödeme
+        paid_totals = defaultdict(Decimal)
         for p in payments:
             if not p.bill_id:
                 continue
@@ -1216,7 +1224,6 @@ def dues_summary():
             .all()
         )
         for u in residents:
-            # Her daire için ilk bulduğumuz aktif sakini baz alıyoruz
             if u.apartment_id not in resident_by_apartment:
                 resident_by_apartment[u.apartment_id] = u
     except SQLAlchemyError as exc:
@@ -1224,8 +1231,7 @@ def dues_summary():
         flash("Sakin listesi alınırken bir hata oluştu.", "error")
         resident_by_apartment = {}
 
-    # 5) Template'e veri hazırlama: her daire için ay -> durum
-    #    rows: [{apartment, resident, monthly: {month: "paid"/"partial"/"open"/None}}]
+    # 5) Template'e veri hazırlama
     rows = []
     for apt in apartments:
         monthly_status = {}
@@ -1234,7 +1240,7 @@ def dues_summary():
             if key in status_map:
                 monthly_status[m_num] = status_map[key]
             else:
-                monthly_status[m_num] = None  # O ay için borç yok → gri "-"
+                monthly_status[m_num] = None  # O ay için borç yok
 
         resident = resident_by_apartment.get(apt.id)
         rows.append(
@@ -1252,6 +1258,7 @@ def dues_summary():
         months=months,
         rows=rows,
     )
+
 
 # ========================= Borç status’ünü yeniden hesaplayan helper =========================
 
@@ -1274,6 +1281,7 @@ def _recalc_bill_status(bill: Bill):
     else:
         bill.status = "open"
 
+
 # ======================
 #  ÖDEMELER
 # ======================
@@ -1283,12 +1291,12 @@ def manage_payments():
     """Ödeme kayıtlarını yönetir."""
     if request.method == "POST":
         apartment_id = request.form.get("apartment_id")
-        bill_id = request.form.get("bill_id") or None   # override için hala var
+        bill_id = request.form.get("bill_id") or None
         user_id = request.form.get("user_id") or None
         amount = (request.form.get("amount") or "").strip()
         payment_date_str = request.form.get("payment_date") or ""
         method = (request.form.get("method") or "").strip() or None
-        bill_type = (request.form.get("bill_type") or "").strip() or None  # ✅ borç türü
+        bill_type = (request.form.get("bill_type") or "").strip() or None
 
         if not apartment_id or not amount:
             flash("Daire ve tutar zorunludur.", "error")
@@ -1304,14 +1312,14 @@ def manage_payments():
                 if user_id:
                     payment.user_id = int(user_id)
 
-                # ✅ Tutar her durumda set edilmeli
+                # Tutar
                 try:
                     payment.amount = Decimal(amount.replace(",", "."))
                 except (ValueError, ArithmeticError):
                     flash("Tutar sayısal olmalıdır.", "error")
                     return redirect(url_for("admin.manage_payments"))
 
-                # ✅ Tarih her durumda set edilmeli
+                # Tarih
                 if payment_date_str:
                     try:
                         payment.payment_date = _parse_date_flex(payment_date_str)
@@ -1319,10 +1327,9 @@ def manage_payments():
                         flash("Ödeme tarihi anlaşılamadı. Örnek: 04.01.2026", "error")
                         return redirect(url_for("admin.manage_payments"))
                 else:
-                    # Tarih girilmediyse bugünün tarihi
                     payment.payment_date = datetime.utcnow().date()
 
-                # ✅ Otomatik eşleştirme: tür + daire + ay
+                # Otomatik eşleştirme: tür + daire + ay
                 if not bill_id and bill_type:
                     try:
                         apt_id_int = int(apartment_id)
@@ -1499,6 +1506,7 @@ def update_payment(payment_id: int):
             {"ok": False, "error": "Ödeme güncellenirken bir hata oluştu."}
         ), 500
 
+
 @admin_bp.route("/payments/<int:payment_id>/delete", methods=["POST"])
 @admin_required
 def delete_payment(payment_id: int):
@@ -1557,11 +1565,11 @@ def payment_receipt(payment_id: int):
 
         site_name = "Site / Apartman"
         if settings_obj and getattr(settings_obj, "site_name", None):
-            site_name = settings_obj.site_name
+            site_name_val = (settings_obj.site_name or "").strip()
+            if site_name_val:
+                site_name = site_name_val
 
-        # -------------------------------
-        #  FONT KAYDI (Türkçe için TTF)
-        # -------------------------------
+        # FONT KAYDI (Türkçe için TTF)
         font_dir = os.path.join(current_app.root_path, "static", "fonts")
         regular_font = "DejaVu"
         bold_font = "DejaVu-Bold"
@@ -1581,7 +1589,7 @@ def payment_receipt(payment_id: int):
 
         # PDF'yi hafızada oluştur
         buffer = io.BytesIO()
-        pdf = canvas.Canvas(buffer, pagesize=A4)
+        pdf = canvas.Canvas(buffer, pagesizes=A4)
         width, height = A4
 
         # Kenar boşlukları
@@ -1605,9 +1613,7 @@ def payment_receipt(payment_id: int):
 
         y = margin_top
 
-        # -------------------------------
-        #   BAŞLIK BÖLÜMÜ
-        # -------------------------------
+        # BAŞLIK BÖLÜMÜ
         set_font_bold(16)
         pdf.drawString(margin_left, y, "ÖDEME MAKBUZU")
 
@@ -1650,10 +1656,7 @@ def payment_receipt(payment_id: int):
         pdf.drawString(margin_left, y, f"Ödeme Tarihi: {date_str}")
         y -= 24
 
-        # -------------------------------
-        #   BORÇ / ÖDEME DETAY KUTUSU
-        # -------------------------------
-        # Borç türü metni
+        # BORÇ / ÖDEME DETAY KUTUSU
         bill_type_raw = None
         if bill and bill.type:
             bill_type_raw = bill.type
@@ -1678,17 +1681,14 @@ def payment_receipt(payment_id: int):
         if bill and bill.description:
             description = bill.description
 
-        # Kutunun yüksekliğini kaba hesapla
         box_top = y
         box_bottom = box_top - 90
         if box_bottom < margin_bottom + 60:
-            # Sayfada yer kalmadıysa yeni sayfa
             pdf.showPage()
             y = margin_top
             box_top = y
             box_bottom = box_top - 90
 
-        # Kutu çiz (gri çerçeve)
         pdf.setLineWidth(0.7)
         pdf.rect(margin_left, box_bottom, (margin_right - margin_left), (box_top - box_bottom))
 
@@ -1705,13 +1705,11 @@ def payment_receipt(payment_id: int):
         pdf.drawString(inner_x, inner_y, f"Açıklama   : {description}")
         inner_y -= 16
 
-        # Tutar
         amount_str = f"{payment.amount:.2f} TL"
         set_font_bold(11)
         pdf.drawString(inner_x, inner_y, f"Tutar      : {amount_str}")
         inner_y -= 20
 
-        # Ödeme yöntemi
         method_label = "-"
         if payment.method == "nakit":
             method_label = "Nakit"
@@ -1727,19 +1725,14 @@ def payment_receipt(payment_id: int):
         set_font_regular(10)
         pdf.drawString(inner_x, inner_y, f"Ödeme Yöntemi : {method_label}")
 
-        # Kutudan sonra y konumunu güncelle
         y = box_bottom - 30
 
-        # -------------------------------
-        #   İMZA & NOT BÖLÜMÜ
-        # -------------------------------
-        # İmza alanı
+        # İmza & not
         set_font_regular(10)
         pdf.drawString(margin_left, y, "Yetkili İmzası:")
         pdf.line(margin_left + 80, y - 2, margin_left + 220, y - 2)
         y -= 40
 
-        # Alt açıklama
         set_font_regular(9)
         pdf.drawString(
             margin_left,
@@ -1771,7 +1764,7 @@ def payment_receipt(payment_id: int):
         flash("Makbuz oluşturulurken bir hata oluştu.", "error")
         return redirect(url_for("admin.manage_payments"))
 
-# ===============================================================
+
 # ======================
 #  DUYURULAR
 # ======================
@@ -1819,12 +1812,12 @@ def manage_announcements():
         current_app.logger.exception("Duyuru listesi alınamadı: %s", exc)
         flash("Duyuru listesi alınırken bir hata oluştu.", "error")
 
-    today = date.today()  # 🔹 bugünün tarihi
+    today = date.today()
 
     return render_template(
         "admin/duyurular.html",
         announcements=announcements,
-        today=today,  # 🔹 template’e gönder
+        today=today,
     )
 
 
@@ -1901,12 +1894,11 @@ def update_ticket_status(ticket_id: int):
 
 
 # ======================
-#  AYARLAR (DEMO)
+#  AYARLAR
 # ======================
 
 class _SettingsDemo:
     """Gerçek DB ayar tablosu yok; şimdilik demo olarak kullanıyoruz."""
-
     def __init__(self):
         self.site_name = "Örnek Apartman Sitesi"
         self.address = "Adres bilgisi henüz tanımlanmadı."
@@ -1918,7 +1910,7 @@ class _SettingsDemo:
 @admin_bp.route("/settings", methods=["GET", "POST"])
 @admin_required
 def settings():
-    """Sistem ayarları (varsayılan aidat tutarı vb.)."""
+    """Sistem ayarları (site adı, varsayılan aidat tutarı vb.)."""
 
     try:
         settings_obj = SystemSetting.get_singleton()
@@ -1929,16 +1921,26 @@ def settings():
 
     if request.method == "POST":
         default_dues = (request.form.get("default_monthly_dues_amount") or "").strip()
+        site_name = (request.form.get("site_name") or "").strip()
 
         try:
+            # Eğer hiç kayıt yoksa oluştur
             if settings_obj is None:
                 settings_obj = SystemSetting.get_singleton()
+                if settings_obj is None:
+                    settings_obj = SystemSetting()
+                    db.session.add(settings_obj)
 
+            # Varsayılan aidat
             if default_dues:
                 settings_obj.default_monthly_dues_amount = Decimal(
                     default_dues.replace(",", ".")
                 )
 
+            # Site / apartman adı
+            settings_obj.site_name = site_name or None
+            # ▶ Session'a da yaz ki tüm sayfalarda anında güncellensin
+            session["site_name"] = settings_obj.site_name or "Site / Apartman"
             db.session.commit()
             flash("Ayarlar başarıyla kaydedildi.", "success")
 
@@ -1948,4 +1950,3 @@ def settings():
             flash("Ayarlar kaydedilirken bir hata oluştu.", "error")
 
     return render_template("admin/ayarlar.html", settings=settings_obj)
-

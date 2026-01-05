@@ -9,96 +9,82 @@
 
   <!-- SOL SÜTUN -->
   <section>
-    <!-- GENEL ÖZET KARTI -->
+
+    {# ─────────────────────────────
+       GENEL ÖZET KARTI
+       ───────────────────────────── #}
     <div class="card">
       {% set MONTH_TR = {
           1:"Ocak", 2:"Şubat", 3:"Mart", 4:"Nisan",
           5:"Mayıs", 6:"Haziran", 7:"Temmuz", 8:"Ağustos",
           9:"Eylül", 10:"Ekim", 11:"Kasım", 12:"Aralık"
         } %}
-        <h2 style="font-size:16px; margin-bottom:8px;">
-          Genel Özet
+
+      <h2 style="font-size:16px; margin-bottom:4px;">
+        Genel Özet
+        {% if today %}
           <span style="color:#6b7280; font-weight:500;">
             — {{ MONTH_TR[today.month] }} {{ today.year }}
           </span>
-        </h2>
+        {% endif %}
+      </h2>
 
-
-
-      <p style="font-size:13px; color:#6b7280; margin-bottom:10px;">
+      <p style="font-size:13px; color:#6b7280; margin-bottom:12px;">
         Siteye ait daire, kullanıcı, borç ve talep durumunun kısa özeti.
       </p>
 
-      <div style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px;">
+      <div class="stat-grid">
 
         <!-- Toplam Daire -->
-        <div style="padding:10px 12px; border-radius:12px; background:#eff6ff;">
-          <div style="font-size:11px; text-transform:uppercase; color:#1d4ed8; letter-spacing:.08em; margin-bottom:4px;">
-            Toplam Daire
-          </div>
-          <div style="font-size:22px; font-weight:700;">
-            {{ stats.total_apartments }}
-          </div>
+        <div class="stat-card">
+          <div class="stat-card__label">Toplam Daire</div>
+          <div class="stat-card__value">{{ stats.total_apartments }}</div>
         </div>
 
         <!-- Kullanıcılar -->
-        <div style="padding:10px 12px; border-radius:12px; background:#f5f3ff;">
-          <div style="font-size:11px; text-transform:uppercase; color:#6d28d9; letter-spacing:.08em; margin-bottom:4px;">
-            Kullanıcılar
-          </div>
-          <div style="font-size:22px; font-weight:700; margin-bottom:2px;">
-            {{ stats.total_users }}
-          </div>
-          <div style="font-size:11px; color:#4b5563;">
+        <div class="stat-card">
+          <div class="stat-card__label">Kullanıcılar</div>
+          <div class="stat-card__value">{{ stats.total_users }}</div>
+          <div class="stat-card__hint">
             Yönetici: {{ stats.admin_users }} • Sakin: {{ stats.resident_users }}
           </div>
         </div>
 
         <!-- Açık / Kısmi Borç (NET) -->
-        <div style="padding:10px 12px; border-radius:12px; background:#fef2f2;">
-          <div style="font-size:11px; text-transform:uppercase; color:#b91c1c; letter-spacing:.08em; margin-bottom:4px;">
-            Açık / Kısmi Borç
-          </div>
-          <div style="font-size:20px; font-weight:700;">
+        <div class="stat-card">
+          <div class="stat-card__label">Açık / Kısmi Borç</div>
+          <div class="stat-card__value">
             ₺ {{ "%.2f"|format(stats.total_open_amount) }}
           </div>
-          <div style="font-size:11px; color:#4b5563; margin-top:2px;">
+          <div class="stat-card__hint">
             Toplam borç kaydı: {{ stats.total_bills }}
           </div>
         </div>
 
         <!-- Toplam Ödenmiş -->
-        <div style="padding:10px 12px; border-radius:12px; background:#ecfdf5;">
-          <div style="font-size:11px; text-transform:uppercase; color:#15803d; letter-spacing:.08em; margin-bottom:4px;">
-            Toplam Ödenmiş
-          </div>
-          <div style="font-size:20px; font-weight:700;">
+        <div class="stat-card">
+          <div class="stat-card__label">Toplam Ödenmiş</div>
+          <div class="stat-card__value">
             ₺ {{ "%.2f"|format(stats.total_paid_amount) }}
           </div>
         </div>
 
         <!-- Bu Ay Beklenen Toplam Gelir -->
-        <div style="padding:10px 12px; border-radius:12px; background:#e0f2fe;">
-          <div style="font-size:11px; text-transform:uppercase; color:#0369a1; letter-spacing:.08em; margin-bottom:4px;">
-            Bu Ay Beklenen Toplam Gelir
-          </div>
-          <div style="font-size:20px; font-weight:700;">
+        <div class="stat-card">
+          <div class="stat-card__label">Bu Ay Beklenen Toplam Gelir</div>
+          <div class="stat-card__value">
             ₺ {{ "%.2f"|format(stats.expected_income_this_month) }}
           </div>
-          <div style="font-size:11px; color:#4b5563; margin-top:2px;">
+          <div class="stat-card__hint">
             Bu ay açılan tüm borç kayıtlarının toplamı
           </div>
         </div>
 
         <!-- Açık Talepler -->
-        <div style="padding:10px 12px; border-radius:12px; background:#fef9c3;">
-          <div style="font-size:11px; text-transform:uppercase; color:#854d0e; letter-spacing:.08em; margin-bottom:4px;">
-            Açık Talepler
-          </div>
-          <div style="font-size:20px; font-weight:700;">
-            {{ stats.open_tickets }}
-          </div>
-          <div style="font-size:11px; color:#4b5563; margin-top:2px;">
+        <div class="stat-card">
+          <div class="stat-card__label">Açık Talepler</div>
+          <div class="stat-card__value">{{ stats.open_tickets }}</div>
+          <div class="stat-card__hint">
             <a href="{{ url_for('admin.manage_tickets') }}" style="color:#2563eb; text-decoration:none;">
               Tüm talepleri görüntüle →
             </a>
@@ -108,8 +94,11 @@
       </div>
     </div>
 
-    <!-- AYLIK ÖZET (SEÇİLEBİLİR AY + YIL GENELİ) -->
+    {# ─────────────────────────────
+       AYLIK ÖZET (SON 12 AY)
+       ───────────────────────────── #}
     <div class="card" style="margin-top:14px;" data-monthly-card>
+
       <style>
         .month-filter-pill{
           border-radius:999px;
@@ -135,7 +124,7 @@
         Her ay için oluşturulan toplam borç ve tahsil edilen toplam ödeme.
       </p>
 
-      {% if monthly_overview %}
+      {% if monthly_overview and today %}
 
         {# Yıl geneli toplamları hesapla #}
         {% set year_ns = namespace(billed=0, paid=0) %}
@@ -225,8 +214,12 @@
                   <td style="padding:6px 4px; text-align:right; white-space:nowrap;">
                     ₺ {{ "%.2f"|format(m.total_paid) }}
                   </td>
-                  <td style="padding:6px 4px; text-align:right; white-space:nowrap;
-                             {% if m.delta < 0 %}color:#b91c1c;{% elif m.delta > 0 %}color:#15803d;{% else %}color:#4b5563;{% endif %}">
+                  <td
+                    style="padding:6px 4px; text-align:right; white-space:nowrap;
+                           {% if m.delta < 0 %}color:#b91c1c;
+                           {% elif m.delta > 0 %}color:#15803d;
+                           {% else %}color:#4b5563;{% endif %}"
+                  >
                     {% if m.delta >= 0 %}+{% endif %}₺ {{ "%.2f"|format(m.delta) }}
                   </td>
                 </tr>
@@ -338,46 +331,46 @@
   <!-- SAĞ SÜTUN: KISA LİSTELER -->
   <section>
 
-    <!-- Son Borçlar -->
+    {# ─────────────────────────────
+       Son Borçlar
+       ───────────────────────────── #}
     <div class="card">
       <h2 style="font-size:16px; margin-bottom:6px;">Son Eklenen Borçlar</h2>
 
       {% if recent_bills %}
         <div style="max-height:200px; overflow:auto;">
-          <table style="width:100%; border-collapse:collapse; font-size:12px;">
+          <table class="dash-table">
             <thead>
-              <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
-                <th style="text-align:left; padding:6px 4px;">Daire</th>
-                <th style="text-align:left; padding:6px 4px;">Açıklama</th>
-                <th style="text-align:left; padding:6px 4px;">Tutar</th>
-                <th style="text-align:left; padding:6px 4px;">Durum</th>
+              <tr>
+                <th>Daire</th>
+                <th>Açıklama</th>
+                <th>Tutar</th>
+                <th>Durum</th>
               </tr>
             </thead>
             <tbody>
               {% for bill, apt in recent_bills %}
-                <tr style="border-bottom:1px solid #f3f4f6;">
-                  <td style="padding:6px 4px; white-space:nowrap;">
+                <tr>
+                  <td>
                     {% if apt %}
                       {{ apt.block }} Blok • {{ apt.floor }}/{{ apt.number }}
                     {% else %}
                       <span style="color:#9ca3af;">-</span>
                     {% endif %}
                   </td>
-                  <td style="padding:6px 4px; max-width:180px;">
+                  <td>
                     <span style="display:inline-block; max-width:180px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                       {{ bill.description }}
                     </span>
                   </td>
-                  <td style="padding:6px 4px; white-space:nowrap;">
-                    ₺ {{ "%.2f"|format(bill.amount) }}
-                  </td>
-                  <td style="padding:6px 4px; white-space:nowrap;">
+                  <td>₺ {{ "%.2f"|format(bill.amount) }}</td>
+                  <td>
                     {% if bill.status == 'paid' %}
-                      <span style="padding:2px 8px; border-radius:999px; background:#dcfce7; color:#15803d;">Ödendi</span>
+                      <span class="tag tag--success">Ödendi</span>
                     {% elif bill.status == 'partial' %}
-                      <span style="padding:2px 8px; border-radius:999px; background:#fef9c3; color:#854d0e;">Kısmi</span>
+                      <span class="tag tag--warning">Kısmi</span>
                     {% else %}
-                      <span style="padding:2px 8px; border-radius:999px; background:#fee2e2; color:#b91c1c;">Açık</span>
+                      <span class="tag tag--danger">Açık</span>
                     {% endif %}
                   </td>
                 </tr>
@@ -392,50 +385,52 @@
       {% endif %}
     </div>
 
-    <!-- Son Ödemeler -->
+    {# ─────────────────────────────
+       Son Ödemeler
+       ───────────────────────────── #}
     <div class="card">
       <h2 style="font-size:16px; margin-bottom:6px;">Son Ödemeler</h2>
 
       {% if recent_payments %}
         <div style="max-height:200px; overflow:auto;">
-          <table style="width:100%; border-collapse:collapse; font-size:12px;">
+          <table class="dash-table">
             <thead>
-              <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
-                <th style="text-align:left; padding:6px 4px;">Tarih</th>
-                <th style="text-align:left; padding:6px 4px;">Daire</th>
-                <th style="text-align:left; padding:6px 4px;">Sakin</th>
-                <th style="text-align:left; padding:6px 4px;">Tutar</th>
-                <th style="text-align:left; padding:6px 4px;">Yöntem</th>
+              <tr>
+                <th>Tarih</th>
+                <th>Daire</th>
+                <th>Sakin</th>
+                <th>Tutar</th>
+                <th>Yöntem</th>
               </tr>
             </thead>
             <tbody>
               {% for payment, apt, u in recent_payments %}
-                <tr style="border-bottom:1px solid #f3f4f6;">
-                  <td style="padding:6px 4px; white-space:nowrap;">
+                <tr>
+                  <td>
                     {% if payment.payment_date %}
                       {{ payment.payment_date.strftime('%d.%m.%Y') }}
                     {% else %}
                       <span style="color:#9ca3af;">-</span>
                     {% endif %}
                   </td>
-                  <td style="padding:6px 4px; white-space:nowrap;">
+                  <td>
                     {% if apt %}
                       {{ apt.block }} Blok • {{ apt.floor }}/{{ apt.number }}
                     {% else %}
                       <span style="color:#9ca3af;">-</span>
                     {% endif %}
                   </td>
-                  <td style="padding:6px 4px; white-space:nowrap;">
+                  <td>
                     {% if u %}
                       {{ u.name }}
                     {% else %}
                       <span style="color:#9ca3af;">-</span>
                     {% endif %}
                   </td>
-                  <td style="padding:6px 4px; white-space:nowrap; color:#16a34a;">
+                  <td style="color:#16a34a;">
                     ₺ {{ "%.2f"|format(payment.amount) }}
                   </td>
-                  <td style="padding:6px 4px; white-space:nowrap;">
+                  <td>
                     {% if payment.method %}
                       {{ payment.method|capitalize }}
                     {% else %}
@@ -454,58 +449,60 @@
       {% endif %}
     </div>
 
-    <!-- Son Talepler -->
+    {# ─────────────────────────────
+       Son Talepler
+       ───────────────────────────── #}
     <div class="card">
       <h2 style="font-size:16px; margin-bottom:6px;">Son Talepler</h2>
 
       {% if recent_tickets %}
         <div style="max-height:220px; overflow:auto;">
-          <table style="width:100%; border-collapse:collapse; font-size:12px;">
+          <table class="dash-table">
             <thead>
-              <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
-                <th style="text-align:left; padding:6px 4px;">Tarih</th>
-                <th style="text-align:left; padding:6px 4px;">Daire</th>
-                <th style="text-align:left; padding:6px 4px;">Sakin</th>
-                <th style="text-align:left; padding:6px 4px;">Başlık</th>
-                <th style="text-align:left; padding:6px 4px;">Durum</th>
+              <tr>
+                <th>Tarih</th>
+                <th>Daire</th>
+                <th>Sakin</th>
+                <th>Başlık</th>
+                <th>Durum</th>
               </tr>
             </thead>
             <tbody>
               {% for t, apt, u in recent_tickets %}
-                <tr style="border-bottom:1px solid #f3f4f6;">
-                  <td style="padding:6px 4px; white-space:nowrap;">
+                <tr>
+                  <td>
                     {% if t.created_at %}
                       {{ t.created_at.strftime('%d.%m.%Y %H:%M') }}
                     {% else %}
                       <span style="color:#9ca3af;">-</span>
                     {% endif %}
                   </td>
-                  <td style="padding:6px 4px; white-space:nowrap;">
+                  <td>
                     {% if apt %}
                       {{ apt.block }} Blok • {{ apt.floor }}/{{ apt.number }}
                     {% else %}
                       <span style="color:#9ca3af;">-</span>
                     {% endif %}
                   </td>
-                  <td style="padding:6px 4px; white-space:nowrap;">
+                  <td>
                     {% if u %}
                       {{ u.name }}
                     {% else %}
                       <span style="color:#9ca3af;">-</span>
                     {% endif %}
                   </td>
-                  <td style="padding:6px 4px; max-width:200px;">
+                  <td>
                     <span style="display:inline-block; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                       {{ t.title }}
                     </span>
                   </td>
-                  <td style="padding:6px 4px; white-space:nowrap;">
+                  <td>
                     {% if t.status == 'closed' %}
-                      <span style="padding:2px 8px; border-radius:999px; background:#dcfce7; color:#15803d;">Kapalı</span>
+                      <span class="tag tag--success">Kapalı</span>
                     {% elif t.status == 'in_progress' %}
-                      <span style="padding:2px 8px; border-radius:999px; background:#fef9c3; color:#854d0e;">Devam</span>
+                      <span class="tag tag--warning">Devam</span>
                     {% else %}
-                      <span style="padding:2px 8px; border-radius:999px; background:#fee2e2; color:#b91c1c;">Açık</span>
+                      <span class="tag tag--danger">Açık</span>
                     {% endif %}
                   </td>
                 </tr>
@@ -520,7 +517,9 @@
       {% endif %}
     </div>
 
-    <!-- Son Duyurular -->
+    {# ─────────────────────────────
+       Son Duyurular
+       ───────────────────────────── #}
     <div class="card">
       <h2 style="font-size:16px; margin-bottom:6px;">Son Duyurular</h2>
 
@@ -528,8 +527,7 @@
         <ul style="list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px;">
           {% for ann, u in recent_announcements %}
           {% set is_expired = ann.created_at and (today - ann.created_at.date()).days >= 29 %}
-
-            <li style="padding:8px 10px; border-radius:10px; background:#f9fafb; {% if is_expired %}opacity:0.6;{% endif %}">
+            <li style="padding:8px 10px; border-radius:10px; background:#f9fafb; {% if is_expired %}opacity:0.65;{% endif %}">
               <div style="display:flex; justify-content:space-between; gap:8px; margin-bottom:2px;">
                 <div style="font-size:13px; font-weight:600; {% if is_expired %}text-decoration:line-through;{% endif %}">
                   {{ ann.title }}
