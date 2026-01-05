@@ -3287,3 +3287,236 @@ sqlalchemy.exc.IntegrityError: (raised as a result of Query-invoked autoflush; c
 2026-01-05 09:05:16,835 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:05:16] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
 2026-01-05 09:05:16,840 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:05:16] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
 2026-01-05 09:05:16,843 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:05:16] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-05 09:24:41,996 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-01-05 09:24:41,997 [INFO] werkzeug: [33mPress CTRL+C to quit[0m
+2026-01-05 09:24:42,016 [INFO] werkzeug:  * Restarting with watchdog (windowsapi)
+2026-01-05 09:24:43,289 [WARNING] werkzeug:  * Debugger is active!
+2026-01-05 09:24:43,296 [INFO] werkzeug:  * Debugger PIN: 494-376-843
+2026-01-05 09:24:44,647 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:24:44] "[32mGET / HTTP/1.1[0m" 302 -
+2026-01-05 09:24:44,999 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:24:44] "GET /admin/dashboard HTTP/1.1" 200 -
+2026-01-05 09:24:45,733 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:24:45] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 09:24:45,780 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:24:45] "GET /static/css/app.css HTTP/1.1" 200 -
+2026-01-05 09:24:45,786 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:24:45] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-05 09:24:45,861 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:24:45] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-01-05 09:28:38,279 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:28:38] "GET /admin/dues-summary HTTP/1.1" 200 -
+2026-01-05 09:28:38,313 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:28:38] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 09:28:38,321 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:28:38] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 09:28:38,325 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:28:38] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-05 09:28:41,555 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:28:41] "GET /admin/bills HTTP/1.1" 200 -
+2026-01-05 09:28:41,584 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:28:41] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 09:28:41,593 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:28:41] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 09:28:41,596 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:28:41] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-05 09:28:56,378 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:28:56] "GET /admin/dashboard HTTP/1.1" 200 -
+2026-01-05 09:28:56,413 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:28:56] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 09:28:56,418 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:28:56] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 09:28:56,421 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:28:56] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-05 09:31:28,853 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:31:28] "GET /admin/dashboard HTTP/1.1" 200 -
+2026-01-05 09:31:28,880 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:31:28] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 09:31:28,889 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:31:28] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 09:31:28,891 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:31:28] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-05 09:35:11,802 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:35:11] "GET /admin/dashboard HTTP/1.1" 200 -
+2026-01-05 09:35:11,828 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:35:11] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 09:35:11,831 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:35:11] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 09:35:11,838 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:35:11] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-05 09:38:51,258 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:38:51] "GET /admin/dashboard HTTP/1.1" 200 -
+2026-01-05 09:38:51,281 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:38:51] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 09:38:51,305 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:38:51] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 09:38:51,308 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:38:51] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-05 09:38:51,338 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:38:51] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-01-05 09:40:07,804 [INFO] werkzeug:  * Detected change in 'c:\\Program Files\\Python39\\Lib\\pathlib.py', reloading
+2026-01-05 09:40:07,820 [INFO] werkzeug:  * Detected change in 'c:\\Program Files\\Python39\\Lib\\codecs.py', reloading
+2026-01-05 09:43:07,886 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-01-05 09:43:07,886 [INFO] werkzeug: [33mPress CTRL+C to quit[0m
+2026-01-05 09:43:07,904 [INFO] werkzeug:  * Restarting with watchdog (windowsapi)
+2026-01-05 09:43:09,315 [WARNING] werkzeug:  * Debugger is active!
+2026-01-05 09:43:09,321 [INFO] werkzeug:  * Debugger PIN: 494-376-843
+2026-01-05 09:43:10,621 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:43:10] "[32mGET / HTTP/1.1[0m" 302 -
+2026-01-05 09:43:10,907 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:43:10] "GET /admin/dashboard HTTP/1.1" 200 -
+2026-01-05 09:43:11,672 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:43:11] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 09:43:11,693 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:43:11] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 09:43:11,709 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 09:43:11] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-05 10:36:49,861 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-01-05 10:36:49,862 [INFO] werkzeug: [33mPress CTRL+C to quit[0m
+2026-01-05 10:36:49,883 [INFO] werkzeug:  * Restarting with watchdog (windowsapi)
+2026-01-05 10:36:51,154 [WARNING] werkzeug:  * Debugger is active!
+2026-01-05 10:36:51,161 [INFO] werkzeug:  * Debugger PIN: 494-376-843
+2026-01-05 10:36:54,893 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:36:54] "[32mGET / HTTP/1.1[0m" 302 -
+2026-01-05 10:36:54,942 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:36:54] "GET /login HTTP/1.1" 200 -
+2026-01-05 10:36:55,280 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:36:55] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 10:36:55,330 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:36:55] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-01-05 10:36:56,773 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:36:56] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-01-05 10:36:57,136 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:36:57] "GET /admin/dashboard HTTP/1.1" 200 -
+2026-01-05 10:36:57,177 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:36:57] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 10:36:57,190 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:36:57] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-05 10:36:57,203 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:36:57] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 10:37:02,119 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:37:02] "GET /admin/payments HTTP/1.1" 200 -
+2026-01-05 10:37:02,153 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:37:02] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 10:37:02,159 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:37:02] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 10:37:02,162 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:37:02] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-05 10:39:22,635 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:39:22] "GET /admin/bills HTTP/1.1" 200 -
+2026-01-05 10:39:22,679 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:39:22] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 10:39:22,684 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:39:22] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 10:39:22,691 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:39:22] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-05 10:39:26,296 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:39:26] "GET /admin/payments HTTP/1.1" 200 -
+2026-01-05 10:39:26,336 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:39:26] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 10:39:26,342 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:39:26] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 10:39:26,349 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:39:26] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-05 10:40:29,484 [INFO] werkzeug:  * Detected change in 'c:\\Program Files\\Python39\\Lib\\site-packages\\flask\\wrappers.py', reloading
+2026-01-05 10:40:29,510 [INFO] werkzeug:  * Detected change in 'c:\\Program Files\\Python39\\Lib\\site-packages\\werkzeug\\wrappers\\request.py', reloading
+2026-01-05 10:40:29,539 [INFO] werkzeug:  * Detected change in 'c:\\Program Files\\Python39\\Lib\\site-packages\\werkzeug\\sansio\\request.py', reloading
+2026-01-05 10:40:29,558 [INFO] werkzeug:  * Detected change in 'c:\\Program Files\\Python39\\Lib\\site-packages\\flask\\json\\__init__.py', reloading
+2026-01-05 10:40:29,564 [INFO] werkzeug:  * Detected change in 'c:\\Program Files\\Python39\\Lib\\site-packages\\sqlalchemy\\sql\\expression.py', reloading
+2026-01-05 10:40:29,604 [INFO] werkzeug:  * Detected change in 'c:\\Program Files\\Python39\\Lib\\site-packages\\sqlalchemy\\sql\\functions.py', reloading
+2026-01-05 10:40:29,689 [INFO] werkzeug:  * Detected change in 'c:\\Program Files\\Python39\\Lib\\site-packages\\sqlalchemy\\util\\deprecations.py', reloading
+2026-01-05 10:40:29,750 [INFO] werkzeug:  * Detected change in 'c:\\Program Files\\Python39\\Lib\\site-packages\\sqlalchemy\\sql\\_typing.py', reloading
+2026-01-05 10:40:29,776 [INFO] werkzeug:  * Detected change in 'c:\\Program Files\\Python39\\Lib\\site-packages\\sqlalchemy\\sql\\operators.py', reloading
+2026-01-05 10:40:29,823 [INFO] werkzeug:  * Detected change in 'c:\\Program Files\\Python39\\Lib\\site-packages\\sqlalchemy\\sql\\lambdas.py', reloading
+2026-01-05 10:40:29,850 [INFO] werkzeug:  * Detected change in 'c:\\Program Files\\Python39\\Lib\\site-packages\\sqlalchemy\\types.py', reloading
+2026-01-05 10:40:29,878 [INFO] werkzeug:  * Detected change in 'c:\\Program Files\\Python39\\Lib\\site-packages\\sqlalchemy\\sql\\sqltypes.py', reloading
+2026-01-05 10:40:29,953 [INFO] werkzeug:  * Detected change in 'c:\\Program Files\\Python39\\Lib\\site-packages\\sqlalchemy\\sql\\type_api.py', reloading
+2026-01-05 10:40:30,105 [INFO] werkzeug:  * Detected change in 'c:\\Program Files\\Python39\\Lib\\site-packages\\sqlalchemy\\orm\\util.py', reloading
+2026-01-05 10:40:30,206 [INFO] werkzeug:  * Detected change in 'c:\\Program Files\\Python39\\Lib\\site-packages\\sqlalchemy\\engine\\__init__.py', reloading
+2026-01-05 10:40:30,224 [INFO] werkzeug:  * Detected change in 'c:\\Program Files\\Python39\\Lib\\site-packages\\sqlalchemy\\engine\\row.py', reloading
+2026-01-05 10:40:30,234 [INFO] werkzeug:  * Detected change in 'c:\\Program Files\\Python39\\Lib\\site-packages\\sqlalchemy\\engine\\_py_row.py', reloading
+2026-01-05 10:40:34,069 [INFO] werkzeug:  * Restarting with watchdog (windowsapi)
+2026-01-05 10:44:44,628 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-01-05 10:44:44,628 [INFO] werkzeug: [33mPress CTRL+C to quit[0m
+2026-01-05 10:44:44,653 [INFO] werkzeug:  * Restarting with watchdog (windowsapi)
+2026-01-05 10:44:46,206 [WARNING] werkzeug:  * Debugger is active!
+2026-01-05 10:44:46,215 [INFO] werkzeug:  * Debugger PIN: 494-376-843
+2026-01-05 10:44:47,467 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:44:47] "[32mGET / HTTP/1.1[0m" 302 -
+2026-01-05 10:44:47,757 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:44:47] "GET /admin/dashboard HTTP/1.1" 200 -
+2026-01-05 10:44:48,485 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:44:48] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 10:44:48,521 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:44:48] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 10:44:48,530 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:44:48] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-05 10:44:48,610 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:44:48] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-01-05 10:44:51,987 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:44:51] "GET /admin/payments HTTP/1.1" 200 -
+2026-01-05 10:44:52,021 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:44:52] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 10:44:52,028 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:44:52] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 10:44:52,029 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:44:52] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-05 10:44:55,714 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:44:55] "[35m[1mGET /admin/payments/3/receipt HTTP/1.1[0m" 500 -
+2026-01-05 10:44:55,777 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:44:55] "GET /admin/payments/3/receipt?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1" 200 -
+2026-01-05 10:44:55,788 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:44:55] "GET /admin/payments/3/receipt?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1" 200 -
+2026-01-05 10:44:55,863 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:44:55] "GET /admin/payments/3/receipt?__debugger__=yes&cmd=resource&f=console.png&s=vcgbYZu7TDPCm0tfzsYJ HTTP/1.1" 200 -
+2026-01-05 10:44:55,888 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:44:55] "GET /admin/payments/3/receipt?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1" 200 -
+2026-01-05 10:45:41,216 [INFO] werkzeug:  * Detected change in 'c:\\Program Files\\Python39\\Lib\\io.py', reloading
+2026-01-05 10:45:45,642 [INFO] werkzeug:  * Restarting with watchdog (windowsapi)
+2026-01-05 10:45:47,292 [WARNING] werkzeug:  * Debugger is active!
+2026-01-05 10:45:47,299 [INFO] werkzeug:  * Debugger PIN: 494-376-843
+2026-01-05 10:45:48,582 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:45:48] "[32mGET / HTTP/1.1[0m" 302 -
+2026-01-05 10:45:48,948 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:45:48] "GET /admin/dashboard HTTP/1.1" 200 -
+2026-01-05 10:45:49,702 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:45:49] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 10:45:49,742 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:45:49] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 10:45:49,743 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:45:49] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-05 10:45:53,217 [INFO] werkzeug:  * Detected change in 'C:\\Users\\Serhat\\Desktop\\siteyonetim\\routes\\admin_routes.py', reloading
+2026-01-05 10:45:53,218 [INFO] werkzeug:  * Detected change in 'C:\\Users\\Serhat\\Desktop\\siteyonetim\\routes\\admin_routes.py', reloading
+2026-01-05 10:45:56,150 [INFO] werkzeug:  * Restarting with watchdog (windowsapi)
+2026-01-05 10:45:57,823 [WARNING] werkzeug:  * Debugger is active!
+2026-01-05 10:45:57,830 [INFO] werkzeug:  * Debugger PIN: 494-376-843
+2026-01-05 10:45:59,101 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:45:59] "[32mGET / HTTP/1.1[0m" 302 -
+2026-01-05 10:45:59,442 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:45:59] "GET /admin/dashboard HTTP/1.1" 200 -
+2026-01-05 10:46:00,179 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:46:00] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 10:46:00,223 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:46:00] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-05 10:46:00,228 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:46:00] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 10:46:02,156 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:46:02] "GET /admin/payments HTTP/1.1" 200 -
+2026-01-05 10:46:02,190 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:46:02] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 10:46:02,198 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:46:02] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 10:46:02,205 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:46:02] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-05 10:46:03,583 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:46:03] "GET /admin/payments/3/receipt HTTP/1.1" 200 -
+2026-01-05 10:50:14,602 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-01-05 10:50:14,603 [INFO] werkzeug: [33mPress CTRL+C to quit[0m
+2026-01-05 10:50:14,628 [INFO] werkzeug:  * Restarting with watchdog (windowsapi)
+2026-01-05 10:50:16,083 [WARNING] werkzeug:  * Debugger is active!
+2026-01-05 10:50:16,089 [INFO] werkzeug:  * Debugger PIN: 494-376-843
+2026-01-05 10:50:17,346 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:50:17] "[32mGET / HTTP/1.1[0m" 302 -
+2026-01-05 10:50:17,686 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:50:17] "GET /admin/dashboard HTTP/1.1" 200 -
+2026-01-05 10:50:18,465 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:50:18] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-05 10:50:18,469 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:50:18] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 10:50:18,484 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:50:18] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 10:50:20,222 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:50:20] "GET /admin/payments HTTP/1.1" 200 -
+2026-01-05 10:50:20,250 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:50:20] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 10:50:20,264 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:50:20] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 10:50:20,270 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:50:20] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-05 10:50:22,079 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:50:22] "[35m[1mGET /admin/payments/3/receipt HTTP/1.1[0m" 500 -
+2026-01-05 10:50:22,105 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:50:22] "[36mGET /admin/payments/3/receipt?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+2026-01-05 10:50:22,110 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:50:22] "[36mGET /admin/payments/3/receipt?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+2026-01-05 10:50:22,170 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:50:22] "GET /admin/payments/3/receipt?__debugger__=yes&cmd=resource&f=console.png&s=MfkmwFIJscmaqhz8biLR HTTP/1.1" 200 -
+2026-01-05 10:50:53,340 [INFO] werkzeug:  * Detected change in 'c:\\Program Files\\Python39\\Lib\\os.py', reloading
+2026-01-05 10:50:56,952 [INFO] werkzeug:  * Restarting with watchdog (windowsapi)
+2026-01-05 10:50:58,614 [WARNING] werkzeug:  * Debugger is active!
+2026-01-05 10:50:58,621 [INFO] werkzeug:  * Debugger PIN: 494-376-843
+2026-01-05 10:50:59,869 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:50:59] "[32mGET / HTTP/1.1[0m" 302 -
+2026-01-05 10:51:00,184 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:51:00] "GET /admin/dashboard HTTP/1.1" 200 -
+2026-01-05 10:51:00,996 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:51:00] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 10:51:01,010 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:51:01] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-05 10:51:01,024 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:51:01] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 10:51:06,731 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:51:06] "GET /admin/payments HTTP/1.1" 200 -
+2026-01-05 10:51:06,777 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:51:06] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 10:51:06,787 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:51:06] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 10:51:06,791 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:51:06] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-05 10:51:08,029 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:51:08] "[35m[1mGET /admin/payments/3/receipt HTTP/1.1[0m" 500 -
+2026-01-05 10:51:08,052 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:51:08] "[36mGET /admin/payments/3/receipt?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+2026-01-05 10:51:08,062 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:51:08] "[36mGET /admin/payments/3/receipt?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+2026-01-05 10:51:08,124 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:51:08] "GET /admin/payments/3/receipt?__debugger__=yes&cmd=resource&f=console.png&s=LUoln7oZd4JsF2YV2cqh HTTP/1.1" 200 -
+2026-01-05 10:51:10,872 [INFO] werkzeug:  * Detected change in 'C:\\Users\\Serhat\\Desktop\\siteyonetim\\routes\\admin_routes.py', reloading
+2026-01-05 10:51:10,873 [INFO] werkzeug:  * Detected change in 'C:\\Users\\Serhat\\Desktop\\siteyonetim\\routes\\admin_routes.py', reloading
+2026-01-05 10:51:13,827 [INFO] werkzeug:  * Restarting with watchdog (windowsapi)
+2026-01-05 10:51:15,589 [WARNING] werkzeug:  * Debugger is active!
+2026-01-05 10:51:15,594 [INFO] werkzeug:  * Debugger PIN: 494-376-843
+2026-01-05 10:51:16,852 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:51:16] "[32mGET / HTTP/1.1[0m" 302 -
+2026-01-05 10:51:17,167 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:51:17] "GET /admin/dashboard HTTP/1.1" 200 -
+2026-01-05 10:51:17,957 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:51:17] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 10:51:17,973 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:51:17] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-05 10:51:17,987 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:51:17] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 10:51:21,129 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:51:21] "GET /admin/payments HTTP/1.1" 200 -
+2026-01-05 10:51:21,163 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:51:21] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 10:51:21,170 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:51:21] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 10:51:21,177 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:51:21] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-05 10:51:22,404 [WARNING] app: TTF font kaydı başarısız: name 'pdfmetrics' is not defined
+2026-01-05 10:51:22,417 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:51:22] "GET /admin/payments/3/receipt HTTP/1.1" 200 -
+2026-01-05 10:52:18,786 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-01-05 10:52:18,787 [INFO] werkzeug: [33mPress CTRL+C to quit[0m
+2026-01-05 10:52:18,818 [INFO] werkzeug:  * Restarting with watchdog (windowsapi)
+2026-01-05 10:52:20,718 [WARNING] werkzeug:  * Debugger is active!
+2026-01-05 10:52:20,724 [INFO] werkzeug:  * Debugger PIN: 494-376-843
+2026-01-05 10:52:21,996 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:52:21] "[32mGET / HTTP/1.1[0m" 302 -
+2026-01-05 10:52:22,297 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:52:22] "GET /admin/dashboard HTTP/1.1" 200 -
+2026-01-05 10:52:23,071 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:52:23] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 10:52:23,105 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:52:23] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 10:52:23,113 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:52:23] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-05 10:52:25,067 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:52:25] "GET /admin/payments HTTP/1.1" 200 -
+2026-01-05 10:52:25,101 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:52:25] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 10:52:25,108 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:52:25] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 10:52:25,115 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:52:25] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-05 10:52:27,271 [WARNING] app: TTF font kaydı başarısız: name 'pdfmetrics' is not defined
+2026-01-05 10:52:27,284 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:52:27] "GET /admin/payments/3/receipt HTTP/1.1" 200 -
+2026-01-05 10:54:14,992 [INFO] werkzeug:  * Detected change in 'C:\\Users\\Serhat\\Desktop\\siteyonetim\\routes\\admin_routes.py', reloading
+2026-01-05 10:54:14,993 [INFO] werkzeug:  * Detected change in 'C:\\Users\\Serhat\\Desktop\\siteyonetim\\routes\\admin_routes.py', reloading
+2026-01-05 10:54:18,266 [INFO] werkzeug:  * Restarting with watchdog (windowsapi)
+2026-01-05 10:54:19,880 [WARNING] werkzeug:  * Debugger is active!
+2026-01-05 10:54:19,887 [INFO] werkzeug:  * Debugger PIN: 494-376-843
+2026-01-05 10:54:21,120 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:54:21] "[32mGET / HTTP/1.1[0m" 302 -
+2026-01-05 10:54:21,449 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:54:21] "GET /admin/dashboard HTTP/1.1" 200 -
+2026-01-05 10:54:22,261 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:54:22] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 10:54:22,289 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:54:22] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 10:54:22,298 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:54:22] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-05 10:54:23,819 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:54:23] "GET /admin/payments HTTP/1.1" 200 -
+2026-01-05 10:54:23,856 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:54:23] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 10:54:23,862 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:54:23] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 10:54:23,864 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:54:23] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-05 10:54:25,612 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:54:25] "GET /admin/payments/3/receipt HTTP/1.1" 200 -
+2026-01-05 10:55:52,862 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:55:52] "GET /admin/payments HTTP/1.1" 200 -
+2026-01-05 10:55:52,891 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:55:52] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 10:55:52,896 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:55:52] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 10:55:52,899 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:55:52] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-05 10:55:55,008 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:55:55] "GET /admin/payments HTTP/1.1" 200 -
+2026-01-05 10:55:55,033 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:55:55] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
+2026-01-05 10:55:55,040 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:55:55] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-05 10:55:55,045 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:55:55] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-05 10:55:57,238 [INFO] werkzeug: 127.0.0.1 - - [05/Jan/2026 10:55:57] "GET /admin/payments/4/receipt HTTP/1.1" 200 -

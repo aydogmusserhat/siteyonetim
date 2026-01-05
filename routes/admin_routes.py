@@ -3,7 +3,8 @@ from datetime import datetime, date
 from decimal import Decimal
 from collections import defaultdict
 from models.settings_model import SystemSetting
-
+import io
+import os
 from flask import (
     Blueprint,
     render_template,
@@ -14,7 +15,13 @@ from flask import (
     current_app,
     request,
     jsonify,
+    send_file,
 )
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func
 
@@ -1520,6 +1527,251 @@ def delete_payment(payment_id: int):
             {"ok": False, "error": "Ödeme silinirken bir hata oluştu."}
         ), 500
 
+
+# ============== PDF Makbuz indir ===============================
+@admin_bp.route("/payments/<int:payment_id>/receipt", methods=["GET"])
+@admin_required
+def payment_receipt(payment_id: int):
+    """Tek bir ödeme için profesyonel PDF makbuz üret ve indir."""
+    try:
+        row = (
+            db.session.query(Payment, Apartment, User, Bill)
+            .outerjoin(Apartment, Payment.apartment_id == Apartment.id)
+            .outerjoin(User, Payment.user_id == User.id)
+            .outerjoin(Bill, Payment.bill_id == Bill.id)
+            .filter(Payment.id == payment_id)
+            .first()
+        )
+
+        if not row:
+            flash("Ödeme kaydı bulunamadı.", "error")
+            return redirect(url_for("admin.manage_payments"))
+
+        payment, apartment, user, bill = row
+
+        # Sistem ayarlarından site/apartman adı
+        try:
+            settings_obj = SystemSetting.get_singleton()
+        except SQLAlchemyError:
+            settings_obj = None
+
+        site_name = "Site / Apartman"
+        if settings_obj and getattr(settings_obj, "site_name", None):
+            site_name = settings_obj.site_name
+
+        # -------------------------------
+        #  FONT KAYDI (Türkçe için TTF)
+        # -------------------------------
+        font_dir = os.path.join(current_app.root_path, "static", "fonts")
+        regular_font = "DejaVu"
+        bold_font = "DejaVu-Bold"
+
+        regular_path = os.path.join(font_dir, "DejaVuSans.ttf")
+        bold_path = os.path.join(font_dir, "DejaVuSans-Bold.ttf")
+
+        # Varsayılan olarak Helvetica kullan, eğer TTF yoksa
+        use_custom_font = False
+        if os.path.exists(regular_path) and os.path.exists(bold_path):
+            try:
+                pdfmetrics.registerFont(TTFont(regular_font, regular_path))
+                pdfmetrics.registerFont(TTFont(bold_font, bold_path))
+                use_custom_font = True
+            except Exception as e:
+                current_app.logger.warning("TTF font kaydı başarısız: %s", e)
+
+        # PDF'yi hafızada oluştur
+        buffer = io.BytesIO()
+        pdf = canvas.Canvas(buffer, pagesize=A4)
+        width, height = A4
+
+        # Kenar boşlukları
+        margin_left = 40
+        margin_right = width - 40
+        margin_top = height - 40
+        margin_bottom = 40
+
+        # Yardımcı fonksiyonlar
+        def set_font_bold(size):
+            if use_custom_font:
+                pdf.setFont(bold_font, size)
+            else:
+                pdf.setFont("Helvetica-Bold", size)
+
+        def set_font_regular(size):
+            if use_custom_font:
+                pdf.setFont(regular_font, size)
+            else:
+                pdf.setFont("Helvetica", size)
+
+        y = margin_top
+
+        # -------------------------------
+        #   BAŞLIK BÖLÜMÜ
+        # -------------------------------
+        set_font_bold(16)
+        pdf.drawString(margin_left, y, "ÖDEME MAKBUZU")
+
+        set_font_regular(11)
+        pdf.drawRightString(
+            margin_right,
+            y,
+            f"Makbuz No: {payment.id}"
+        )
+        y -= 25
+
+        # İnce ayırıcı çizgi
+        pdf.setLineWidth(0.5)
+        pdf.line(margin_left, y, margin_right, y)
+        y -= 20
+
+        # Site / Apartman adı
+        set_font_bold(12)
+        pdf.drawString(margin_left, y, site_name)
+        y -= 18
+
+        # Daire bilgisi
+        set_font_regular(10)
+        if apartment:
+            daire_str = f"{apartment.block} Blok, {apartment.floor}. Kat, No: {apartment.number}"
+            pdf.drawString(margin_left, y, f"Daire: {daire_str}")
+            y -= 16
+
+        # Ödemeyi yapan
+        if user:
+            pdf.drawString(margin_left, y, f"Ödemeyi Yapan: {user.name}")
+            y -= 16
+
+        # Tarih
+        date_str = (
+            payment.payment_date.strftime("%d.%m.%Y")
+            if payment.payment_date
+            else datetime.utcnow().strftime("%d.%m.%Y")
+        )
+        pdf.drawString(margin_left, y, f"Ödeme Tarihi: {date_str}")
+        y -= 24
+
+        # -------------------------------
+        #   BORÇ / ÖDEME DETAY KUTUSU
+        # -------------------------------
+        # Borç türü metni
+        bill_type_raw = None
+        if bill and bill.type:
+            bill_type_raw = bill.type
+        elif getattr(payment, "bill_type", None):
+            bill_type_raw = payment.bill_type
+
+        bill_type_label = "Belirtilmedi"
+        if bill_type_raw == "aidat":
+            bill_type_label = "Aidat"
+        elif bill_type_raw == "elektrik":
+            bill_type_label = "Elektrik"
+        elif bill_type_raw == "su":
+            bill_type_label = "Su"
+        elif bill_type_raw == "dogalgaz":
+            bill_type_label = "Doğalgaz"
+        elif bill_type_raw == "ekstra":
+            bill_type_label = "Ekstra Gider"
+        elif bill_type_raw:
+            bill_type_label = bill_type_raw.capitalize()
+
+        description = "-"
+        if bill and bill.description:
+            description = bill.description
+
+        # Kutunun yüksekliğini kaba hesapla
+        box_top = y
+        box_bottom = box_top - 90
+        if box_bottom < margin_bottom + 60:
+            # Sayfada yer kalmadıysa yeni sayfa
+            pdf.showPage()
+            y = margin_top
+            box_top = y
+            box_bottom = box_top - 90
+
+        # Kutu çiz (gri çerçeve)
+        pdf.setLineWidth(0.7)
+        pdf.rect(margin_left, box_bottom, (margin_right - margin_left), (box_top - box_bottom))
+
+        inner_y = box_top - 15
+        inner_x = margin_left + 10
+
+        set_font_bold(11)
+        pdf.drawString(inner_x, inner_y, "Borç / Ödeme Bilgileri")
+        inner_y -= 18
+
+        set_font_regular(10)
+        pdf.drawString(inner_x, inner_y, f"Borç Türü : {bill_type_label}")
+        inner_y -= 16
+        pdf.drawString(inner_x, inner_y, f"Açıklama   : {description}")
+        inner_y -= 16
+
+        # Tutar
+        amount_str = f"{payment.amount:.2f} TL"
+        set_font_bold(11)
+        pdf.drawString(inner_x, inner_y, f"Tutar      : {amount_str}")
+        inner_y -= 20
+
+        # Ödeme yöntemi
+        method_label = "-"
+        if payment.method == "nakit":
+            method_label = "Nakit"
+        elif payment.method == "banka":
+            method_label = "Banka Havalesi / EFT"
+        elif payment.method == "pos":
+            method_label = "POS / Kredi Kartı"
+        elif payment.method == "online":
+            method_label = "Online Ödeme"
+        elif payment.method:
+            method_label = payment.method.capitalize()
+
+        set_font_regular(10)
+        pdf.drawString(inner_x, inner_y, f"Ödeme Yöntemi : {method_label}")
+
+        # Kutudan sonra y konumunu güncelle
+        y = box_bottom - 30
+
+        # -------------------------------
+        #   İMZA & NOT BÖLÜMÜ
+        # -------------------------------
+        # İmza alanı
+        set_font_regular(10)
+        pdf.drawString(margin_left, y, "Yetkili İmzası:")
+        pdf.line(margin_left + 80, y - 2, margin_left + 220, y - 2)
+        y -= 40
+
+        # Alt açıklama
+        set_font_regular(9)
+        pdf.drawString(
+            margin_left,
+            y,
+            "Bu makbuz belirtilen tutarda ödemenin alındığını gösterir. Dijital ortamda oluşturulmuştur."
+        )
+        y -= 14
+        pdf.drawString(
+            margin_left,
+            y,
+            "Kaşe ve ıslak imza gerekmeksizin geçerlidir; gerektiğinde sistem kayıtlarıyla birlikte tevsik edilir."
+        )
+
+        pdf.showPage()
+        pdf.save()
+
+        buffer.seek(0)
+        filename = f"odeme_makbuzu_{payment.id}.pdf"
+        return send_file(
+            buffer,
+            as_attachment=True,
+            download_name=filename,
+            mimetype="application/pdf",
+        )
+
+    except SQLAlchemyError as exc:
+        db.session.rollback()
+        current_app.logger.exception("Ödeme makbuzu oluşturulamadı: %s", exc)
+        flash("Makbuz oluşturulurken bir hata oluştu.", "error")
+        return redirect(url_for("admin.manage_payments"))
+
+# ===============================================================
 # ======================
 #  DUYURULAR
 # ======================

@@ -225,6 +225,15 @@
 
                   <!-- İŞLEMLER -->
                   <td style="padding:6px 4px; white-space:nowrap; text-align:right;">
+
+                    <!-- PDF İndir butonu (her zaman görünsün) -->
+                    <a href="{{ url_for('admin.payment_receipt', payment_id=payment.id) }}"
+                      target="_blank"
+                      class="btn btn-sm btn-outline-secondary me-1"
+                      style="padding:3px 8px; font-size:11px;">
+                      PDF İndir
+                    </a>
+
                     <button type="button"
                             class="btn btn-sm btn-outline-primary me-1 btn-edit"
                             style="padding:3px 8px; font-size:11px;">
@@ -247,6 +256,7 @@
                       Vazgeç
                     </button>
                   </td>
+
                 </tr>
               {% endfor %}
             </tbody>
