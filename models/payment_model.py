@@ -12,6 +12,10 @@ class Payment(db.Model):
     __tablename__ = "payments"
 
     id = db.Column(db.Integer, primary_key=True)
+
+    # Hangi siteye ait
+    site_id = db.Column(db.Integer, db.ForeignKey("sites.id"), nullable=False)
+
     bill_id = db.Column(db.Integer, db.ForeignKey("bills.id"), nullable=True)
     apartment_id = db.Column(db.Integer, db.ForeignKey("apartments.id"), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
@@ -23,4 +27,7 @@ class Payment(db.Model):
     user = db.relationship("User", backref="payments", lazy=True)
 
     def __repr__(self) -> str:
-        return f"<Payment id={self.id} amount={self.amount} method={self.method}>"
+        return (
+            f"<Payment id={self.id} site_id={self.site_id} "
+            f"amount={self.amount} method={self.method}>"
+        )

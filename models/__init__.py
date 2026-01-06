@@ -11,3 +11,6 @@ from .bill_model import Bill  # noqa: F401
 from .payment_model import Payment  # noqa: F401
 from .announcement_model import Announcement  # noqa: F401
 from .ticket_model import Ticket  # noqa: F401
+from .site_model import Site  # ✅ yeni eklendi
+from .settings_model import SystemSetting  # (zaten varsa dursun, yoksa ekle)
+

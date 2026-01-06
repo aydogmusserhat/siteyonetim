@@ -32,22 +32,18 @@ from models.bill_model import Bill
 from models.payment_model import Payment
 from models.announcement_model import Announcement
 from models.ticket_model import Ticket
-
+from models.site_model import Site  # 🔸 site modeli
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
 # ==================================================
-#  AYLIK AİDAT İÇİN VARSAYILAN TUTAR (DEĞİŞTİREBİLİRSİN)
+#  YETKİ KONTROL
 # ==================================================
 
 
-# ======================
-#  YETKİ KONTROL
-# ======================
-
 def admin_required(view_func):
     """
-    Sadece 'admin' rolündeki kullanıcıların erişmesini sağlayan decorator.
+    Sadece 'admin' veya 'super_admin' rolündeki kullanıcıların erişmesini sağlayan decorator.
     Giriş yoksa /login, rol yanlışsa index'e yönlendirir.
     """
 
@@ -60,7 +56,8 @@ def admin_required(view_func):
             flash("Devam etmek için lütfen giriş yapın.", "info")
             return redirect(url_for("auth.login"))
 
-        if role != "admin":
+        # Admin paneline super_admin da girebilsin:
+        if role not in ("admin", "super_admin"):
             flash("Bu alana sadece yönetici kullanıcılar erişebilir.", "error")
             return redirect(url_for("index"))
 
@@ -69,6 +66,284 @@ def admin_required(view_func):
     return wrapped_view
 
 
+def super_admin_required(view_func):
+    """
+    Sadece 'super_admin' rolündeki kullanıcılar için decorator.
+    (Site yönetimi ekranı gibi özel alanlar için)
+    """
+
+    @wraps(view_func)
+    def wrapped_view(*args, **kwargs):
+        user_id = session.get("user_id")
+        role = session.get("user_role")
+
+        if not user_id:
+            flash("Devam etmek için lütfen giriş yapın.", "info")
+            return redirect(url_for("auth.login"))
+
+        if role != "super_admin":
+            flash("Bu alana sadece süper yönetici erişebilir.", "error")
+            return redirect(url_for("index"))
+
+        return view_func(*args, **kwargs)
+
+    return wrapped_view
+
+
+def _get_current_admin():
+    """Session'daki admin kullanıcının User nesnesini döner."""
+    user_id = session.get("user_id")
+    if not user_id:
+        return None
+    try:
+        return User.query.get(user_id)
+    except SQLAlchemyError as exc:
+        current_app.logger.exception("Admin bilgisi alınamadı: %s", exc)
+        return None
+
+
+# ======================
+#  SETTINGS / SITE NAME
+# ======================
+
+
+def get_default_monthly_dues_amount() -> Decimal:
+    """
+    Varsayılan aylık aidat tutarını ayarlar tablosundan (SystemSetting)
+    okur. Herhangi bir hata ya da kayıt bulunamazsa 500.00 TL döner.
+    Böylece tek bir doğruluk kaynağı kullanılmış olur.
+    """
+    fallback = Decimal("500.00")
+    try:
+        settings = SystemSetting.get_singleton()
+        if settings and settings.default_monthly_dues_amount is not None:
+            return Decimal(settings.default_monthly_dues_amount)
+    except SQLAlchemyError as exc:
+        current_app.logger.exception("Varsayılan aidat tutarı okunamadı: %s", exc)
+
+    return fallback
+
+
+def get_site_display_name() -> str:
+    """
+    Sistem ayarlarından (SystemSetting) site / apartman adını okur.
+    Bulamazsa güvenli bir varsayılan değer döner.
+    """
+    default_name = "Site / Apartman"
+    try:
+        settings = SystemSetting.get_singleton()
+        if settings and getattr(settings, "site_name", None):
+            name = (settings.site_name or "").strip()
+            if name:
+                return name
+    except SQLAlchemyError as exc:
+        current_app.logger.exception("Site adı okunamadı: %s", exc)
+
+    return default_name
+
+
+@admin_bp.app_context_processor
+def inject_site_name():
+    """
+    Tüm admin template'lerine current_site_name verir.
+    Önce session'dan okur, yoksa DB'den çeker ve session'a yazar.
+    """
+    name = session.get("site_name")
+
+    if not name:
+        name = get_site_display_name()  # DB'den oku (SystemSetting)
+        session["site_name"] = name
+
+    return {"current_site_name": name}
+
+
+# ======================
+#  SUPER ADMIN: SITE PANELİ
+# ======================
+
+
+@admin_bp.route("/sites", methods=["GET", "POST"])
+@super_admin_required
+def manage_sites():
+    """
+    Super admin paneli:
+    - Site oluşturma (POST /admin/sites)
+    - Sayfada:
+        * Oluşturulan siteler listesi
+        * Her sitenin atanmış adminleri
+    Admin oluşturma POST'u ayrı route'tan alınır (create_site_admin).
+    """
+    # Yeni site oluşturma
+    if request.method == "POST":
+        name = (request.form.get("name") or "").strip()
+        description = (request.form.get("description") or "").strip()
+
+        if not name:
+            flash("Site adı boş bırakılamaz.", "error")
+        else:
+            try:
+                existing = Site.query.filter_by(name=name).first()
+                if existing:
+                    flash("Bu isimde bir site zaten mevcut.", "error")
+                else:
+                    site = Site(name=name, description=description or None)
+                    db.session.add(site)
+                    db.session.commit()
+                    flash("Site başarıyla oluşturuldu.", "success")
+            except SQLAlchemyError as exc:
+                db.session.rollback()
+                current_app.logger.exception("Site oluşturulamadı: %s", exc)
+                flash("Site kaydedilirken bir hata oluştu.", "error")
+
+    # Listeleme
+    sites = []
+    site_admins_map = defaultdict(list)
+
+    try:
+        sites = Site.query.order_by(Site.name.asc()).all()
+
+        if sites:
+            admins = (
+                User.query.filter_by(role="admin")
+                .order_by(User.name.asc())
+                .all()
+            )
+            for admin in admins:
+                if admin.site_id:
+                    site_admins_map[admin.site_id].append(admin)
+    except SQLAlchemyError as exc:
+        current_app.logger.exception("Site listesi alınamadı: %s", exc)
+        flash("Site listesi alınırken bir hata oluştu.", "error")
+
+    return render_template(
+        "admin/sites.html",
+        sites=sites,
+        site_admins_map=site_admins_map,
+    )
+
+
+@admin_bp.route("/sites/create-admin", methods=["POST"])
+@super_admin_required
+def create_site_admin():
+    """
+    Super admin panelinden yeni bir admin kullanıcı oluşturur
+    ve seçilen siteye bağlar.
+    """
+    name = (request.form.get("admin_name") or "").strip()
+    email = (request.form.get("admin_email") or "").strip().lower()
+    phone = (request.form.get("admin_phone") or "").strip()
+    password = request.form.get("admin_password") or ""
+    site_id = request.form.get("admin_site_id")
+
+    if not name or not email or not password or not site_id:
+        flash("İsim, e-posta, şifre ve site seçimi zorunludur.", "error")
+        return redirect(url_for("admin.manage_sites"))
+
+    try:
+        # E-posta daha önce kullanılmış mı?
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            flash("Bu e-posta ile kayıtlı bir kullanıcı zaten var.", "error")
+            return redirect(url_for("admin.manage_sites"))
+
+        site = Site.query.get(int(site_id))
+        if not site:
+            flash("Seçilen site bulunamadı.", "error")
+            return redirect(url_for("admin.manage_sites"))
+
+        new_admin = User(
+            name=name,
+            email=email,
+            phone=phone,
+            role="admin",
+            site_id=site.id,
+            is_active=True,
+        )
+        new_admin.set_password(password)
+
+        db.session.add(new_admin)
+        db.session.commit()
+
+        flash(f"{name} kullanıcısı {site.name} için admin olarak oluşturuldu.", "success")
+
+    except (ValueError, SQLAlchemyError) as exc:
+        db.session.rollback()
+        current_app.logger.exception("Yeni admin oluşturulamadı: %s", exc)
+        flash("Admin oluşturulurken bir hata oluştu.", "error")
+
+    return redirect(url_for("admin.manage_sites"))
+
+@admin_bp.route("/sites/<int:site_id>/assign-admin", methods=["POST"])
+@super_admin_required
+def assign_site_admin(site_id: int):
+    """
+    Bir kullanıcıyı belirli bir site için admin yapar.
+    - Kullanıcının rolünü 'admin' yapar
+    - Kullanıcının site_id alanını günceller
+    """
+    user_id = request.form.get("user_id")
+    if not user_id:
+        flash("Bir kullanıcı seçmelisiniz.", "error")
+        return redirect(url_for("admin.manage_sites"))
+
+    try:
+        site = Site.query.get(site_id)
+        if not site:
+            flash("Site bulunamadı.", "error")
+            return redirect(url_for("admin.manage_sites"))
+
+        user = User.query.get(int(user_id))
+        if not user:
+            flash("Kullanıcı bulunamadı.", "error")
+            return redirect(url_for("admin.manage_sites"))
+
+        if user.role == "super_admin":
+            flash("Süper admin için site ataması yapmaya gerek yok.", "info")
+            return redirect(url_for("admin.manage_sites"))
+
+        user.role = "admin"
+        user.site_id = site.id
+        db.session.commit()
+        flash(f"{user.name} artık '{site.name}' sitesinin yöneticisi.", "success")
+
+    except SQLAlchemyError as exc:
+        db.session.rollback()
+        current_app.logger.exception("Site admin atanamadı: %s", exc)
+        flash("Admin ataması yapılırken bir hata oluştu.", "error")
+
+    return redirect(url_for("admin.manage_sites"))
+
+
+@admin_bp.route("/sites/<int:site_id>/delete", methods=["POST"])
+@super_admin_required
+def delete_site(site_id: int):
+    """
+    Basit silme: Sadece o siteye bağlı admin yoksa siler.
+    (İleride apartman/bill/payment site_id ile bağlandığında ekstra kontroller ekleriz.)
+    """
+    try:
+        site = Site.query.get(site_id)
+        if not site:
+            flash("Site bulunamadı.", "error")
+            return redirect(url_for("admin.manage_sites"))
+
+        # Bu siteye bağlı admin var mı?
+        linked_admins = User.query.filter_by(site_id=site.id, role="admin").count()
+        if linked_admins > 0:
+            flash("Bu siteye atanmış adminler varken silemezsiniz.", "error")
+            return redirect(url_for("admin.manage_sites"))
+
+        db.session.delete(site)
+        db.session.commit()
+        flash("Site başarıyla silindi.", "success")
+
+    except SQLAlchemyError as exc:
+        db.session.rollback()
+        current_app.logger.exception("Site silinemedi: %s", exc)
+        flash("Site silinirken bir hata oluştu.", "error")
+
+    return redirect(url_for("admin.manage_sites"))
+# ======================
 def _get_current_admin():
     """Session'daki admin kullanıcının User nesnesini döner."""
     user_id = session.get("user_id")
@@ -135,6 +410,26 @@ def inject_site_name():
     return {"current_site_name": name}
 
 
+def get_current_site():
+    """
+    Session'dan aktif siteyi döner.
+    Eğer session'da yoksa, admin kullanıcının site_id bilgisini kullanır.
+    """
+    from models.site_model import Site  # local import, döngüyü önlemek için
+
+    site_id = session.get("active_site_id")
+    if site_id:
+        return Site.query.get(site_id)
+
+    admin_user = _get_current_admin()
+    if admin_user and admin_user.site_id:
+        site = Site.query.get(admin_user.site_id)
+        if site:
+            session["active_site_id"] = site.id
+            session["active_site_name"] = site.name
+        return site
+
+    return None
 
 # ======================== Tarih formatlarını anlama ==========================
 def _parse_date_flex(value: str):
@@ -181,9 +476,14 @@ def _parse_date_flex(value: str):
 @admin_bp.route("/dashboard")
 @admin_required
 def dashboard():
-    """Genel yönetim paneli özeti + son 12 ay aylık özet."""
+    """Genel yönetim paneli özeti + son 12 ay aylık özet (SİTE BAZLI)."""
 
     admin_user = _get_current_admin()
+    site_id = session.get("active_site_id") or (admin_user.site_id if admin_user else None)
+
+    if not site_id:
+        flash("Bu paneli kullanabilmek için bir siteye atanmış olmanız gerekiyor.", "error")
+        return redirect(url_for("index"))
 
     stats = {
         "total_apartments": 0,
@@ -191,11 +491,11 @@ def dashboard():
         "resident_users": 0,
         "admin_users": 0,
         "total_bills": 0,
-        # 👉 Bu kartta gösterilecek: bu ay beklenen gelir - bu ay ödenen
+        # Bu ay beklenen gelir - bu ay ödenen
         "total_open_amount": Decimal("0.00"),
-        # 👉 Bu kartta artık sadece bu aya ait ödemeler var
+        # Bu ay yapılan ödemelerin toplamı
         "total_paid_amount": Decimal("0.00"),
-        # 👉 Bu ay oluşturulan borçların toplamı
+        # Bu ay oluşturulan borçların toplamı
         "expected_income_this_month": Decimal("0.00"),
         "open_tickets": 0,
     }
@@ -203,21 +503,21 @@ def dashboard():
     today = date.today()
 
     # =========================
-    #  GENEL SAYILAR
+    #  GENEL SAYILAR (site bazlı)
     # =========================
     try:
-        stats["total_apartments"] = Apartment.query.count()
-        stats["total_users"] = User.query.count()
-        stats["resident_users"] = User.query.filter_by(role="resident").count()
-        stats["admin_users"] = User.query.filter_by(role="admin").count()
+        stats["total_apartments"] = Apartment.query.filter_by(site_id=site_id).count()
+        stats["total_users"] = User.query.filter_by(site_id=site_id).count()
+        stats["resident_users"] = User.query.filter_by(site_id=site_id, role="resident").count()
+        stats["admin_users"] = User.query.filter_by(site_id=site_id, role="admin").count()
     except SQLAlchemyError as exc:
         current_app.logger.exception("Dashboard kullanıcı istatistikleri alınamadı: %s", exc)
 
     # =========================
-    #  BORÇ / ÖDEME ÖZETLERİ
+    #  BORÇ / ÖDEME ÖZETLERİ (bu ay ve bu site)
     # =========================
     try:
-        stats["total_bills"] = Bill.query.count()
+        stats["total_bills"] = Bill.query.filter_by(site_id=site_id).count()
 
         # Bu ayın başlangıcı ve bir sonraki ayın başlangıcı
         month_start = date(today.year, today.month, 1)
@@ -230,6 +530,7 @@ def dashboard():
         month_bills_sum = (
             db.session.query(func.coalesce(func.sum(Bill.amount), 0))
             .filter(
+                Bill.site_id == site_id,
                 Bill.created_at >= month_start,
                 Bill.created_at < month_end,
             )
@@ -241,6 +542,7 @@ def dashboard():
         month_payments_sum = (
             db.session.query(func.coalesce(func.sum(Payment.amount), 0))
             .filter(
+                Payment.site_id == site_id,
                 Payment.payment_date >= month_start,
                 Payment.payment_date < month_end,
             )
@@ -249,11 +551,8 @@ def dashboard():
         paid_dec = Decimal(month_payments_sum or 0)
 
         # Kartlar:
-        # "Bu Ay Beklenen Toplam Gelir"
         stats["expected_income_this_month"] = billed_dec
-        # "Toplam Ödenmiş" kartı → bu aya ait ödemeler
         stats["total_paid_amount"] = paid_dec
-        # "Açık / Kısmi Borç" kartı → bu ayın farkı
         diff = billed_dec - paid_dec
         if diff < 0:
             diff = Decimal("0.00")
@@ -263,17 +562,22 @@ def dashboard():
         current_app.logger.exception("Dashboard borç istatistikleri alınamadı: %s", exc)
 
     # =========================
-    #  AÇIK TALEP SAYISI
+    #  AÇIK TALEP SAYISI (site bazlı)
     # =========================
     try:
-        stats["open_tickets"] = Ticket.query.filter(
-            Ticket.status.in_(["open", "in_progress"])
-        ).count()
+        stats["open_tickets"] = (
+            Ticket.query
+            .filter(
+                Ticket.site_id == site_id,
+                Ticket.status.in_(["open", "in_progress"])
+            )
+            .count()
+        )
     except SQLAlchemyError as exc:
         current_app.logger.exception("Dashboard talep istatistikleri alınamadı: %s", exc)
 
     # =========================
-    #  SON KAYITLAR
+    #  SON KAYITLAR (site bazlı)
     # =========================
     recent_bills = []
     recent_payments = []
@@ -285,6 +589,7 @@ def dashboard():
         recent_bills = (
             db.session.query(Bill, Apartment)
             .outerjoin(Apartment, Bill.apartment_id == Apartment.id)
+            .filter(Bill.site_id == site_id)
             .order_by(Bill.created_at.desc())
             .limit(5)
             .all()
@@ -298,6 +603,7 @@ def dashboard():
             db.session.query(Payment, Apartment, User)
             .outerjoin(Apartment, Payment.apartment_id == Apartment.id)
             .outerjoin(User, Payment.user_id == User.id)
+            .filter(Payment.site_id == site_id)
             .order_by(Payment.payment_date.desc())
             .limit(5)
             .all()
@@ -311,6 +617,7 @@ def dashboard():
             db.session.query(Ticket, Apartment, User)
             .outerjoin(Apartment, Ticket.apartment_id == Apartment.id)
             .outerjoin(User, Ticket.user_id == User.id)
+            .filter(Ticket.site_id == site_id)
             .order_by(Ticket.created_at.desc())
             .limit(5)
             .all()
@@ -323,6 +630,7 @@ def dashboard():
         recent_announcements = (
             db.session.query(Announcement, User)
             .outerjoin(User, Announcement.created_by == User.id)
+            .filter(Announcement.site_id == site_id)
             .order_by(Announcement.created_at.desc())
             .limit(5)
             .all()
@@ -331,96 +639,78 @@ def dashboard():
         pass
 
     # =========================
-    #  SON 12 AYLIK ÖZET
+    #  SON 12 AYLIK ÖZET (site bazlı, dateutil YOK)
     # =========================
+    MONTH_LABELS_TR = {
+        1: "Ocak",
+        2: "Şubat",
+        3: "Mart",
+        4: "Nisan",
+        5: "Mayıs",
+        6: "Haziran",
+        7: "Temmuz",
+        8: "Ağustos",
+        9: "Eylül",
+        10: "Ekim",
+        11: "Kasım",
+        12: "Aralık",
+    }
+
+    def _shift_month(year: int, month: int, delta: int):
+        """year-month değerini delta ay kadar geri/ileri kaydırır."""
+        total = year * 12 + (month - 1) + delta
+        new_year = total // 12
+        new_month = total % 12 + 1
+        return new_year, new_month
+
     monthly_overview = []
     try:
-        MONTH_LABELS_TR = {
-            1: "Ocak",
-            2: "Şubat",
-            3: "Mart",
-            4: "Nisan",
-            5: "Mayıs",
-            6: "Haziran",
-            7: "Temmuz",
-            8: "Ağustos",
-            9: "Eylül",
-            10: "Ekim",
-            11: "Kasım",
-            12: "Aralık",
-        }
-
-        # Bugünün yılı / ayı
         cur_y = today.year
         cur_m = today.month
 
-        from dateutil.relativedelta import relativedelta
-
-        # 12 ay geriye kadar verileri gruplayacağız
-        start_date = date(cur_y, cur_m, 1) - relativedelta(months=11)
-        end_date = date(cur_y, cur_m, 1) + relativedelta(months=1)
-
-        bills_in_range = (
-            Bill.query
-            .filter(
-                Bill.created_at >= start_date,
-                Bill.created_at < end_date,
-            )
-            .all()
-        )
-
-        payments_in_range = (
-            Payment.query
-            .filter(
-                Payment.payment_date >= start_date,
-                Payment.payment_date < end_date,
-            )
-            .all()
-        )
-
-        bill_totals = defaultdict(Decimal)
-        pay_totals = defaultdict(Decimal)
-
-        # Borçlar → aya göre grupla
-        for b in bills_in_range:
-            if not b.created_at:
-                continue
-            d = b.created_at.date()
-            bill_totals[(d.year, d.month)] += Decimal(b.amount or 0)
-
-        # Ödemeler → aya göre grupla
-        for p in payments_in_range:
-            if not p.payment_date:
-                continue
-            d = p.payment_date.date()
-            pay_totals[(d.year, d.month)] += Decimal(p.amount or 0)
-
-        # Liste güncel aydan geriye doğru gelecek
-        y = cur_y
-        m = cur_m
-
-        for _ in range(12):
-            key = (y, m)
-            total_billed = bill_totals.get(key, Decimal("0"))
-            total_paid = pay_totals.get(key, Decimal("0"))
-
-            monthly_overview.append({
-                "year": y,
-                "month": m,
-                "label": f"{MONTH_LABELS_TR[m]} {y}",
-                "total_billed": total_billed,
-                "total_paid": total_paid,
-                "delta": total_paid - total_billed
-            })
-
-            # bir önceki aya git
-            if m == 1:
-                m = 12
-                y -= 1
+        # Son 12 ay: 11 ay önceki aydan bugüne
+        for back in range(11, -1, -1):
+            y, m = _shift_month(cur_y, cur_m, -back)
+            month_start = date(y, m, 1)
+            if m == 12:
+                month_end = date(y + 1, 1, 1)
             else:
-                m -= 1
+                month_end = date(y, m + 1, 1)
 
-    except Exception as exc:
+            month_bills_sum = (
+                db.session.query(func.coalesce(func.sum(Bill.amount), 0))
+                .filter(
+                    Bill.site_id == site_id,
+                    Bill.created_at >= month_start,
+                    Bill.created_at < month_end,
+                )
+                .scalar()
+            )
+            month_payments_sum = (
+                db.session.query(func.coalesce(func.sum(Payment.amount), 0))
+                .filter(
+                    Payment.site_id == site_id,
+                    Payment.payment_date >= month_start,
+                    Payment.payment_date < month_end,
+                )
+                .scalar()
+            )
+
+            billed = Decimal(month_bills_sum or 0)
+            paid = Decimal(month_payments_sum or 0)
+            delta = paid - billed
+            monthly_overview.append(
+                {
+                    "year": y,
+                    "month": m,
+                    "label": f"{MONTH_LABELS_TR[m]} {y}",
+                    "total_billed": billed,
+                    "total_paid": paid,
+                    "total_open": billed - paid if billed - paid > 0 else Decimal("0.00"),
+                    "delta": delta,  # 🔴 TEMPLATE'İN BEKLEDİĞİ ALAN
+                }
+            )
+    except SQLAlchemyError as exc:
         current_app.logger.exception("Aylık özet hesaplanamadı: %s", exc)
         monthly_overview = []
 
@@ -437,13 +727,21 @@ def dashboard():
     )
 
 
+
 # ======================
 #  DAİRELER
 # ======================
 @admin_bp.route("/apartments", methods=["GET", "POST"])
 @admin_required
 def manage_apartments():
-    """Daire listesi ve yeni daire ekleme."""
+    """Daire listesi ve yeni daire ekleme (site bazlı)."""
+
+    admin_user = _get_current_admin()
+    site_id = session.get("active_site_id") or (admin_user.site_id if admin_user else None)
+    if not site_id:
+        flash("Bu sayfayı kullanabilmek için bir siteye atanmış olmanız gerekiyor.", "error")
+        return redirect(url_for("index"))
+
     if request.method == "POST":
         block = (request.form.get("block") or "").strip()
         floor = (request.form.get("floor") or "").strip()
@@ -457,19 +755,20 @@ def manage_apartments():
             flash("Blok, kat ve daire numarası zorunludur.", "error")
         else:
             try:
-                # DUPLICATE KONTROLÜ: Aynı blok+kat+no var mı?
+                # Aynı blok+kat+no sadece AYNI SİTE içinde kontrol ediliyor
                 existing_apt = (
                     Apartment.query
-                    .filter_by(block=block, floor=floor, number=number)
+                    .filter_by(site_id=site_id, block=block, floor=floor, number=number)
                     .first()
                 )
                 if existing_apt:
                     flash(
-                        f"{block} blok, {floor}. kat, {number} no için zaten bir daire kaydı mevcut.",
+                        f"{block} blok, {floor}. kat, {number} no için bu sitede zaten bir daire kaydı var.",
                         "error",
                     )
                 else:
                     apt = Apartment(
+                        site_id=site_id,
                         block=block,
                         floor=floor,
                         number=number,
@@ -494,11 +793,16 @@ def manage_apartments():
 
     apartments = []
     try:
-        apartments = Apartment.query.order_by(
-            Apartment.block.asc(),
-            Apartment.floor.asc(),
-            Apartment.number.asc(),
-        ).all()
+        apartments = (
+            Apartment.query
+            .filter_by(site_id=site_id)
+            .order_by(
+                Apartment.block.asc(),
+                Apartment.floor.asc(),
+                Apartment.number.asc(),
+            )
+            .all()
+        )
     except SQLAlchemyError as exc:
         current_app.logger.exception("Daire listesi alınamadı: %s", exc)
         flash("Daire listesi alınırken bir hata oluştu.", "error")
@@ -509,11 +813,22 @@ def manage_apartments():
 @admin_bp.route("/apartments/<int:apartment_id>/update", methods=["POST"])
 @admin_required
 def update_apartment(apartment_id: int):
-    """Tek bir dairenin bilgilerini günceller (satır içi düzenleme)."""
+    """Tek bir dairenin bilgilerini günceller (site bazlı)."""
+
+    admin_user = _get_current_admin()
+    site_id = session.get("active_site_id") or (admin_user.site_id if admin_user else None)
+    if not site_id:
+        flash("Bu işlemi yapabilmek için bir siteye atanmış olmanız gerekiyor.", "error")
+        return redirect(url_for("admin.manage_apartments"))
+
     try:
         apt = Apartment.query.get(apartment_id)
         if not apt:
             flash("Daire bulunamadı.", "error")
+            return redirect(url_for("admin.manage_apartments"))
+
+        if apt.site_id != site_id:
+            flash("Bu daire, yetkili olduğunuz siteye ait değil.", "error")
             return redirect(url_for("admin.manage_apartments"))
 
         block = (request.form.get("block") or "").strip()
@@ -528,25 +843,6 @@ def update_apartment(apartment_id: int):
             flash("Blok, kat ve daire numarası zorunludur.", "error")
             return redirect(url_for("admin.manage_apartments"))
 
-        # DUPLICATE KONTROLÜ: Bu id dışındaki kayıtlar içinde aynı blok+kat+no var mı?
-        duplicate_apt = (
-            Apartment.query
-            .filter(
-                Apartment.id != apartment_id,
-                Apartment.block == block,
-                Apartment.floor == floor,
-                Apartment.number == number,
-            )
-            .first()
-        )
-        if duplicate_apt:
-            flash(
-                f"{block} blok, {floor}. kat, {number} no başka bir daireye zaten atanmış.",
-                "error",
-            )
-            return redirect(url_for("admin.manage_apartments"))
-
-        # Buraya geldiysek: çakışma yok, güvenle güncelleyebiliriz
         apt.block = block
         apt.floor = floor
         apt.number = number
@@ -570,39 +866,42 @@ def update_apartment(apartment_id: int):
 
     return redirect(url_for("admin.manage_apartments"))
 
-
 @admin_bp.route("/apartments/<int:apartment_id>/delete", methods=["POST"])
 @admin_required
 def delete_apartment(apartment_id: int):
-    """
-    Daireyi siler.
-    Eğer daireye ait ÖDENMEMİŞ borç (bill) varsa silmeye izin vermez.
-    Koşul: Her bill için sum(Payment.amount) >= Bill.amount olmalı.
-    """
+    """Bir daireyi siler (sadece kendi sitesi ve ilişkisi yoksa)."""
+
+    admin_user = _get_current_admin()
+    site_id = session.get("active_site_id") or (admin_user.site_id if admin_user else None)
+    if not site_id:
+        flash("Bu işlemi yapabilmek için bir siteye atanmış olmanız gerekiyor.", "error")
+        return redirect(url_for("admin.manage_apartments"))
+
     try:
         apt = Apartment.query.get(apartment_id)
         if not apt:
             flash("Daire bulunamadı.", "error")
             return redirect(url_for("admin.manage_apartments"))
 
-        # Bu daireye ait ödenmemiş borç var mı?
-        unpaid_bill = (
-            db.session.query(Bill.id)
-            .outerjoin(Payment, Payment.bill_id == Bill.id)
-            .filter(Bill.apartment_id == apartment_id)
-            .group_by(Bill.id, Bill.amount)
-            .having(func.coalesce(func.sum(Payment.amount), 0) < Bill.amount)
-            .first()
-        )
-
-        if unpaid_bill:
-            flash("Bu dairenin silinebilmesi için TÜM borçlarının tamamen ödenmiş olması gerekir.", "error")
+        if apt.site_id != site_id:
+            flash("Bu daire, yetkili olduğunuz siteye ait değil.", "error")
             return redirect(url_for("admin.manage_apartments"))
 
-        # Buraya geldiysek: hiç borcu kalmamış → silinebilir
+        # İlişkili kullanıcı, borç veya ödeme varsa silme
+        has_users = User.query.filter_by(apartment_id=apt.id).count() > 0
+        has_bills = Bill.query.filter_by(apartment_id=apt.id).count() > 0
+        has_payments = Payment.query.filter_by(apartment_id=apt.id).count() > 0
+
+        if has_users or has_bills or has_payments:
+            flash(
+                "Bu daireyle ilişkili kullanıcı, borç veya ödeme kaydı olduğu için silinemez.",
+                "error",
+            )
+            return redirect(url_for("admin.manage_apartments"))
+
         db.session.delete(apt)
         db.session.commit()
-        flash("Daire kaydı silindi.", "success")
+        flash("Daire başarıyla silindi.", "success")
 
     except SQLAlchemyError as exc:
         db.session.rollback()
@@ -612,14 +911,21 @@ def delete_apartment(apartment_id: int):
     return redirect(url_for("admin.manage_apartments"))
 
 
+
 # ======================
 #  KULLANICILAR
 # ======================
-
 @admin_bp.route("/users", methods=["GET", "POST"])
 @admin_required
 def manage_users():
-    """Kullanıcı listesi ve yeni kullanıcı ekleme."""
+    """Kullanıcı listesi ve yeni kullanıcı ekleme (site bazlı)."""
+
+    admin_user = _get_current_admin()
+    site_id = session.get("active_site_id") or (admin_user.site_id if admin_user else None)
+    if not site_id:
+        flash("Bu sayfayı kullanabilmek için bir siteye atanmış olmanız gerekiyor.", "error")
+        return redirect(url_for("index"))
+
     if request.method == "POST":
         name = (request.form.get("name") or "").strip()
         email = (request.form.get("email") or "").strip().lower()
@@ -634,24 +940,30 @@ def manage_users():
             try:
                 existing = User.query.filter_by(email=email).first()
                 if existing:
-                    flash("Bu e-posta ile kayıtlı bir kullanıcı zaten var.", "error")
+                    flash("Bu e-posta adresi ile zaten bir kullanıcı mevcut.", "error")
                 else:
+                    apt_obj = None
+                    if apartment_id:
+                        apt_obj = Apartment.query.get(int(apartment_id))
+                        if not apt_obj or apt_obj.site_id != site_id:
+                            flash("Seçilen daire bu siteye ait değil.", "error")
+                            apt_obj = None
+
                     user = User(
+                        site_id=site_id,
                         name=name,
                         email=email,
                         phone=phone or None,
-                        role=role if role in ("admin", "resident") else "resident",
+                        role=role,
+                        apartment_id=apt_obj.id if apt_obj else None,
                         is_active=True,
                     )
-                    if apartment_id:
-                        try:
-                            user.apartment_id = int(apartment_id)
-                        except ValueError:
-                            pass
                     user.set_password(password)
+
                     db.session.add(user)
                     db.session.commit()
-                    flash("Kullanıcı başarıyla oluşturuldu.", "success")
+                    flash("Kullanıcı başarıyla eklendi.", "success")
+
             except SQLAlchemyError as exc:
                 db.session.rollback()
                 current_app.logger.exception("Kullanıcı eklenemedi: %s", exc)
@@ -659,13 +971,26 @@ def manage_users():
 
     users = []
     apartments = []
+
     try:
-        users = User.query.order_by(User.role.desc(), User.name.asc()).all()
-        apartments = Apartment.query.order_by(
-            Apartment.block.asc(),
-            Apartment.floor.asc(),
-            Apartment.number.asc(),
-        ).all()
+        users = (
+            User.query
+            .filter_by(site_id=site_id)
+            .order_by(User.role.desc(), User.name.asc())
+            .all()
+        )
+
+        apartments = (
+            Apartment.query
+            .filter_by(site_id=site_id)
+            .order_by(
+                Apartment.block.asc(),
+                Apartment.floor.asc(),
+                Apartment.number.asc(),
+            )
+            .all()
+        )
+
     except SQLAlchemyError as exc:
         current_app.logger.exception("Kullanıcı listesi alınamadı: %s", exc)
         flash("Kullanıcı listesi alınırken bir hata oluştu.", "error")
@@ -676,26 +1001,34 @@ def manage_users():
         apartments=apartments,
     )
 
-
 @admin_bp.route("/users/<int:user_id>/toggle-active", methods=["POST"])
 @admin_required
 def toggle_user_active(user_id: int):
-    """Kullanıcının aktif/pasif durumunu değiştirir."""
+    """Kullanıcıyı aktif / pasif yapar (sadece kendi sitesinde)."""
+
+    admin_user = _get_current_admin()
+    site_id = session.get("active_site_id") or (admin_user.site_id if admin_user else None)
+    if not site_id:
+        flash("Bu işlemi yapabilmek için bir siteye atanmış olmanız gerekiyor.", "error")
+        return redirect(url_for("admin.manage_users"))
+
     try:
         user = User.query.get(user_id)
         if not user:
             flash("Kullanıcı bulunamadı.", "error")
             return redirect(url_for("admin.manage_users"))
 
+        if user.site_id != site_id:
+            flash("Bu kullanıcı, yetkili olduğunuz siteye ait değil.", "error")
+            return redirect(url_for("admin.manage_users"))
+
         user.is_active = not bool(user.is_active)
         db.session.commit()
-        flash(
-            f"Kullanıcı durumu güncellendi: {'Aktif' if user.is_active else 'Pasif'}",
-            "success",
-        )
+        flash("Kullanıcı durumu güncellendi.", "success")
+
     except SQLAlchemyError as exc:
         db.session.rollback()
-        current_app.logger.exception("Kullanıcı durumu değiştirilemedi: %s", exc)
+        current_app.logger.exception("Kullanıcı durumu güncellenemedi: %s", exc)
         flash("Kullanıcı durumu güncellenirken bir hata oluştu.", "error")
 
     return redirect(url_for("admin.manage_users"))
@@ -704,14 +1037,20 @@ def toggle_user_active(user_id: int):
 # ======================
 #  AİDATLAR / BORÇLAR
 # ======================
-
 @admin_bp.route("/bills", methods=["GET", "POST"])
 @admin_required
 def manage_bills():
-    """Aidat / borç kayıtlarını yönetir."""
+    """Aidat / borç kayıtlarını yönetir (site bazlı)."""
     apartments = []
     bills = []
     apartment_summaries = []
+
+    # --- Aktif site kontrolü ---
+    admin_user = _get_current_admin()
+    site_id = session.get("active_site_id") or (admin_user.site_id if admin_user else None)
+    if not site_id:
+        flash("Bu sayfayı kullanabilmek için bir siteye atanmış olmanız gerekiyor.", "error")
+        return redirect(url_for("index"))
 
     # --- Listeleme parametreleri (filtre / sıralama / sayfalama) ---
     page = request.args.get("page", 1, type=int) or 1
@@ -745,8 +1084,10 @@ def manage_bills():
             try:
                 # Hangi dairelere borç yazılacak?
                 if for_all:
+                    # SADECE BU SİTENİN DAİRELERİ
                     target_apartments = (
                         Apartment.query
+                        .filter_by(site_id=site_id)
                         .order_by(
                             Apartment.block.asc(),
                             Apartment.floor.asc(),
@@ -756,7 +1097,11 @@ def manage_bills():
                     )
                 else:
                     apt = Apartment.query.get(int(apartment_id))
-                    target_apartments = [apt] if apt else []
+                    # daire var mı ve bu siteye mi ait?
+                    if not apt or apt.site_id != site_id:
+                        target_apartments = []
+                    else:
+                        target_apartments = [apt]
 
                 if not target_apartments:
                     flash("Borç eklenecek daire bulunamadı.", "error")
@@ -776,6 +1121,7 @@ def manage_bills():
                         if not apt:
                             continue
                         bill = Bill(
+                            site_id=site_id,          # 🔴 BU SİTEYE AİT
                             apartment_id=apt.id,
                             description=description,
                             status="open",
@@ -805,9 +1151,10 @@ def manage_bills():
     #  LİSTELER + DAİRE ÖZETLERİ
     # ======================
     try:
-        # Daire listesi (soldaki form için)
+        # Daire listesi (soldaki form için) — sadece bu sitenin daireleri
         apartments = (
             Apartment.query
+            .filter_by(site_id=site_id)
             .order_by(
                 Apartment.block.asc(),
                 Apartment.floor.asc(),
@@ -820,6 +1167,7 @@ def manage_bills():
         base_query = (
             db.session.query(Bill, Apartment)
             .outerjoin(Apartment, Bill.apartment_id == Apartment.id)
+            .filter(Bill.site_id == site_id)   # 🔴 SADECE BU SİTENİN BORÇLARI
         )
 
         # Filtre: durum
@@ -891,6 +1239,7 @@ def manage_bills():
             )
             .outerjoin(Bill, Bill.apartment_id == Apartment.id)
             .outerjoin(Payment, Payment.bill_id == Bill.id)
+            .filter(Apartment.site_id == site_id)   # 🔴 SADECE BU SİTENİN DAİRELERİ
             .group_by(Apartment.id, Bill.type)
             .order_by(
                 Apartment.block.asc(),
@@ -977,19 +1326,32 @@ def manage_bills():
     )
 
 
+
+# ==================================== borç silme ========================
 # ==================================== borç silme ========================
 @admin_bp.route("/bills/<int:bill_id>/delete", methods=["POST"])
 @admin_required
 def delete_bill(bill_id: int):
     """Seçilen borç kaydını siler."""
+    # --- Aktif site kontrolü ---
+    admin_user = _get_current_admin()
+    site_id = session.get("active_site_id") or (admin_user.site_id if admin_user else None)
+    if not site_id:
+        flash("Bu işlemi yapabilmek için bir siteye atanmış olmanız gerekiyor.", "error")
+        return redirect(url_for("admin.manage_bills"))
+
     try:
         bill = Bill.query.get(bill_id)
         if not bill:
             flash("Silinecek borç kaydı bulunamadı.", "error")
         else:
-            db.session.delete(bill)
-            db.session.commit()
-            flash("Borç kaydı silindi.", "success")
+            # 🔴 Sadece kendi sitesine ait borcu silebilsin
+            if bill.site_id != site_id:
+                flash("Bu borç kaydı, yetkili olduğunuz siteye ait değil.", "error")
+            else:
+                db.session.delete(bill)
+                db.session.commit()
+                flash("Borç kaydı silindi.", "success")
     except SQLAlchemyError as exc:
         db.session.rollback()
         current_app.logger.exception("Borç kaydı silinemedi: %s", exc)
@@ -1011,10 +1373,22 @@ def update_bill(bill_id: int):
     due_date_str = (request.form.get("due_date") or "").strip()
     bill_type = (request.form.get("type") or "").strip() or None
 
+    # --- Aktif site kontrolü ---
+    admin_user = _get_current_admin()
+    site_id = session.get("active_site_id") or (admin_user.site_id if admin_user else None)
+    if not site_id:
+        flash("Bu işlemi yapabilmek için bir siteye atanmış olmanız gerekiyor.", "error")
+        return redirect(url_for("admin.manage_bills"))
+
     try:
         bill = Bill.query.get(bill_id)
         if not bill:
             flash("Güncellenecek borç kaydı bulunamadı.", "error")
+            return redirect(url_for("admin.manage_bills"))
+
+        # 🔴 Sadece kendi sitesine ait borcu güncelleyebilsin
+        if bill.site_id != site_id:
+            flash("Bu borç kaydı, yetkili olduğunuz siteye ait değil.", "error")
             return redirect(url_for("admin.manage_bills"))
 
         # Açıklama
@@ -1045,6 +1419,7 @@ def update_bill(bill_id: int):
         flash("Borç güncellenirken bir hata oluştu.", "error")
 
     return redirect(url_for("admin.manage_bills"))
+
 
 
 # ===== AİDAT DURUMU (YILLIK ÖZET TABLOSU + OTOMATİK AYLIK BORÇ) =====
@@ -1288,7 +1663,15 @@ def _recalc_bill_status(bill: Bill):
 @admin_bp.route("/payments", methods=["GET", "POST"])
 @admin_required
 def manage_payments():
-    """Ödeme kayıtlarını yönetir."""
+    """Ödeme kayıtlarını yönetir (site bazlı)."""
+
+    # --- Aktif site kontrolü ---
+    admin_user = _get_current_admin()
+    site_id = session.get("active_site_id") or (admin_user.site_id if admin_user else None)
+    if not site_id:
+        flash("Bu sayfayı kullanabilmek için bir siteye atanmış olmanız gerekiyor.", "error")
+        return redirect(url_for("index"))
+
     if request.method == "POST":
         apartment_id = request.form.get("apartment_id")
         bill_id = request.form.get("bill_id") or None
@@ -1304,6 +1687,7 @@ def manage_payments():
             try:
                 # Temel ödeme objesini oluştur
                 payment = Payment(
+                    site_id=site_id,               # 🔴 BU SİTEYE AİT
                     apartment_id=int(apartment_id),
                     method=method,
                 )
@@ -1346,6 +1730,7 @@ def manage_payments():
 
                         candidate_q = (
                             Bill.query.filter(
+                                Bill.site_id == site_id,          # 🔴 SİTE FİLTRESİ
                                 Bill.apartment_id == apt_id_int,
                                 Bill.type == bill_type,
                                 Bill.due_date >= month_start,
@@ -1379,15 +1764,16 @@ def manage_payments():
                 # İlgili borcun durumunu güncelle
                 if bill_id:
                     bill = Bill.query.get(int(bill_id))
-                    if bill:
+                    if bill and bill.site_id == site_id:
                         total_paid_for_bill = (
                             db.session.query(func.coalesce(func.sum(Payment.amount), 0))
                             .filter(Payment.bill_id == bill.id)
                             .scalar()
                         )
                         total_paid_for_bill = Decimal(total_paid_for_bill or 0)
+                        bill_amount = Decimal(bill.amount or 0)
 
-                        if total_paid_for_bill >= bill.amount:
+                        if total_paid_for_bill >= bill_amount:
                             bill.status = "paid"
                         elif total_paid_for_bill > 0:
                             bill.status = "partial"
@@ -1408,19 +1794,42 @@ def manage_payments():
     payments = []
 
     try:
-        apartments = Apartment.query.order_by(
-            Apartment.block.asc(),
-            Apartment.floor.asc(),
-            Apartment.number.asc(),
-        ).all()
-        bills = Bill.query.order_by(Bill.created_at.desc()).limit(200).all()
-        users = User.query.order_by(User.name.asc()).all()
+        # Sadece bu sitenin daireleri
+        apartments = (
+            Apartment.query
+            .filter_by(site_id=site_id)
+            .order_by(
+                Apartment.block.asc(),
+                Apartment.floor.asc(),
+                Apartment.number.asc(),
+            )
+            .all()
+        )
 
+        # Sadece bu sitenin borçları
+        bills = (
+            Bill.query
+            .filter_by(site_id=site_id)
+            .order_by(Bill.created_at.desc())
+            .limit(200)
+            .all()
+        )
+
+        # Sadece bu sitenin kullanıcıları
+        users = (
+            User.query
+            .filter_by(site_id=site_id)
+            .order_by(User.name.asc())
+            .all()
+        )
+
+        # Sadece bu sitenin ödemeleri
         payments = (
             db.session.query(Payment, Apartment, User, Bill)
             .outerjoin(Apartment, Payment.apartment_id == Apartment.id)
             .outerjoin(User, Payment.user_id == User.id)
             .outerjoin(Bill, Payment.bill_id == Bill.id)
+            .filter(Payment.site_id == site_id)          # 🔴 SİTEYE GÖRE
             .order_by(Payment.payment_date.desc())
             .limit(200)
             .all()
@@ -1438,15 +1847,25 @@ def manage_payments():
         payments=payments,
     )
 
-
 @admin_bp.route("/payments/<int:payment_id>/update", methods=["POST"])
 @admin_required
 def update_payment(payment_id: int):
     """Tek bir ödeme kaydını satır içi (inline) düzenlemek için."""
+
+    # --- Aktif site kontrolü ---
+    admin_user = _get_current_admin()
+    site_id = session.get("active_site_id") or (admin_user.site_id if admin_user else None)
+    if not site_id:
+        return jsonify({"ok": False, "error": "Herhangi bir siteye atanmış değilsiniz."}), 403
+
     try:
         payment = Payment.query.get(payment_id)
         if not payment:
             return jsonify({"ok": False, "error": "Ödeme kaydı bulunamadı."}), 404
+
+        # 🔴 Başka sitenin ödemesi ise iptal
+        if payment.site_id != site_id:
+            return jsonify({"ok": False, "error": "Bu ödeme için yetkiniz yok."}), 403
 
         amount_str = (request.form.get("amount") or "").strip()
         method = (request.form.get("method") or "").strip() or None
@@ -1478,7 +1897,7 @@ def update_payment(payment_id: int):
         # İlgili borcun durumunu güncelle
         if payment.bill_id:
             bill = Bill.query.get(payment.bill_id)
-            if bill:
+            if bill and bill.site_id == site_id:
                 _recalc_bill_status(bill)
 
         db.session.commit()
@@ -1494,8 +1913,9 @@ def update_payment(payment_id: int):
         return jsonify(
             {
                 "ok": True,
-                "amount": amount_display,
-                "payment_date": date_display,
+                "amount_display": amount_display,
+                "date_display": date_display,
+                "method": payment.method or "",
             }
         )
 
@@ -1506,15 +1926,25 @@ def update_payment(payment_id: int):
             {"ok": False, "error": "Ödeme güncellenirken bir hata oluştu."}
         ), 500
 
-
 @admin_bp.route("/payments/<int:payment_id>/delete", methods=["POST"])
 @admin_required
 def delete_payment(payment_id: int):
     """Tek bir ödeme kaydını silmek için."""
+
+    # --- Aktif site kontrolü ---
+    admin_user = _get_current_admin()
+    site_id = session.get("active_site_id") or (admin_user.site_id if admin_user else None)
+    if not site_id:
+        return jsonify({"ok": False, "error": "Herhangi bir siteye atanmış değilsiniz."}), 403
+
     try:
         payment = Payment.query.get(payment_id)
         if not payment:
             return jsonify({"ok": False, "error": "Ödeme kaydı bulunamadı."}), 404
+
+        # 🔴 Başka sitenin ödemesi ise iptal
+        if payment.site_id != site_id:
+            return jsonify({"ok": False, "error": "Bu ödeme için yetkiniz yok."}), 403
 
         bill_id = payment.bill_id
 
@@ -1522,7 +1952,7 @@ def delete_payment(payment_id: int):
 
         if bill_id:
             bill = Bill.query.get(bill_id)
-            if bill:
+            if bill and bill.site_id == site_id:
                 _recalc_bill_status(bill)
 
         db.session.commit()
@@ -1536,11 +1966,20 @@ def delete_payment(payment_id: int):
         ), 500
 
 
+
 # ============== PDF Makbuz indir ===============================
 @admin_bp.route("/payments/<int:payment_id>/receipt", methods=["GET"])
 @admin_required
 def payment_receipt(payment_id: int):
     """Tek bir ödeme için profesyonel PDF makbuz üret ve indir."""
+
+    # --- Aktif site kontrolü ---
+    admin_user = _get_current_admin()
+    site_id = session.get("active_site_id") or (admin_user.site_id if admin_user else None)
+    if not site_id:
+        flash("Bu işlem için bir siteye atanmış olmanız gerekiyor.", "error")
+        return redirect(url_for("admin.manage_payments"))
+
     try:
         row = (
             db.session.query(Payment, Apartment, User, Bill)
@@ -1556,18 +1995,29 @@ def payment_receipt(payment_id: int):
             return redirect(url_for("admin.manage_payments"))
 
         payment, apartment, user, bill = row
-
+        # 🔴 Başka sitenin ödemesi ise izin verme
+        if payment.site_id != site_id:
+            flash("Bu ödeme için makbuz oluşturma yetkiniz yok.", "error")
+            return redirect(url_for("admin.manage_payments"))
         # Sistem ayarlarından site/apartman adı
         try:
             settings_obj = SystemSetting.get_singleton()
         except SQLAlchemyError:
             settings_obj = None
 
-        site_name = "Site / Apartman"
-        if settings_obj and getattr(settings_obj, "site_name", None):
-            site_name_val = (settings_obj.site_name or "").strip()
-            if site_name_val:
-                site_name = site_name_val
+        # 🔹 Öncelik: session'daki aktif site adı
+        site_name = session.get("active_site_name")
+
+        # 🔹 Yoksa DB'den oku
+        if not site_name and payment.site_id:
+            site_obj = Site.query.get(payment.site_id)
+            if site_obj:
+                site_name = site_obj.name
+
+        # 🔹 Yine bulunamazsa fallback
+        if not site_name:
+            site_name = "Site / Apartman"
+
 
         # FONT KAYDI (Türkçe için TTF)
         font_dir = os.path.join(current_app.root_path, "static", "fonts")
@@ -1612,10 +2062,20 @@ def payment_receipt(payment_id: int):
                 pdf.setFont("Helvetica", size)
 
         y = margin_top
-
-        # BAŞLIK BÖLÜMÜ
-        set_font_bold(16)
+        # =========================
+        #   BAŞLIK BÖLÜMÜ
+        # =========================
+        # 🔹 Altına makbuz başlığını yaz
+        set_font_bold(18)
         pdf.drawString(margin_left, y, "ÖDEME MAKBUZU")
+        y -= 20
+        
+        # 🔹 Önce site adını yaz
+        set_font_bold(16)
+        pdf.drawString(margin_left, y, site_name)
+        y -= 28   # satır aralığı
+
+
 
         set_font_regular(11)
         pdf.drawRightString(
@@ -1772,8 +2232,16 @@ def payment_receipt(payment_id: int):
 @admin_bp.route("/announcements", methods=["GET", "POST"])
 @admin_required
 def manage_announcements():
-    """Duyuru oluşturma ve listeleme."""
+    """Duyuru oluşturma ve listeleme (site bazlı)."""
     admin_user = _get_current_admin()
+
+    # Aktif site kontrolü (dashboard / bills / payments ile aynı mantık)
+    from models.site_model import Site  # döngü olmasın diye lokal import da yapabilirsin
+    site_id = session.get("active_site_id") or (admin_user.site_id if admin_user else None)
+
+    if not site_id:
+        flash("Duyurular bölümünü kullanabilmek için bir siteye atanmış olmanız gerekiyor.", "error")
+        return redirect(url_for("index"))
 
     if request.method == "POST":
         title = (request.form.get("title") or "").strip()
@@ -1785,6 +2253,7 @@ def manage_announcements():
         else:
             try:
                 ann = Announcement(
+                    site_id=site_id,  # 🔴 ZORUNLU ALAN: HANGİ SİTEYE AİT
                     title=title,
                     content=content,
                     target=target if target in ("all", "admins", "residents") else "all",
@@ -1804,6 +2273,7 @@ def manage_announcements():
         announcements = (
             db.session.query(Announcement, User)
             .outerjoin(User, Announcement.created_by == User.id)
+            .filter(Announcement.site_id == site_id)   # 🔴 SADECE BU SİTENİN DUYURULARI
             .order_by(Announcement.created_at.desc())
             .limit(100)
             .all()

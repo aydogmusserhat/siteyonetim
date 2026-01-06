@@ -22,6 +22,7 @@ from models.bill_model import Bill
 from models.payment_model import Payment
 from models.announcement_model import Announcement
 from models.ticket_model import Ticket
+from models.site_model import Site  # 🔹 Site modeli eklendi
 
 
 resident_bp = Blueprint("resident", __name__, url_prefix="/resident")
@@ -190,7 +191,32 @@ def dashboard():
     tickets = []
     announcements = []
 
-    # Borç / aidat özeti
+    # 🔹 Site bilgisi / adı
+    current_site_name = None
+    try:
+        site_id = None
+
+        # 1) Öncelik: dairenin bağlı olduğu site
+        if apartment is not None and getattr(apartment, "site_id", None):
+            site_id = apartment.site_id
+        # 2) Kullanıcının bağlı olduğu site (varsa)
+        elif getattr(user, "site_id", None):
+            site_id = user.site_id
+        # 3) Session'daki aktif site
+        elif "active_site_id" in session:
+            site_id = session.get("active_site_id")
+
+        if site_id:
+            site = Site.query.get(site_id)
+            if site:
+                current_site_name = site.name
+                session["active_site_id"] = site.id
+                session["active_site_name"] = site.name
+
+    except SQLAlchemyError as exc:
+        current_app.logger.exception("Sakin site bilgisi alınamadı: %s", exc)
+
+    # 🔹 Borç / aidat özeti
     if apartment:
         # İstatistikleri Payment tablosuna göre NET hesapla
         stats = _compute_debt_stats_for_apartment(apartment.id)
@@ -218,7 +244,7 @@ def dashboard():
             current_app.logger.exception("Sakin ödeme listesi alınamadı: %s", exc)
             flash("Ödeme bilgileriniz alınırken bir hata oluştu.", "error")
 
-    # Talepler
+    # 🔹 Talepler
     try:
         tickets = (
             Ticket.query.filter(Ticket.user_id == user.id)
@@ -230,7 +256,7 @@ def dashboard():
         current_app.logger.exception("Sakin talep listesi alınamadı: %s", exc)
         flash("Talep listeniz alınırken bir hata oluştu.", "error")
 
-    # Duyurular (tüm sakinlere açık olanlar)
+    # 🔹 Duyurular (tüm sakinlere açık olanlar)
     try:
         announcements = (
             Announcement.query.filter(
@@ -244,7 +270,7 @@ def dashboard():
         current_app.logger.exception("Sakin duyuru listesi alınamadı: %s", exc)
         flash("Duyurular alınırken bir hata oluştu.", "error")
 
-    today = date.today()  # 🔹 bugünün tarihi
+    today = date.today()  # bugünün tarihi
 
     return render_template(
         "resident/dashboard.html",
@@ -255,7 +281,8 @@ def dashboard():
         payments=payments,
         tickets=tickets,
         announcements=announcements,
-        today=today,  # 🔹 template’e gönder
+        today=today,
+        current_site_name=current_site_name,
     )
 
 
@@ -310,6 +337,16 @@ def borclarim():
     # Aynı helper ile NET istatistik
     stats = _compute_debt_stats_for_apartment(apartment.id)
 
+    # 🔹 Site adını session'a yaz
+    try:
+        if apartment and getattr(apartment, "site_id", None):
+            site = Site.query.get(apartment.site_id)
+            if site:
+                session["active_site_id"] = site.id
+                session["active_site_name"] = site.name
+    except SQLAlchemyError as exc:
+        current_app.logger.exception("Borçlarım için site adı alınamadı: %s", exc)
+
     return render_template(
         "resident/borclarim.html",
         user=user,
@@ -341,6 +378,16 @@ def odemelerim():
             "info",
         )
         return render_template("resident/odemelerim.html", user=user, payments=payments)
+
+    # 🔹 Site adını session'a yaz
+    try:
+        if getattr(apartment, "site_id", None):
+            site = Site.query.get(apartment.site_id)
+            if site:
+                session["active_site_id"] = site.id
+                session["active_site_name"] = site.name
+    except SQLAlchemyError as exc:
+        current_app.logger.exception("Ödemelerim için site adı alınamadı: %s", exc)
 
     try:
         payments = (
@@ -376,6 +423,29 @@ def taleplerim():
         flash("Kullanıcı bulunamadı. Lütfen tekrar giriş yapın.", "error")
         return redirect(url_for("auth.logout"))
 
+    # 🔹 Kullanıcının bağlı olduğu siteyi bul
+    site_id = None
+    if apartment is not None and getattr(apartment, "site_id", None):
+        site_id = apartment.site_id
+    elif getattr(user, "site_id", None):
+        site_id = user.site_id
+    elif "active_site_id" in session:
+        site_id = session.get("active_site_id")
+
+    # 🔹 Site adını session'a yaz (varsa)
+    if site_id:
+        try:
+            site = Site.query.get(site_id)
+            if site:
+                session["active_site_id"] = site.id
+                session["active_site_name"] = site.name
+        except SQLAlchemyError as exc:
+            current_app.logger.exception("Taleplerim için site adı alınamadı: %s", exc)
+
+    if not site_id:
+        flash("Herhangi bir siteye atanmadığınız için talep oluşturamazsınız.", "error")
+        return redirect(url_for("resident.dashboard"))
+
     if request.method == "POST":
         title = (request.form.get("title") or "").strip()
         description = (request.form.get("description") or "").strip()
@@ -384,8 +454,13 @@ def taleplerim():
         if not title or not description:
             flash("Talep başlığı ve açıklaması zorunludur.", "error")
         else:
+            # Geçerli öncelik değerleri
+            if priority not in ("low", "normal", "high"):
+                priority = "normal"
+
             try:
                 ticket = Ticket(
+                    site_id=site_id,
                     apartment_id=apartment.id if apartment else None,
                     user_id=user.id,
                     title=title,
@@ -393,10 +468,12 @@ def taleplerim():
                     priority=priority or "normal",
                     status="open",
                     created_at=datetime.utcnow(),
+                    updated_at=datetime.utcnow(),
                 )
                 db.session.add(ticket)
                 db.session.commit()
                 flash("Talebiniz başarıyla oluşturuldu.", "success")
+                return redirect(url_for("resident.taleplerim"))
             except SQLAlchemyError as exc:
                 db.session.rollback()
                 current_app.logger.exception("Talep eklenemedi: %s", exc)
@@ -405,7 +482,10 @@ def taleplerim():
     tickets = []
     try:
         tickets = (
-            Ticket.query.filter(Ticket.user_id == user.id)
+            Ticket.query.filter(
+                Ticket.user_id == user.id,
+                Ticket.site_id == site_id,  # 🔹 Sadece kendi sitesindeki talepler
+            )
             .order_by(Ticket.created_at.desc())
             .all()
         )
@@ -434,6 +514,22 @@ def profil():
     if not user:
         flash("Kullanıcı bulunamadı. Lütfen tekrar giriş yapın.", "error")
         return redirect(url_for("auth.logout"))
+
+    # 🔹 Profil sayfasında da site adını session'a yaz
+    try:
+        site_id = None
+        if apartment is not None and getattr(apartment, "site_id", None):
+            site_id = apartment.site_id
+        elif getattr(user, "site_id", None):
+            site_id = user.site_id
+
+        if site_id:
+            site = Site.query.get(site_id)
+            if site:
+                session["active_site_id"] = site.id
+                session["active_site_name"] = site.name
+    except SQLAlchemyError as exc:
+        current_app.logger.exception("Profil için site adı alınamadı: %s", exc)
 
     if request.method == "POST":
         name = (request.form.get("name") or "").strip()

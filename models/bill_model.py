@@ -13,9 +13,12 @@ class Bill(db.Model):
     __tablename__ = "bills"
 
     id = db.Column(db.Integer, primary_key=True)
-    apartment_id = db.Column(db.Integer, db.ForeignKey("apartments.id"), nullable=False)
 
-    description = db.Column(db.String(255), nullable=False)
+    # Hangi siteye ait
+    site_id = db.Column(db.Integer, db.ForeignKey("sites.id"), nullable=False)
+
+    apartment_id = db.Column(db.Integer, db.ForeignKey("apartments.id"), nullable=False)
+    description = db.Column(db.String(255), nullable=True)
     amount = db.Column(Numeric(10, 2), nullable=False)
     due_date = db.Column(db.Date, nullable=True)
 
@@ -31,4 +34,7 @@ class Bill(db.Model):
     payments = db.relationship("Payment", backref="bill", lazy="dynamic")
 
     def __repr__(self) -> str:
-        return f"<Bill id={self.id} apartment_id={self.apartment_id} amount={self.amount}>"
+        return (
+            f"<Bill id={self.id} site_id={self.site_id} "
+            f"apartment_id={self.apartment_id} amount={self.amount}>"
+        )

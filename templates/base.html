@@ -17,7 +17,8 @@
      SIDEBAR
      =========================================== #}
   <aside class="sidebar" id="sidebar">
-{% set site_name = current_site_name if current_site_name is defined and current_site_name else 'QR Site Yönetim' %}
+{% set site_name = session.get("active_site_name")
+    or (current_site_name if current_site_name is defined and current_site_name else 'QR Site Yönetim') %}
 
 <div class="sidebar__header">
 
@@ -34,12 +35,18 @@
     <!-- ALTINA KURUMSAL SİTE ADI -->
     <div class="sidebar__brand-block">
       <div class="sidebar__brand-title">
-        {{ current_site_name }}
+        {{ site_name }}
       </div>
+
       <div class="sidebar__brand-subtitle">
         Yönetim Paneli
       </div>
     </div>
+      {% if session.get("user_role") == "super_admin" %}
+        <a href="{{ url_for('admin.manage_sites') }}" class="sidebar__link">
+          Site Yönetimi
+        </a>
+      {% endif %}
 
   </div>
 
@@ -55,7 +62,7 @@
     <div class="sidebar__user">
       {% set user_name = session.get("user_name") %}
       {% set user_role = session.get("user_role") %}
-      {% set site_name = session.get("site_name", "Site / Apartman") %}
+      {% set site_name = session.get("active_site_name") or session.get("site_name", "Site / Apartman") %}
 
       <div class="sidebar__user-name">
         {% if user_name %}

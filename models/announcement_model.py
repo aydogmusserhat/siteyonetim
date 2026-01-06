@@ -11,6 +11,10 @@ class Announcement(db.Model):
     __tablename__ = "announcements"
 
     id = db.Column(db.Integer, primary_key=True)
+
+    # Hangi siteye ait
+    site_id = db.Column(db.Integer, db.ForeignKey("sites.id"), nullable=False)
+
     title = db.Column(db.String(200), nullable=False)
     content = db.Column(db.Text, nullable=False)
 
@@ -21,4 +25,4 @@ class Announcement(db.Model):
     author = db.relationship("User", backref="announcements", lazy=True)
 
     def __repr__(self) -> str:
-        return f"<Announcement id={self.id} title={self.title!r}>"
+        return f"<Announcement id={self.id} site_id={self.site_id} title={self.title!r}>"

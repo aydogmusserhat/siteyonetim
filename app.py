@@ -59,14 +59,14 @@ def create_app(config_class=Config) -> Flask:
         """
         Kök URL:
         - Giriş yoksa /login
-        - Admin ise /admin/dashboard
+        - Admin veya süper admin ise /admin/dashboard
         - Resident ise /resident/dashboard
         """
         if not session.get("user_id"):
             return redirect(url_for("auth.login"))
 
         role = session.get("user_role")
-        if role == "admin":
+        if role in ("admin", "super_admin"):
             return redirect(url_for("admin.dashboard"))
         elif role == "resident":
             return redirect(url_for("resident.dashboard"))
@@ -74,32 +74,36 @@ def create_app(config_class=Config) -> Flask:
         # Rol tanımsızsa (beklenmeyen durum) base layout aç
         return render_template("base.html")
 
+
+    # Uygulama context'inde tabloları oluştur ve ilk admini hazırla
     # Uygulama context'inde tabloları oluştur ve ilk admini hazırla
     with app.app_context():
         from sqlalchemy.exc import SQLAlchemyError
 
         db.create_all()
 
-        # İlk çalıştırmada örnek admin kullanıcı oluştur (yoksa)
+        # İlk çalıştırmada örnek süper admin kullanıcı oluştur (yoksa)
         try:
-            existing_admin = User.query.filter_by(role="admin").first()
-            if existing_admin is None:
-                default_admin = User(
-                    name="Sistem Yöneticisi",
-                    email="admin@example.com",
+            existing_super = User.query.filter_by(role="super_admin").first()
+            if existing_super is None:
+                default_super = User(
+                    name="Sistem Süper Yöneticisi",
+                    email="superadmin@example.com",
                     phone="",
-                    role="admin",
+                    role="super_admin",
                     is_active=True,
                 )
-                default_admin.set_password("admin123")
-                db.session.add(default_admin)
+                default_super.set_password("superadmin123")
+                db.session.add(default_super)
                 db.session.commit()
                 app.logger.info(
-                    "İlk admin kullanıcısı oluşturuldu: admin@example.com / admin123"
+                    "İlk super_admin kullanıcısı oluşturuldu: "
+                    "superadmin@example.com / superadmin123"
                 )
         except SQLAlchemyError as exc:
             db.session.rollback()
-            app.logger.exception("İlk admin oluşturulurken hata: %s", exc)
+            app.logger.exception("İlk super admin oluşturulurken hata: %s", exc)
+
 
     return app
 

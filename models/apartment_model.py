@@ -6,6 +6,10 @@ class Apartment(db.Model):
     __tablename__ = "apartments"
 
     id = db.Column(db.Integer, primary_key=True)
+
+    # Bu dairenin bağlı olduğu site
+    site_id = db.Column(db.Integer, db.ForeignKey("sites.id"), nullable=False)
+
     block = db.Column(db.String(50), nullable=False)
     floor = db.Column(db.String(20), nullable=False)
     number = db.Column(db.String(20), nullable=False)
@@ -24,4 +28,7 @@ class Apartment(db.Model):
     tickets = db.relationship("Ticket", backref="apartment", lazy="dynamic")
 
     def __repr__(self) -> str:
-        return f"<Apartment id={self.id} {self.block}-{self.floor}-{self.number}>"
+        return (
+            f"<Apartment id={self.id} site_id={self.site_id} "
+            f"{self.block}-{self.floor}-{self.number}>"
+        )

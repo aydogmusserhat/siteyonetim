@@ -1,7 +1,14 @@
 {% extends "base.html" %}
 
 {% block title %}Sakin Ana Panel{% endblock %}
-{% block topbar_title %}Sakin Ana Paneli{% endblock %}
+{% block topbar_title %}
+  Sakin Ana Paneli
+  {% if session.active_site_name %}
+    – {{ session.active_site_name }}
+  {% elif current_site_name %}
+    – {{ current_site_name }}
+  {% endif %}
+{% endblock %}
 
 {% block content %}
 

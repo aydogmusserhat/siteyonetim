@@ -15,8 +15,6 @@ from models import db
 
 auth_bp = Blueprint("auth", __name__, url_prefix="")
 
-# Basit login/logout akışı; ileride register vs. eklenebilir.
-
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
@@ -25,7 +23,9 @@ def login():
         # Eğer zaten giriş yapmışsa, rolüne göre paneline yönlendir
         if session.get("user_id"):
             role = session.get("user_role")
-            if role == "admin":
+            if role == "super_admin":
+                return redirect(url_for("admin.manage_sites"))
+            elif role == "admin":
                 return redirect(url_for("admin.dashboard"))
             elif role == "resident":
                 return redirect(url_for("resident.dashboard"))
@@ -60,12 +60,26 @@ def login():
     session["user_name"] = user.name
     session["user_role"] = user.role
 
+    # Admin / resident için bağlı olduğu siteyi session'a koy
+    if user.site_id:
+        session["active_site_id"] = user.site_id
+        # Site modeli ile ilişkili (backref='site')
+        if user.site:
+            session["active_site_name"] = user.site.name
+        else:
+            session["active_site_name"] = None
+    else:
+        session.pop("active_site_id", None)
+        session.pop("active_site_name", None)
+
     flash("Başarıyla giriş yaptınız.", "success")
 
     # Rol bazlı yönlendirme
+    if user.is_super_admin:
+        return redirect(url_for("admin.manage_sites"))
     if user.is_admin:
         return redirect(url_for("admin.dashboard"))
-    elif user.is_resident:
+    if user.is_resident:
         return redirect(url_for("resident.dashboard"))
 
     # Her ihtimale karşı

@@ -1,7 +1,14 @@
 {% extends "base.html" %}
 
 {% block title %}Yönetim Paneli{% endblock %}
-{% block topbar_title %}Yönetim Ana Paneli{% endblock %}
+{% block topbar_title %}
+  Yönetim Ana Paneli
+  {% if session.active_site_name %}
+    – {{ session.active_site_name }}
+  {% elif current_site_name %}
+    – {{ current_site_name }}
+  {% endif %}
+{% endblock %}
 
 {% block content %}
 
@@ -198,7 +205,8 @@
               </tr>
             </thead>
             <tbody>
-              {% for m in monthly_overview %}
+              {# BURAYI DEĞİŞTİRDİK: EN YENİ AY ÜSTE GELSİN DİYE REVERSE #}
+              {% for m in monthly_overview|reverse %}
                 <tr
                   style="border-bottom:1px solid #f3f4f6;"
                   data-month-row

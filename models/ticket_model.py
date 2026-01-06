@@ -12,6 +12,10 @@ class Ticket(db.Model):
     __tablename__ = "tickets"
 
     id = db.Column(db.Integer, primary_key=True)
+
+    # Hangi siteye ait
+    site_id = db.Column(db.Integer, db.ForeignKey("sites.id"), nullable=False)
+
     apartment_id = db.Column(db.Integer, db.ForeignKey("apartments.id"), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
 
@@ -30,4 +34,4 @@ class Ticket(db.Model):
     user = db.relationship("User", backref="tickets", lazy=True)
 
     def __repr__(self) -> str:
-        return f"<Ticket id={self.id} status={self.status}>"
+        return f"<Ticket id={self.id} site_id={self.site_id} status={self.status}>"
