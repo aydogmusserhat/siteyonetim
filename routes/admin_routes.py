@@ -2115,12 +2115,72 @@ def payment_receipt(payment_id: int):
             return redirect(url_for("admin.manage_payments"))
 
         # =========================
-        #   DİL (I18N) AYARI
+        #   DİL (I18N) - GÜÇLÜ TESPİT
         # =========================
-        # Mevcut dile göre yazdır (session["lang"])
-        lang = (session.get("lang") or session.get("language") or "tr").lower()
+        def _normalize_lang(val: str) -> str:
+            if not val:
+                return "tr"
+            v = str(val).strip().lower()
+            # en-US, tr-TR gibi gelebilir
+            if "-" in v:
+                v = v.split("-", 1)[0]
+            if "_" in v:
+                v = v.split("_", 1)[0]
+            return v
+
+        def _detect_lang() -> str:
+            # 1) Flask-Babel varsa
+            try:
+                from flask_babel import get_locale  # type: ignore
+                loc = get_locale()
+                if loc:
+                    return _normalize_lang(str(loc))
+            except Exception:
+                pass
+
+            # 2) g üzerinden (uygulamada set ediliyor olabilir)
+            try:
+                from flask import g
+                for key in ("lang", "locale", "language", "current_lang"):
+                    if hasattr(g, key):
+                        v = getattr(g, key)
+                        if v:
+                            return _normalize_lang(v)
+            except Exception:
+                pass
+
+            # 3) session üzerinden (birçok olası anahtar)
+            for key in ("lang", "locale", "language", "current_lang", "selected_lang", "ui_lang"):
+                v = session.get(key)
+                if v:
+                    return _normalize_lang(v)
+
+            # 4) cookie üzerinden
+            try:
+                for key in ("lang", "locale", "language"):
+                    v = request.cookies.get(key)
+                    if v:
+                        return _normalize_lang(v)
+            except Exception:
+                pass
+
+            # 5) Accept-Language header (en yoğun fallback)
+            try:
+                hdr = request.headers.get("Accept-Language", "")
+                if hdr:
+                    # "en-US,en;q=0.9,tr;q=0.8" -> "en"
+                    first = hdr.split(",", 1)[0]
+                    return _normalize_lang(first)
+            except Exception:
+                pass
+
+            return "tr"
+
+        lang = _detect_lang()
         if lang not in ("tr", "en", "me"):
             lang = "tr"
+
+        current_app.logger.info("Makbuz dili (payment_receipt) = %s", lang)
 
         I18N = {
             "tr": {
@@ -2139,15 +2199,13 @@ def payment_receipt(payment_id: int):
                 "FOOTER_2": "Kaşe ve ıslak imza gerekmeksizin geçerlidir; gerektiğinde sistem kayıtlarıyla birlikte tevsik edilir.",
                 "NOT_SPECIFIED": "Belirtilmedi",
                 "DASH": "-",
-                "TL": "TL",
+                "CUR": "TL",
                 "SITE_FALLBACK": "Site / Apartman",
-                # Borç türleri
                 "BILL_aidat": "Aidat",
                 "BILL_elektrik": "Elektrik",
                 "BILL_su": "Su",
                 "BILL_dogalgaz": "Doğalgaz",
                 "BILL_ekstra": "Ekstra Gider",
-                # Ödeme yöntemleri
                 "METHOD_nakit": "Nakit",
                 "METHOD_banka": "Banka Havalesi / EFT",
                 "METHOD_pos": "POS / Kredi Kartı",
@@ -2169,15 +2227,13 @@ def payment_receipt(payment_id: int):
                 "FOOTER_2": "It is valid without stamp or wet signature; it can be substantiated with system records if needed.",
                 "NOT_SPECIFIED": "Not specified",
                 "DASH": "-",
-                "TL": "TRY",
+                "CUR": "TRY",
                 "SITE_FALLBACK": "Site / Building",
-                # Bill types
                 "BILL_aidat": "Dues",
                 "BILL_elektrik": "Electricity",
                 "BILL_su": "Water",
                 "BILL_dogalgaz": "Natural Gas",
                 "BILL_ekstra": "Extra Expense",
-                # Methods
                 "METHOD_nakit": "Cash",
                 "METHOD_banka": "Bank Transfer / EFT",
                 "METHOD_pos": "POS / Credit Card",
@@ -2199,15 +2255,13 @@ def payment_receipt(payment_id: int):
                 "FOOTER_2": "Važeća je bez pečata i mokrog potpisa; po potrebi se može dokazati sistemskim zapisima.",
                 "NOT_SPECIFIED": "Nije navedeno",
                 "DASH": "-",
-                "TL": "EUR",  # İstersen TRY bırak; ME için para birimi tercihini sen belirle
+                "CUR": "EUR",
                 "SITE_FALLBACK": "Zgrada / Kompleks",
-                # Bill types
                 "BILL_aidat": "Održavanje",
                 "BILL_elektrik": "Struja",
                 "BILL_su": "Voda",
                 "BILL_dogalgaz": "Gas",
                 "BILL_ekstra": "Dodatni trošak",
-                # Methods
                 "METHOD_nakit": "Gotovina",
                 "METHOD_banka": "Bankovni transfer / EFT",
                 "METHOD_pos": "POS / Kartica",
@@ -2218,7 +2272,7 @@ def payment_receipt(payment_id: int):
         def t(key: str) -> str:
             return I18N.get(lang, I18N["tr"]).get(key, key)
 
-        # Sistem ayarlarından site/apartman adı (sen kullanıyordun, aynen bıraktım)
+        # Sistem ayarlarından site/apartman adı
         try:
             settings_obj = SystemSetting.get_singleton()
         except SQLAlchemyError:
@@ -2257,7 +2311,7 @@ def payment_receipt(payment_id: int):
 
         # PDF'yi hafızada oluştur
         buffer = io.BytesIO()
-        pdf = canvas.Canvas(buffer, pagesizes=A4)
+        pdf = canvas.Canvas(buffer, pagesize=A4)
         width, height = A4
 
         # Kenar boşlukları
@@ -2284,47 +2338,36 @@ def payment_receipt(payment_id: int):
         # =========================
         #   BAŞLIK BÖLÜMÜ
         # =========================
-        # 🔹 Altına makbuz başlığını yaz (dile göre)
         set_font_bold(18)
         pdf.drawString(margin_left, y, t("RECEIPT_TITLE"))
         y -= 20
 
-        # 🔹 Önce site adını yaz
         set_font_bold(16)
         pdf.drawString(margin_left, y, site_name)
-        y -= 28  # satır aralığı
+        y -= 28
 
         set_font_regular(11)
-        pdf.drawRightString(
-            margin_right,
-            y,
-            f"{t('RECEIPT_NO')}: {payment.id}"
-        )
+        pdf.drawRightString(margin_right, y, f"{t('RECEIPT_NO')}: {payment.id}")
         y -= 25
 
-        # İnce ayırıcı çizgi
         pdf.setLineWidth(0.5)
         pdf.line(margin_left, y, margin_right, y)
         y -= 20
 
-        # Site / Apartman adı
         set_font_bold(12)
         pdf.drawString(margin_left, y, site_name)
         y -= 18
 
-        # Daire bilgisi
         set_font_regular(10)
         if apartment:
             daire_str = f"{apartment.block} Blok, {apartment.floor}. Kat, No: {apartment.number}"
             pdf.drawString(margin_left, y, f"{t('APARTMENT')}: {daire_str}")
             y -= 16
 
-        # Ödemeyi yapan
         if user:
             pdf.drawString(margin_left, y, f"{t('PAYER')}: {user.name}")
             y -= 16
 
-        # Tarih
         date_str = (
             payment.payment_date.strftime("%d.%m.%Y")
             if payment.payment_date
@@ -2346,8 +2389,7 @@ def payment_receipt(payment_id: int):
             if key in I18N.get(lang, {}):
                 bill_type_label = t(key)
             else:
-                # Tanımsız tür gelirse ham değeri göster
-                bill_type_label = bill_type_raw.capitalize()
+                bill_type_label = str(bill_type_raw).capitalize()
 
         description = t("DASH")
         if bill and bill.description:
@@ -2377,7 +2419,7 @@ def payment_receipt(payment_id: int):
         pdf.drawString(inner_x, inner_y, f"{t('DESCRIPTION')}   : {description}")
         inner_y -= 16
 
-        amount_str = f"{payment.amount:.2f} {t('TL')}"
+        amount_str = f"{payment.amount:.2f} {t('CUR')}"
         set_font_bold(11)
         pdf.drawString(inner_x, inner_y, f"{t('AMOUNT')}      : {amount_str}")
         inner_y -= 20
@@ -2388,31 +2430,22 @@ def payment_receipt(payment_id: int):
             if mkey in I18N.get(lang, {}):
                 method_label = t(mkey)
             else:
-                method_label = payment.method.capitalize()
+                method_label = str(payment.method).capitalize()
 
         set_font_regular(10)
         pdf.drawString(inner_x, inner_y, f"{t('PAYMENT_METHOD')} : {method_label}")
 
         y = box_bottom - 30
 
-        # İmza & not
         set_font_regular(10)
         pdf.drawString(margin_left, y, t("AUTHORIZED_SIGNATURE"))
         pdf.line(margin_left + 80, y - 2, margin_left + 220, y - 2)
         y -= 40
 
         set_font_regular(9)
-        pdf.drawString(
-            margin_left,
-            y,
-            t("FOOTER_1")
-        )
+        pdf.drawString(margin_left, y, t("FOOTER_1"))
         y -= 14
-        pdf.drawString(
-            margin_left,
-            y,
-            t("FOOTER_2")
-        )
+        pdf.drawString(margin_left, y, t("FOOTER_2"))
 
         pdf.showPage()
         pdf.save()

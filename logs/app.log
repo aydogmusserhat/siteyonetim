@@ -6386,3 +6386,5 @@ sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) NOT NULL constraint fail
 2026-01-06 23:52:50,464 [INFO] werkzeug: 127.0.0.1 - - [06/Jan/2026 23:52:50] "GET /admin/dashboard HTTP/1.1" 200 -
 2026-01-06 23:52:50,491 [INFO] werkzeug: 127.0.0.1 - - [06/Jan/2026 23:52:50] "[36mGET /static/css/app.css HTTP/1.1[0m" 304 -
 2026-01-06 23:52:50,497 [INFO] werkzeug: 127.0.0.1 - - [06/Jan/2026 23:52:50] "[36mGET /static/logo1.png HTTP/1.1[0m" 304 -
+2026-01-07 23:29:07,631 [INFO] app: Makbuz dili (payment_receipt) = en
+2026-01-07 23:29:20,438 [INFO] app: Makbuz dili (payment_receipt) = me
