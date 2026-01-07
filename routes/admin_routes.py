@@ -2080,7 +2080,6 @@ def delete_payment(payment_id: int):
         ), 500
 
 
-
 # ============== PDF Makbuz indir ===============================
 @admin_bp.route("/payments/<int:payment_id>/receipt", methods=["GET"])
 @admin_required
@@ -2109,11 +2108,117 @@ def payment_receipt(payment_id: int):
             return redirect(url_for("admin.manage_payments"))
 
         payment, apartment, user, bill = row
+
         # 🔴 Başka sitenin ödemesi ise izin verme
         if payment.site_id != site_id:
             flash("Bu ödeme için makbuz oluşturma yetkiniz yok.", "error")
             return redirect(url_for("admin.manage_payments"))
-        # Sistem ayarlarından site/apartman adı
+
+        # =========================
+        #   DİL (I18N) AYARI
+        # =========================
+        # Mevcut dile göre yazdır (session["lang"])
+        lang = (session.get("lang") or session.get("language") or "tr").lower()
+        if lang not in ("tr", "en", "me"):
+            lang = "tr"
+
+        I18N = {
+            "tr": {
+                "RECEIPT_TITLE": "ÖDEME MAKBUZU",
+                "RECEIPT_NO": "Makbuz No",
+                "APARTMENT": "Daire",
+                "PAYER": "Ödemeyi Yapan",
+                "PAYMENT_DATE": "Ödeme Tarihi",
+                "DEBT_BOX_TITLE": "Borç / Ödeme Bilgileri",
+                "DEBT_TYPE": "Borç Türü",
+                "DESCRIPTION": "Açıklama",
+                "AMOUNT": "Tutar",
+                "PAYMENT_METHOD": "Ödeme Yöntemi",
+                "AUTHORIZED_SIGNATURE": "Yetkili İmzası:",
+                "FOOTER_1": "Bu makbuz belirtilen tutarda ödemenin alındığını gösterir. Dijital ortamda oluşturulmuştur.",
+                "FOOTER_2": "Kaşe ve ıslak imza gerekmeksizin geçerlidir; gerektiğinde sistem kayıtlarıyla birlikte tevsik edilir.",
+                "NOT_SPECIFIED": "Belirtilmedi",
+                "DASH": "-",
+                "TL": "TL",
+                "SITE_FALLBACK": "Site / Apartman",
+                # Borç türleri
+                "BILL_aidat": "Aidat",
+                "BILL_elektrik": "Elektrik",
+                "BILL_su": "Su",
+                "BILL_dogalgaz": "Doğalgaz",
+                "BILL_ekstra": "Ekstra Gider",
+                # Ödeme yöntemleri
+                "METHOD_nakit": "Nakit",
+                "METHOD_banka": "Banka Havalesi / EFT",
+                "METHOD_pos": "POS / Kredi Kartı",
+                "METHOD_online": "Online Ödeme",
+            },
+            "en": {
+                "RECEIPT_TITLE": "PAYMENT RECEIPT",
+                "RECEIPT_NO": "Receipt No",
+                "APARTMENT": "Apartment",
+                "PAYER": "Payer",
+                "PAYMENT_DATE": "Payment Date",
+                "DEBT_BOX_TITLE": "Bill / Payment Details",
+                "DEBT_TYPE": "Bill Type",
+                "DESCRIPTION": "Description",
+                "AMOUNT": "Amount",
+                "PAYMENT_METHOD": "Payment Method",
+                "AUTHORIZED_SIGNATURE": "Authorized Signature:",
+                "FOOTER_1": "This receipt confirms that the specified amount has been received. It is generated digitally.",
+                "FOOTER_2": "It is valid without stamp or wet signature; it can be substantiated with system records if needed.",
+                "NOT_SPECIFIED": "Not specified",
+                "DASH": "-",
+                "TL": "TRY",
+                "SITE_FALLBACK": "Site / Building",
+                # Bill types
+                "BILL_aidat": "Dues",
+                "BILL_elektrik": "Electricity",
+                "BILL_su": "Water",
+                "BILL_dogalgaz": "Natural Gas",
+                "BILL_ekstra": "Extra Expense",
+                # Methods
+                "METHOD_nakit": "Cash",
+                "METHOD_banka": "Bank Transfer / EFT",
+                "METHOD_pos": "POS / Credit Card",
+                "METHOD_online": "Online Payment",
+            },
+            "me": {
+                "RECEIPT_TITLE": "POTVRDA O UPLATI",
+                "RECEIPT_NO": "Broj potvrde",
+                "APARTMENT": "Stan",
+                "PAYER": "Uplatilac",
+                "PAYMENT_DATE": "Datum uplate",
+                "DEBT_BOX_TITLE": "Detalji duga / uplate",
+                "DEBT_TYPE": "Vrsta duga",
+                "DESCRIPTION": "Opis",
+                "AMOUNT": "Iznos",
+                "PAYMENT_METHOD": "Način plaćanja",
+                "AUTHORIZED_SIGNATURE": "Ovlašćeni potpis:",
+                "FOOTER_1": "Ova potvrda pokazuje da je navedeni iznos primljen. Generisana je digitalno.",
+                "FOOTER_2": "Važeća je bez pečata i mokrog potpisa; po potrebi se može dokazati sistemskim zapisima.",
+                "NOT_SPECIFIED": "Nije navedeno",
+                "DASH": "-",
+                "TL": "EUR",  # İstersen TRY bırak; ME için para birimi tercihini sen belirle
+                "SITE_FALLBACK": "Zgrada / Kompleks",
+                # Bill types
+                "BILL_aidat": "Održavanje",
+                "BILL_elektrik": "Struja",
+                "BILL_su": "Voda",
+                "BILL_dogalgaz": "Gas",
+                "BILL_ekstra": "Dodatni trošak",
+                # Methods
+                "METHOD_nakit": "Gotovina",
+                "METHOD_banka": "Bankovni transfer / EFT",
+                "METHOD_pos": "POS / Kartica",
+                "METHOD_online": "Online plaćanje",
+            },
+        }
+
+        def t(key: str) -> str:
+            return I18N.get(lang, I18N["tr"]).get(key, key)
+
+        # Sistem ayarlarından site/apartman adı (sen kullanıyordun, aynen bıraktım)
         try:
             settings_obj = SystemSetting.get_singleton()
         except SQLAlchemyError:
@@ -2130,8 +2235,7 @@ def payment_receipt(payment_id: int):
 
         # 🔹 Yine bulunamazsa fallback
         if not site_name:
-            site_name = "Site / Apartman"
-
+            site_name = t("SITE_FALLBACK")
 
         # FONT KAYDI (Türkçe için TTF)
         font_dir = os.path.join(current_app.root_path, "static", "fonts")
@@ -2176,26 +2280,25 @@ def payment_receipt(payment_id: int):
                 pdf.setFont("Helvetica", size)
 
         y = margin_top
+
         # =========================
         #   BAŞLIK BÖLÜMÜ
         # =========================
-        # 🔹 Altına makbuz başlığını yaz
+        # 🔹 Altına makbuz başlığını yaz (dile göre)
         set_font_bold(18)
-        pdf.drawString(margin_left, y, "ÖDEME MAKBUZU")
+        pdf.drawString(margin_left, y, t("RECEIPT_TITLE"))
         y -= 20
-        
+
         # 🔹 Önce site adını yaz
         set_font_bold(16)
         pdf.drawString(margin_left, y, site_name)
-        y -= 28   # satır aralığı
-
-
+        y -= 28  # satır aralığı
 
         set_font_regular(11)
         pdf.drawRightString(
             margin_right,
             y,
-            f"Makbuz No: {payment.id}"
+            f"{t('RECEIPT_NO')}: {payment.id}"
         )
         y -= 25
 
@@ -2213,12 +2316,12 @@ def payment_receipt(payment_id: int):
         set_font_regular(10)
         if apartment:
             daire_str = f"{apartment.block} Blok, {apartment.floor}. Kat, No: {apartment.number}"
-            pdf.drawString(margin_left, y, f"Daire: {daire_str}")
+            pdf.drawString(margin_left, y, f"{t('APARTMENT')}: {daire_str}")
             y -= 16
 
         # Ödemeyi yapan
         if user:
-            pdf.drawString(margin_left, y, f"Ödemeyi Yapan: {user.name}")
+            pdf.drawString(margin_left, y, f"{t('PAYER')}: {user.name}")
             y -= 16
 
         # Tarih
@@ -2227,7 +2330,7 @@ def payment_receipt(payment_id: int):
             if payment.payment_date
             else datetime.utcnow().strftime("%d.%m.%Y")
         )
-        pdf.drawString(margin_left, y, f"Ödeme Tarihi: {date_str}")
+        pdf.drawString(margin_left, y, f"{t('PAYMENT_DATE')}: {date_str}")
         y -= 24
 
         # BORÇ / ÖDEME DETAY KUTUSU
@@ -2237,21 +2340,16 @@ def payment_receipt(payment_id: int):
         elif getattr(payment, "bill_type", None):
             bill_type_raw = payment.bill_type
 
-        bill_type_label = "Belirtilmedi"
-        if bill_type_raw == "aidat":
-            bill_type_label = "Aidat"
-        elif bill_type_raw == "elektrik":
-            bill_type_label = "Elektrik"
-        elif bill_type_raw == "su":
-            bill_type_label = "Su"
-        elif bill_type_raw == "dogalgaz":
-            bill_type_label = "Doğalgaz"
-        elif bill_type_raw == "ekstra":
-            bill_type_label = "Ekstra Gider"
-        elif bill_type_raw:
-            bill_type_label = bill_type_raw.capitalize()
+        bill_type_label = t("NOT_SPECIFIED")
+        if bill_type_raw:
+            key = f"BILL_{bill_type_raw}"
+            if key in I18N.get(lang, {}):
+                bill_type_label = t(key)
+            else:
+                # Tanımsız tür gelirse ham değeri göster
+                bill_type_label = bill_type_raw.capitalize()
 
-        description = "-"
+        description = t("DASH")
         if bill and bill.description:
             description = bill.description
 
@@ -2270,40 +2368,36 @@ def payment_receipt(payment_id: int):
         inner_x = margin_left + 10
 
         set_font_bold(11)
-        pdf.drawString(inner_x, inner_y, "Borç / Ödeme Bilgileri")
+        pdf.drawString(inner_x, inner_y, t("DEBT_BOX_TITLE"))
         inner_y -= 18
 
         set_font_regular(10)
-        pdf.drawString(inner_x, inner_y, f"Borç Türü : {bill_type_label}")
+        pdf.drawString(inner_x, inner_y, f"{t('DEBT_TYPE')} : {bill_type_label}")
         inner_y -= 16
-        pdf.drawString(inner_x, inner_y, f"Açıklama   : {description}")
+        pdf.drawString(inner_x, inner_y, f"{t('DESCRIPTION')}   : {description}")
         inner_y -= 16
 
-        amount_str = f"{payment.amount:.2f} TL"
+        amount_str = f"{payment.amount:.2f} {t('TL')}"
         set_font_bold(11)
-        pdf.drawString(inner_x, inner_y, f"Tutar      : {amount_str}")
+        pdf.drawString(inner_x, inner_y, f"{t('AMOUNT')}      : {amount_str}")
         inner_y -= 20
 
-        method_label = "-"
-        if payment.method == "nakit":
-            method_label = "Nakit"
-        elif payment.method == "banka":
-            method_label = "Banka Havalesi / EFT"
-        elif payment.method == "pos":
-            method_label = "POS / Kredi Kartı"
-        elif payment.method == "online":
-            method_label = "Online Ödeme"
-        elif payment.method:
-            method_label = payment.method.capitalize()
+        method_label = t("DASH")
+        if payment.method:
+            mkey = f"METHOD_{payment.method}"
+            if mkey in I18N.get(lang, {}):
+                method_label = t(mkey)
+            else:
+                method_label = payment.method.capitalize()
 
         set_font_regular(10)
-        pdf.drawString(inner_x, inner_y, f"Ödeme Yöntemi : {method_label}")
+        pdf.drawString(inner_x, inner_y, f"{t('PAYMENT_METHOD')} : {method_label}")
 
         y = box_bottom - 30
 
         # İmza & not
         set_font_regular(10)
-        pdf.drawString(margin_left, y, "Yetkili İmzası:")
+        pdf.drawString(margin_left, y, t("AUTHORIZED_SIGNATURE"))
         pdf.line(margin_left + 80, y - 2, margin_left + 220, y - 2)
         y -= 40
 
@@ -2311,13 +2405,13 @@ def payment_receipt(payment_id: int):
         pdf.drawString(
             margin_left,
             y,
-            "Bu makbuz belirtilen tutarda ödemenin alındığını gösterir. Dijital ortamda oluşturulmuştur."
+            t("FOOTER_1")
         )
         y -= 14
         pdf.drawString(
             margin_left,
             y,
-            "Kaşe ve ıslak imza gerekmeksizin geçerlidir; gerektiğinde sistem kayıtlarıyla birlikte tevsik edilir."
+            t("FOOTER_2")
         )
 
         pdf.showPage()
@@ -2337,6 +2431,7 @@ def payment_receipt(payment_id: int):
         current_app.logger.exception("Ödeme makbuzu oluşturulamadı: %s", exc)
         flash("Makbuz oluşturulurken bir hata oluştu.", "error")
         return redirect(url_for("admin.manage_payments"))
+
 
 
 # ======================
