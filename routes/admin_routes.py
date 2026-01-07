@@ -476,14 +476,45 @@ def _parse_date_flex(value: str):
 @admin_bp.route("/dashboard")
 @admin_required
 def dashboard():
-    """Genel yönetim paneli özeti + son 12 ay aylık özet (SİTE BAZLI)."""
+    """Genel yönetim paneli özeti + son 12 ay aylık özet.
+
+    - Normal admin: sadece bağlı olduğu / seçtiği site
+    - Süper admin:
+        * Aktif site seçmişse -> o site
+        * Seçmemişse         -> tüm siteler (global özet)
+    """
 
     admin_user = _get_current_admin()
-    site_id = session.get("active_site_id") or (admin_user.site_id if admin_user else None)
+    if not admin_user:
+        flash("Kullanıcı bulunamadı. Lütfen tekrar giriş yapın.", "error")
+        return redirect(url_for("auth.logout"))
 
-    if not site_id:
-        flash("Bu paneli kullanabilmek için bir siteye atanmış olmanız gerekiyor.", "error")
-        return redirect(url_for("index"))
+    from models.site_model import Site  # döngü olmasın diye lokal import
+
+    # Session'dan veya kullanıcının site_id'sinden oku
+    site_id = session.get("active_site_id") or (admin_user.site_id if admin_user.site_id else None)
+
+    is_super = (admin_user.role == "super_admin")
+    # Süper admin ve hiçbir site seçili değilse -> GLOBAL MOD
+    global_mode = is_super and not site_id
+
+    # Global modda üstte görünen isim için yardımcı label
+    if global_mode:
+        session["active_site_name"] = "Tüm Siteler (Genel)"
+    else:
+        # Site bazlı moddaysak, aktif site adını garantiye al
+        if site_id:
+            try:
+                site = Site.query.get(site_id)
+                if site:
+                    session["active_site_id"] = site.id
+                    session["active_site_name"] = site.name
+            except SQLAlchemyError:
+                pass
+        else:
+            # Normal admin ve site yoksa hala engelle
+            flash("Bu paneli kullanabilmek için bir siteye atanmış olmanız gerekiyor.", "error")
+            return redirect(url_for("index"))
 
     stats = {
         "total_apartments": 0,
@@ -503,21 +534,36 @@ def dashboard():
     today = date.today()
 
     # =========================
-    #  GENEL SAYILAR (site bazlı)
+    #  GENEL SAYILAR
     # =========================
     try:
-        stats["total_apartments"] = Apartment.query.filter_by(site_id=site_id).count()
-        stats["total_users"] = User.query.filter_by(site_id=site_id).count()
-        stats["resident_users"] = User.query.filter_by(site_id=site_id, role="resident").count()
-        stats["admin_users"] = User.query.filter_by(site_id=site_id, role="admin").count()
+        # Daireler
+        q_apts = Apartment.query
+        if not global_mode:
+            q_apts = q_apts.filter_by(site_id=site_id)
+        stats["total_apartments"] = q_apts.count()
+
+        # Kullanıcılar
+        q_users = User.query
+        if not global_mode:
+            q_users = q_users.filter_by(site_id=site_id)
+        stats["total_users"] = q_users.count()
+
+        q_res = q_users.filter_by(role="resident") if global_mode else User.query.filter_by(site_id=site_id, role="resident")
+        q_admins = q_users.filter_by(role="admin") if global_mode else User.query.filter_by(site_id=site_id, role="admin")
+        stats["resident_users"] = q_res.count()
+        stats["admin_users"] = q_admins.count()
     except SQLAlchemyError as exc:
         current_app.logger.exception("Dashboard kullanıcı istatistikleri alınamadı: %s", exc)
 
     # =========================
-    #  BORÇ / ÖDEME ÖZETLERİ (bu ay ve bu site)
+    #  BORÇ / ÖDEME ÖZETLERİ (bu ay)
     # =========================
     try:
-        stats["total_bills"] = Bill.query.filter_by(site_id=site_id).count()
+        q_bills_all = Bill.query
+        if not global_mode:
+            q_bills_all = q_bills_all.filter(Bill.site_id == site_id)
+        stats["total_bills"] = q_bills_all.count()
 
         # Bu ayın başlangıcı ve bir sonraki ayın başlangıcı
         month_start = date(today.year, today.month, 1)
@@ -526,58 +572,52 @@ def dashboard():
         else:
             month_end = date(today.year, today.month + 1, 1)
 
-        # Bu ay oluşturulan borçların toplamı (beklenen gelir)
-        month_bills_sum = (
-            db.session.query(func.coalesce(func.sum(Bill.amount), 0))
-            .filter(
-                Bill.site_id == site_id,
-                Bill.created_at >= month_start,
-                Bill.created_at < month_end,
-            )
-            .scalar()
+        # Bu ay oluşturulan borçların toplamı
+        q_billed = db.session.query(func.coalesce(func.sum(Bill.amount), 0))
+        if not global_mode:
+            q_billed = q_billed.filter(Bill.site_id == site_id)
+        q_billed = q_billed.filter(
+            Bill.created_at >= month_start,
+            Bill.created_at < month_end,
         )
-        billed_dec = Decimal(month_bills_sum or 0)
+        billed_sum = q_billed.scalar() or 0
+        stats["expected_income_this_month"] = Decimal(str(billed_sum))
 
-        # Bu ay yapılan ödemelerin toplamı
-        month_payments_sum = (
-            db.session.query(func.coalesce(func.sum(Payment.amount), 0))
-            .filter(
-                Payment.site_id == site_id,
-                Payment.payment_date >= month_start,
-                Payment.payment_date < month_end,
-            )
-            .scalar()
+        # Bu ay yapılan ödemeler
+        q_paid = db.session.query(func.coalesce(func.sum(Payment.amount), 0))
+        if not global_mode:
+            q_paid = q_paid.filter(Payment.site_id == site_id)
+        q_paid = q_paid.filter(
+            Payment.payment_date >= month_start,
+            Payment.payment_date < month_end,
         )
-        paid_dec = Decimal(month_payments_sum or 0)
+        paid_sum = q_paid.scalar() or 0
+        stats["total_paid_amount"] = Decimal(str(paid_sum))
 
-        # Kartlar:
-        stats["expected_income_this_month"] = billed_dec
-        stats["total_paid_amount"] = paid_dec
-        diff = billed_dec - paid_dec
-        if diff < 0:
-            diff = Decimal("0.00")
-        stats["total_open_amount"] = diff
-
+        # Açık / kısmi borç (net)
+        q_open = db.session.query(func.coalesce(func.sum(Bill.amount), 0))
+        if not global_mode:
+            q_open = q_open.filter(Bill.site_id == site_id)
+        q_open = q_open.filter(Bill.status.in_(["open", "partial"]))
+        open_sum = q_open.scalar() or 0
+        stats["total_open_amount"] = Decimal(str(open_sum))
     except SQLAlchemyError as exc:
-        current_app.logger.exception("Dashboard borç istatistikleri alınamadı: %s", exc)
+        current_app.logger.exception("Dashboard borç/ödeme istatistikleri alınamadı: %s", exc)
 
     # =========================
-    #  AÇIK TALEP SAYISI (site bazlı)
+    #  TALEP SAYISI
     # =========================
     try:
-        stats["open_tickets"] = (
-            Ticket.query
-            .filter(
-                Ticket.site_id == site_id,
-                Ticket.status.in_(["open", "in_progress"])
-            )
-            .count()
-        )
+        q_tickets = Ticket.query
+        if not global_mode:
+            q_tickets = q_tickets.filter(Ticket.site_id == site_id)
+        q_tickets = q_tickets.filter(Ticket.status.in_(["open", "in_progress"]))
+        stats["open_tickets"] = q_tickets.count()
     except SQLAlchemyError as exc:
         current_app.logger.exception("Dashboard talep istatistikleri alınamadı: %s", exc)
 
     # =========================
-    #  SON KAYITLAR (site bazlı)
+    #  SON KAYITLAR
     # =========================
     recent_bills = []
     recent_payments = []
@@ -586,60 +626,62 @@ def dashboard():
 
     # Son borçlar
     try:
+        q_rb = db.session.query(Bill, Apartment).outerjoin(
+            Apartment, Bill.apartment_id == Apartment.id
+        )
+        if not global_mode:
+            q_rb = q_rb.filter(Bill.site_id == site_id)
         recent_bills = (
-            db.session.query(Bill, Apartment)
-            .outerjoin(Apartment, Bill.apartment_id == Apartment.id)
-            .filter(Bill.site_id == site_id)
-            .order_by(Bill.created_at.desc())
-            .limit(5)
-            .all()
+            q_rb.order_by(Bill.created_at.desc()).limit(5).all()
         )
     except SQLAlchemyError:
         pass
 
     # Son ödemeler
     try:
-        recent_payments = (
+        q_rp = (
             db.session.query(Payment, Apartment, User)
             .outerjoin(Apartment, Payment.apartment_id == Apartment.id)
             .outerjoin(User, Payment.user_id == User.id)
-            .filter(Payment.site_id == site_id)
-            .order_by(Payment.payment_date.desc())
-            .limit(5)
-            .all()
+        )
+        if not global_mode:
+            q_rp = q_rp.filter(Payment.site_id == site_id)
+        recent_payments = (
+            q_rp.order_by(Payment.payment_date.desc()).limit(5).all()
         )
     except SQLAlchemyError:
         pass
 
     # Son talepler
     try:
-        recent_tickets = (
+        q_rt = (
             db.session.query(Ticket, Apartment, User)
             .outerjoin(Apartment, Ticket.apartment_id == Apartment.id)
             .outerjoin(User, Ticket.user_id == User.id)
-            .filter(Ticket.site_id == site_id)
-            .order_by(Ticket.created_at.desc())
-            .limit(5)
-            .all()
+        )
+        if not global_mode:
+            q_rt = q_rt.filter(Ticket.site_id == site_id)
+        recent_tickets = (
+            q_rt.order_by(Ticket.created_at.desc()).limit(5).all()
         )
     except SQLAlchemyError:
         pass
 
     # Son duyurular
     try:
+        q_ra = db.session.query(Announcement, User).outerjoin(
+            User, Announcement.created_by == User.id
+        )
+        if not global_mode:
+            q_ra = q_ra.filter(Announcement.site_id == site_id)
         recent_announcements = (
-            db.session.query(Announcement, User)
-            .outerjoin(User, Announcement.created_by == User.id)
-            .filter(Announcement.site_id == site_id)
-            .order_by(Announcement.created_at.desc())
-            .limit(5)
-            .all()
+            q_ra.order_by(Announcement.created_at.desc()).limit(5).all()
         )
     except SQLAlchemyError:
         pass
 
     # =========================
-    #  SON 12 AYLIK ÖZET (site bazlı, dateutil YOK)
+    #  SON 12 AYLIK ÖZET
     # =========================
     MONTH_LABELS_TR = {
         1: "Ocak",
@@ -668,7 +710,6 @@ def dashboard():
         cur_y = today.year
         cur_m = today.month
 
-        # Son 12 ay: 11 ay önceki aydan bugüne
         for back in range(11, -1, -1):
             y, m = _shift_month(cur_y, cur_m, -back)
             month_start = date(y, m, 1)
@@ -677,28 +718,30 @@ def dashboard():
             else:
                 month_end = date(y, m + 1, 1)
 
-            month_bills_sum = (
-                db.session.query(func.coalesce(func.sum(Bill.amount), 0))
-                .filter(
-                    Bill.site_id == site_id,
-                    Bill.created_at >= month_start,
-                    Bill.created_at < month_end,
-                )
-                .scalar()
+            # Faturalar
+            q_mb = db.session.query(func.coalesce(func.sum(Bill.amount), 0))
+            if not global_mode:
+                q_mb = q_mb.filter(Bill.site_id == site_id)
+            q_mb = q_mb.filter(
+                Bill.created_at >= month_start,
+                Bill.created_at < month_end,
             )
-            month_payments_sum = (
-                db.session.query(func.coalesce(func.sum(Payment.amount), 0))
-                .filter(
-                    Payment.site_id == site_id,
-                    Payment.payment_date >= month_start,
-                    Payment.payment_date < month_end,
-                )
-                .scalar()
+            month_bills_sum = q_mb.scalar()
+
+            # Ödemeler
+            q_mp = db.session.query(func.coalesce(func.sum(Payment.amount), 0))
+            if not global_mode:
+                q_mp = q_mp.filter(Payment.site_id == site_id)
+            q_mp = q_mp.filter(
+                Payment.payment_date >= month_start,
+                Payment.payment_date < month_end,
             )
+            month_payments_sum = q_mp.scalar()
 
             billed = Decimal(month_bills_sum or 0)
             paid = Decimal(month_payments_sum or 0)
             delta = paid - billed
+
             monthly_overview.append(
                 {
                     "year": y,
@@ -707,7 +750,7 @@ def dashboard():
                     "total_billed": billed,
                     "total_paid": paid,
                     "total_open": billed - paid if billed - paid > 0 else Decimal("0.00"),
-                    "delta": delta,  # 🔴 TEMPLATE'İN BEKLEDİĞİ ALAN
+                    "delta": delta,
                 }
             )
     except SQLAlchemyError as exc:
@@ -722,10 +765,10 @@ def dashboard():
         recent_payments=recent_payments,
         recent_tickets=recent_tickets,
         recent_announcements=recent_announcements,
-        today=today,
         monthly_overview=monthly_overview,
+        today=today,
+        global_mode=global_mode,
     )
-
 
 
 # ======================

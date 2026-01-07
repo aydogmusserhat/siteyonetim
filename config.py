@@ -6,7 +6,7 @@ BASE_DIR = Path(__file__).resolve().parent
 class Config:
     """Uygulama genel ayarları."""
     # Güvenlik anahtarı (.env içinden okunabilir)
-    SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-change-me")
+    SECRET_KEY = os.environ.get("SECRET_KEY", "Ser990701022.")
 
     # SQLite veritabanı yolu
     DB_PATH = BASE_DIR / "instance" / "apartman.db"

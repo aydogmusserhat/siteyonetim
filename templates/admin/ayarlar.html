@@ -17,6 +17,8 @@
 
   <form method="post" style="display:flex; flex-direction:column; gap:10px; max-width:540px;">
 
+    {# Sadece super_admin site / apartman adını değiştirebilsin #}
+    {% if session.user_role == 'super_admin' %}
     <div>
       <label for="site_name" style="display:block; font-size:13px; margin-bottom:3px;">Site / Apartman Adı</label>
       <input
@@ -26,6 +28,7 @@
         value="{{ settings.site_name }}"
         style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
     </div>
+    {% endif %}
 
     <div>
       <label for="address" style="display:block; font-size:13px; margin-bottom:3px;">Adres</label>
