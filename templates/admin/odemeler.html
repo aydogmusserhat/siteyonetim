@@ -1,8 +1,206 @@
 {% extends "base.html" %}
 
-{% block title %}Ödeme Yönetimi{% endblock %}
+{# ============================================================
+   ÖDEME YÖNETİMİ - 3 DİL (TR / EN / ME) UYUMLU
+   ============================================================ #}
+
+{% set LANG = session.get('lang','tr') %}
+
+{% set I18N_PAGE = {
+  'tr': {
+    'page_title': 'Ödeme Yönetimi',
+    'topbar_title': 'Ödeme Yönetimi',
+
+    'new_payment_title': 'Yeni Ödeme Kaydı',
+
+    'label_apartment': 'Daire',
+    'apartment_pick': 'Daire seçin...',
+
+    'label_bill_type': 'Borç Türü',
+    'bill_aidat': 'Aidat',
+    'bill_elektrik': 'Elektrik',
+    'bill_su': 'Su',
+    'bill_dogalgaz': 'Doğalgaz',
+    'bill_ekstra': 'Ekstra Gider',
+
+    'label_payer': 'Ödemeyi Yapan (opsiyonel)',
+    'payer_unknown': 'Belirtilmedi',
+
+    'label_amount': 'Tutar (₺)',
+    'ph_amount': 'Örn: 500',
+
+    'label_payment_date': 'Ödeme Tarihi',
+
+    'label_method': 'Ödeme Yöntemi (opsiyonel)',
+    'method_none': 'Seçilmedi',
+    'method_cash': 'Nakit',
+    'method_bank': 'Banka Havalesi / EFT',
+    'method_pos': 'POS / Kredi Kartı',
+    'method_online': 'Online Ödeme',
+
+    'btn_save_payment': 'Ödemeyi Kaydet',
+
+    'list_title': 'Kayıtlı Ödemeler',
+
+    'col_apartment': 'Daire',
+    'col_payer': 'Ödeyen',
+    'col_related': 'İlgili Borç',
+    'col_amount': 'Tutar',
+    'col_method': 'Yöntem',
+    'col_date': 'Tarih',
+    'col_actions': 'İşlemler',
+
+    'dash': '-',
+
+    'btn_pdf': 'PDF İndir',
+    'btn_edit': 'Düzenle',
+    'btn_delete': 'Sil',
+    'btn_save': 'Kaydet',
+    'btn_cancel': 'Vazgeç',
+
+    'empty': 'Henüz kayıtlı bir ödeme bulunmuyor. Soldaki formdan ödeme kaydı oluşturabilirsiniz.',
+
+    'ph_date_text': 'Örn: 04.01.2026',
+
+    'alert_update_failed': 'Güncelleme başarısız.',
+    'alert_update_error': 'Ödeme güncellenirken bir hata oluştu.',
+    'confirm_delete': 'Bu ödeme kaydını silmek istediğinizden emin misiniz?',
+    'alert_delete_failed': 'Ödeme silinemedi.',
+    'alert_delete_error': 'Ödeme silinirken bir hata oluştu.'
+  },
+
+  'en': {
+    'page_title': 'Payment Management',
+    'topbar_title': 'Payment Management',
+
+    'new_payment_title': 'New Payment Record',
+
+    'label_apartment': 'Apartment',
+    'apartment_pick': 'Select an apartment...',
+
+    'label_bill_type': 'Debt Type',
+    'bill_aidat': 'Dues',
+    'bill_elektrik': 'Electricity',
+    'bill_su': 'Water',
+    'bill_dogalgaz': 'Natural Gas',
+    'bill_ekstra': 'Extra Expense',
+
+    'label_payer': 'Paid By (optional)',
+    'payer_unknown': 'Not specified',
+
+    'label_amount': 'Amount (₺)',
+    'ph_amount': 'e.g., 500',
+
+    'label_payment_date': 'Payment Date',
+
+    'label_method': 'Payment Method (optional)',
+    'method_none': 'Not selected',
+    'method_cash': 'Cash',
+    'method_bank': 'Bank Transfer / EFT',
+    'method_pos': 'POS / Credit Card',
+    'method_online': 'Online Payment',
+
+    'btn_save_payment': 'Save Payment',
+
+    'list_title': 'Recorded Payments',
+
+    'col_apartment': 'Apartment',
+    'col_payer': 'Payer',
+    'col_related': 'Related Debt',
+    'col_amount': 'Amount',
+    'col_method': 'Method',
+    'col_date': 'Date',
+    'col_actions': 'Actions',
+
+    'dash': '-',
+
+    'btn_pdf': 'Download PDF',
+    'btn_edit': 'Edit',
+    'btn_delete': 'Delete',
+    'btn_save': 'Save',
+    'btn_cancel': 'Cancel',
+
+    'empty': 'There are no recorded payments yet. You can create a payment record using the form on the left.',
+
+    'ph_date_text': 'e.g., 04.01.2026',
+
+    'alert_update_failed': 'Update failed.',
+    'alert_update_error': 'An error occurred while updating the payment.',
+    'confirm_delete': 'Are you sure you want to delete this payment record?',
+    'alert_delete_failed': 'Payment could not be deleted.',
+    'alert_delete_error': 'An error occurred while deleting the payment.'
+  },
+
+  'me': {
+    'page_title': 'Upravljanje uplatama',
+    'topbar_title': 'Upravljanje uplatama',
+
+    'new_payment_title': 'Nova uplata',
+
+    'label_apartment': 'Stan',
+    'apartment_pick': 'Izaberite stan...',
+
+    'label_bill_type': 'Vrsta duga',
+    'bill_aidat': 'Mjesečna naknada',
+    'bill_elektrik': 'Struja',
+    'bill_su': 'Voda',
+    'bill_dogalgaz': 'Prirodni gas',
+    'bill_ekstra': 'Dodatni trošak',
+
+    'label_payer': 'Uplatio/la (opciono)',
+    'payer_unknown': 'Nije navedeno',
+
+    'label_amount': 'Iznos (₺)',
+    'ph_amount': 'npr. 500',
+
+    'label_payment_date': 'Datum uplate',
+
+    'label_method': 'Način plaćanja (opciono)',
+    'method_none': 'Nije izabrano',
+    'method_cash': 'Gotovina',
+    'method_bank': 'Bankovni transfer / EFT',
+    'method_pos': 'POS / Kreditna kartica',
+    'method_online': 'Online plaćanje',
+
+    'btn_save_payment': 'Sačuvaj uplatu',
+
+    'list_title': 'Evidentirane uplate',
+
+    'col_apartment': 'Stan',
+    'col_payer': 'Uplatio/la',
+    'col_related': 'Povezani dug',
+    'col_amount': 'Iznos',
+    'col_method': 'Način',
+    'col_date': 'Datum',
+    'col_actions': 'Akcije',
+
+    'dash': '-',
+
+    'btn_pdf': 'Preuzmi PDF',
+    'btn_edit': 'Uredi',
+    'btn_delete': 'Obriši',
+    'btn_save': 'Sačuvaj',
+    'btn_cancel': 'Otkaži',
+
+    'empty': 'Još nema evidentiranih uplata. Možete dodati uplatu preko forme sa lijeve strane.',
+
+    'ph_date_text': 'npr. 04.01.2026',
+
+    'alert_update_failed': 'Ažuriranje nije uspjelo.',
+    'alert_update_error': 'Došlo je do greške pri ažuriranju uplate.',
+    'confirm_delete': 'Da li ste sigurni da želite obrisati ovu uplatu?',
+    'alert_delete_failed': 'Uplata nije mogla biti obrisana.',
+    'alert_delete_error': 'Došlo je do greške pri brisanju uplate.'
+  }
+} %}
+
+{% macro tp(k) -%}
+  {{ I18N_PAGE.get(LANG, I18N_PAGE['tr']).get(k, I18N_PAGE['tr'].get(k, k)) }}
+{%- endmacro %}
+
+{% block title %}{{ tp('page_title') }}{% endblock %}
 {% block topbar_title %}
-  Ödeme Yönetimi
+  {{ tp('topbar_title') }}
   {% if session.active_site_name %}
     – {{ session.active_site_name }}
   {% elif current_site_name %}
@@ -17,18 +215,18 @@
   <!-- SOL: YENİ ÖDEME EKLE -->
   <section>
     <div class="card">
-      <h2 style="font-size:16px; margin-bottom:12px;">Yeni Ödeme Kaydı</h2>
+      <h2 style="font-size:16px; margin-bottom:12px;">{{ tp('new_payment_title') }}</h2>
 
       <form method="post" style="display:flex; flex-direction:column; gap:10px;">
 
         <div>
-          <label for="apartment_id" style="display:block; font-size:13px; margin-bottom:3px;">Daire</label>
+          <label for="apartment_id" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('label_apartment') }}</label>
           <select
             id="apartment_id"
             name="apartment_id"
             required
             style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
-            <option value="">Daire seçin...</option>
+            <option value="">{{ tp('apartment_pick') }}</option>
             {% for apt in apartments %}
               <option value="{{ apt.id }}">
                 {{ apt.block }} Blok • Kat {{ apt.floor }} • No {{ apt.number }}
@@ -39,27 +237,27 @@
 
         <!-- Borç türü -->
         <div>
-          <label for="bill_type" style="display:block; font-size:13px; margin-bottom:3px;">Borç Türü</label>
+          <label for="bill_type" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('label_bill_type') }}</label>
           <select
             id="bill_type"
             name="bill_type"
             required
             style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
-            <option value="aidat">Aidat</option>
-            <option value="elektrik">Elektrik</option>
-            <option value="su">Su</option>
-            <option value="dogalgaz">Doğalgaz</option>
-            <option value="ekstra">Ekstra Gider</option>
+            <option value="aidat">{{ tp('bill_aidat') }}</option>
+            <option value="elektrik">{{ tp('bill_elektrik') }}</option>
+            <option value="su">{{ tp('bill_su') }}</option>
+            <option value="dogalgaz">{{ tp('bill_dogalgaz') }}</option>
+            <option value="ekstra">{{ tp('bill_ekstra') }}</option>
           </select>
         </div>
 
         <div>
-          <label for="user_id" style="display:block; font-size:13px; margin-bottom:3px;">Ödemeyi Yapan (opsiyonel)</label>
+          <label for="user_id" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('label_payer') }}</label>
           <select
             id="user_id"
             name="user_id"
             style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
-            <option value="">Belirtilmedi</option>
+            <option value="">{{ tp('payer_unknown') }}</option>
             {% for u in users %}
               <option value="{{ u.id }}">{{ u.name }}</option>
             {% endfor %}
@@ -68,18 +266,18 @@
 
         <div style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px;">
           <div>
-            <label for="amount" style="display:block; font-size:13px; margin-bottom:3px;">Tutar (₺)</label>
+            <label for="amount" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('label_amount') }}</label>
             <input
               type="text"
               id="amount"
               name="amount"
               required
-              placeholder="Örn: 500"
+              placeholder="{{ tp('ph_amount') }}"
               style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
           </div>
 
           <div>
-            <label for="payment_date" style="display:block; font-size:13px; margin-bottom:3px;">Ödeme Tarihi</label>
+            <label for="payment_date" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('label_payment_date') }}</label>
             <input
               type="date"
               id="payment_date"
@@ -89,23 +287,23 @@
         </div>
 
         <div>
-          <label for="method" style="display:block; font-size:13px; margin-bottom:3px;">Ödeme Yöntemi (opsiyonel)</label>
+          <label for="method" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('label_method') }}</label>
           <select
             id="method"
             name="method"
             style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
-            <option value="">Seçilmedi</option>
-            <option value="nakit">Nakit</option>
-            <option value="banka">Banka Havalesi / EFT</option>
-            <option value="pos">POS / Kredi Kartı</option>
-            <option value="online">Online Ödeme</option>
+            <option value="">{{ tp('method_none') }}</option>
+            <option value="nakit">{{ tp('method_cash') }}</option>
+            <option value="banka">{{ tp('method_bank') }}</option>
+            <option value="pos">{{ tp('method_pos') }}</option>
+            <option value="online">{{ tp('method_online') }}</option>
           </select>
         </div>
 
         <div style="margin-top:4px;">
           <button type="submit"
                   style="padding:8px 12px; border-radius:999px; border:none; background:#16a34a; color:white; font-size:13px; cursor:pointer;">
-            Ödemeyi Kaydet
+            {{ tp('btn_save_payment') }}
           </button>
         </div>
 
@@ -116,20 +314,20 @@
   <!-- SAĞ: ÖDEME LİSTESİ -->
   <section>
     <div class="card">
-      <h2 style="font-size:16px; margin-bottom:10px;">Kayıtlı Ödemeler</h2>
+      <h2 style="font-size:16px; margin-bottom:10px;">{{ tp('list_title') }}</h2>
 
       {% if payments %}
         <div style="width:100%; overflow-x:auto;">
           <table style="width:100%; border-collapse:collapse; font-size:12px;">
             <thead>
               <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
-                <th style="text-align:left; padding:6px 4px;">Daire</th>
-                <th style="text-align:left; padding:6px 4px;">Ödeyen</th>
-                <th style="text-align:left; padding:6px 4px;">İlgili Borç</th>
-                <th style="text-align:left; padding:6px 4px;">Tutar</th>
-                <th style="text-align:left; padding:6px 4px;">Yöntem</th>
-                <th style="text-align:left; padding:6px 4px;">Tarih</th>
-                <th style="text-align:right; padding:6px 4px;">İşlemler</th>
+                <th style="text-align:left; padding:6px 4px;">{{ tp('col_apartment') }}</th>
+                <th style="text-align:left; padding:6px 4px;">{{ tp('col_payer') }}</th>
+                <th style="text-align:left; padding:6px 4px;">{{ tp('col_related') }}</th>
+                <th style="text-align:left; padding:6px 4px;">{{ tp('col_amount') }}</th>
+                <th style="text-align:left; padding:6px 4px;">{{ tp('col_method') }}</th>
+                <th style="text-align:left; padding:6px 4px;">{{ tp('col_date') }}</th>
+                <th style="text-align:right; padding:6px 4px;">{{ tp('col_actions') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -149,7 +347,7 @@
                     {% if user %}
                       {{ user.name }}
                     {% else %}
-                      <span style="color:#9ca3af;">Belirtilmedi</span>
+                      <span style="color:#9ca3af;">{{ tp('payer_unknown') }}</span>
                     {% endif %}
                   </td>
 
@@ -164,20 +362,20 @@
 
                     {% if t %}
                       {% if t == 'aidat' %}
-                        Aidat
+                        {{ tp('bill_aidat') }}
                       {% elif t == 'elektrik' %}
-                        Elektrik
+                        {{ tp('bill_elektrik') }}
                       {% elif t == 'su' %}
-                        Su
+                        {{ tp('bill_su') }}
                       {% elif t == 'dogalgaz' %}
-                        Doğalgaz
+                        {{ tp('bill_dogalgaz') }}
                       {% elif t == 'ekstra' %}
-                        Ekstra Gider
+                        {{ tp('bill_ekstra') }}
                       {% else %}
                         {{ t|capitalize }}
                       {% endif %}
                     {% else %}
-                      <span style="color:#9ca3af;">Belirtilmedi</span>
+                      <span style="color:#9ca3af;">{{ tp('payer_unknown') }}</span>
                     {% endif %}
                   </td>
 
@@ -199,17 +397,17 @@
                       {% if payment.method %}
                         {{ payment.method|capitalize }}
                       {% else %}
-                        <span style="color:#9ca3af;">-</span>
+                        <span style="color:#9ca3af;">{{ tp('dash') }}</span>
                       {% endif %}
                     </span>
                     <select
                       class="editable-input method-input"
                       style="display:none; padding:3px 6px; border-radius:6px; border:1px solid #e5e7eb; font-size:11px;">
-                      <option value="">Seçilmedi</option>
-                      <option value="nakit" {% if payment.method == 'nakit' %}selected{% endif %}>Nakit</option>
-                      <option value="banka" {% if payment.method == 'banka' %}selected{% endif %}>Banka Havalesi / EFT</option>
-                      <option value="pos" {% if payment.method == 'pos' %}selected{% endif %}>POS / Kredi Kartı</option>
-                      <option value="online" {% if payment.method == 'online' %}selected{% endif %}>Online Ödeme</option>
+                      <option value="">{{ tp('method_none') }}</option>
+                      <option value="nakit" {% if payment.method == 'nakit' %}selected{% endif %}>{{ tp('method_cash') }}</option>
+                      <option value="banka" {% if payment.method == 'banka' %}selected{% endif %}>{{ tp('method_bank') }}</option>
+                      <option value="pos" {% if payment.method == 'pos' %}selected{% endif %}>{{ tp('method_pos') }}</option>
+                      <option value="online" {% if payment.method == 'online' %}selected{% endif %}>{{ tp('method_online') }}</option>
                     </select>
                   </td>
 
@@ -219,14 +417,14 @@
                       {% if payment.payment_date %}
                         {{ payment.payment_date.strftime('%d.%m.%Y') }}
                       {% else %}
-                        <span style="color:#9ca3af;">-</span>
+                        <span style="color:#9ca3af;">{{ tp('dash') }}</span>
                       {% endif %}
                     </span>
                     <input
                       type="text"
                       class="editable-input date-input"
                       value="{% if payment.payment_date %}{{ payment.payment_date.strftime('%d.%m.%Y') }}{% endif %}"
-                      placeholder="Örn: 04.01.2026"
+                      placeholder="{{ tp('ph_date_text') }}"
                       style="display:none; width:110px; padding:3px 6px; border-radius:6px; border:1px solid #e5e7eb; font-size:11px;">
                   </td>
 
@@ -238,29 +436,29 @@
                       target="_blank"
                       class="btn btn-sm btn-outline-secondary me-1"
                       style="padding:3px 8px; font-size:11px;">
-                      PDF İndir
+                      {{ tp('btn_pdf') }}
                     </a>
 
                     <button type="button"
                             class="btn btn-sm btn-outline-primary me-1 btn-edit"
                             style="padding:3px 8px; font-size:11px;">
-                      Düzenle
+                      {{ tp('btn_edit') }}
                     </button>
                     <button type="button"
                             class="btn btn-sm btn-outline-danger btn-delete"
                             style="padding:3px 8px; font-size:11px;">
-                      Sil
+                      {{ tp('btn_delete') }}
                     </button>
 
                     <button type="button"
                             class="btn btn-sm btn-success me-1 btn-save"
                             style="padding:3px 8px; font-size:11px; display:none;">
-                      Kaydet
+                      {{ tp('btn_save') }}
                     </button>
                     <button type="button"
                             class="btn btn-sm btn-secondary btn-cancel"
                             style="padding:3px 8px; font-size:11px; display:none;">
-                      Vazgeç
+                      {{ tp('btn_cancel') }}
                     </button>
                   </td>
 
@@ -271,7 +469,7 @@
         </div>
       {% else %}
         <p style="font-size:13px; color:#6b7280;">
-          Henüz kayıtlı bir ödeme bulunmuyor. Soldaki formdan ödeme kaydı oluşturabilirsiniz.
+          {{ tp('empty') }}
         </p>
       {% endif %}
     </div>
@@ -281,6 +479,34 @@
 
 <script>
   (function () {
+    const LANG = "{{ LANG }}";
+
+    const I18N = {
+      tr: {
+        alert_update_failed: "{{ tp('alert_update_failed') }}",
+        alert_update_error: "{{ tp('alert_update_error') }}",
+        confirm_delete: "{{ tp('confirm_delete') }}",
+        alert_delete_failed: "{{ tp('alert_delete_failed') }}",
+        alert_delete_error: "{{ tp('alert_delete_error') }}"
+      },
+      en: {
+        alert_update_failed: "{{ tp('alert_update_failed') }}",
+        alert_update_error: "{{ tp('alert_update_error') }}",
+        confirm_delete: "{{ tp('confirm_delete') }}",
+        alert_delete_failed: "{{ tp('alert_delete_failed') }}",
+        alert_delete_error: "{{ tp('alert_delete_error') }}"
+      },
+      me: {
+        alert_update_failed: "{{ tp('alert_update_failed') }}",
+        alert_update_error: "{{ tp('alert_update_error') }}",
+        confirm_delete: "{{ tp('confirm_delete') }}",
+        alert_delete_failed: "{{ tp('alert_delete_failed') }}",
+        alert_delete_error: "{{ tp('alert_delete_error') }}"
+      }
+    };
+
+    const T = I18N[LANG] || I18N.tr;
+
     const rows = document.querySelectorAll(".payment-row");
     if (!rows.length) return;
 
@@ -377,7 +603,7 @@
 
             const data = await res.json();
             if (!data.ok) {
-              alert(data.error || "Güncelleme başarısız.");
+              alert(data.error || T.alert_update_failed);
               return;
             }
 
@@ -407,7 +633,7 @@
             exitEdit(row, false);
           } catch (err) {
             console.error(err);
-            alert("Ödeme güncellenirken bir hata oluştu.");
+            alert(T.alert_update_error);
           }
         });
       }
@@ -417,7 +643,7 @@
           const deleteUrl = row.dataset.deleteUrl;
           if (!deleteUrl) return;
 
-          if (!confirm("Bu ödeme kaydını silmek istediğinizden emin misiniz?")) return;
+          if (!confirm(T.confirm_delete)) return;
 
           try {
             const res = await fetch(deleteUrl, {
@@ -426,13 +652,13 @@
             });
             const data = await res.json();
             if (!data.ok) {
-              alert(data.error || "Ödeme silinemedi.");
+              alert(data.error || T.alert_delete_failed);
               return;
             }
             row.remove();
           } catch (err) {
             console.error(err);
-            alert("Ödeme silinirken bir hata oluştu.");
+            alert(T.alert_delete_error);
           }
         });
       }

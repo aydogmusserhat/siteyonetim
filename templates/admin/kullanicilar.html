@@ -1,8 +1,164 @@
 {% extends "base.html" %}
 
-{% block title %}Kullanıcı Yönetimi{% endblock %}
+{# ============================================================
+   KULLANICI YÖNETİMİ - 3 DİL (TR / EN / ME) UYUMLU
+   ============================================================ #}
+
+{% set LANG = session.get('lang','tr') %}
+
+{% set I18N_PAGE = {
+  'tr': {
+    'page_title': 'Kullanıcı Yönetimi',
+    'topbar_title': 'Kullanıcı Yönetimi',
+
+    'new_user': 'Yeni Kullanıcı Ekle',
+
+    'label_name': 'Ad Soyad',
+    'ph_name': 'Örn: Ahmet Yılmaz',
+
+    'label_email': 'E-posta',
+    'ph_email': 'ornek@site.com',
+
+    'label_phone': 'Telefon (opsiyonel)',
+    'ph_phone': '+90 5xx xxx xx xx',
+
+    'label_role': 'Rol',
+    'role_resident': 'Sakin',
+
+    'label_apartment': 'Bağlı Daire (opsiyonel)',
+    'apartment_none': 'Seçili değil',
+
+    'label_password': 'Şifre',
+    'ph_password': 'En az 6 karakter',
+
+    'btn_create': 'Kullanıcıyı Oluştur',
+
+    'list_title': 'Kayıtlı Kullanıcılar',
+
+    'col_name': 'Ad Soyad',
+    'col_email': 'E-posta',
+    'col_role': 'Rol',
+    'col_apartment': 'Daire',
+    'col_status': 'Durum',
+
+    'badge_admin': 'Yönetici',
+    'badge_resident': 'Sakin',
+
+    'apartment_unlinked': 'Bağlı değil',
+
+    'active': 'Aktif',
+    'passive': 'Pasif',
+
+    'btn_deactivate': 'Pasifleştir',
+    'btn_activate': 'Aktifleştir',
+
+    'empty': 'Henüz sistemde kayıtlı bir kullanıcı bulunmuyor (admin hariç).'
+  },
+
+  'en': {
+    'page_title': 'User Management',
+    'topbar_title': 'User Management',
+
+    'new_user': 'Add New User',
+
+    'label_name': 'Full Name',
+    'ph_name': 'e.g., John Smith',
+
+    'label_email': 'Email',
+    'ph_email': 'example@site.com',
+
+    'label_phone': 'Phone (optional)',
+    'ph_phone': '+90 5xx xxx xx xx',
+
+    'label_role': 'Role',
+    'role_resident': 'Resident',
+
+    'label_apartment': 'Linked Apartment (optional)',
+    'apartment_none': 'Not selected',
+
+    'label_password': 'Password',
+    'ph_password': 'At least 6 characters',
+
+    'btn_create': 'Create User',
+
+    'list_title': 'Registered Users',
+
+    'col_name': 'Full Name',
+    'col_email': 'Email',
+    'col_role': 'Role',
+    'col_apartment': 'Apartment',
+    'col_status': 'Status',
+
+    'badge_admin': 'Admin',
+    'badge_resident': 'Resident',
+
+    'apartment_unlinked': 'Not linked',
+
+    'active': 'Active',
+    'passive': 'Inactive',
+
+    'btn_deactivate': 'Deactivate',
+    'btn_activate': 'Activate',
+
+    'empty': 'There are no registered users in the system yet (excluding admin).'
+  },
+
+  'me': {
+    'page_title': 'Upravljanje korisnicima',
+    'topbar_title': 'Upravljanje korisnicima',
+
+    'new_user': 'Dodaj novog korisnika',
+
+    'label_name': 'Ime i prezime',
+    'ph_name': 'npr. Marko Marković',
+
+    'label_email': 'E-pošta',
+    'ph_email': 'primjer@sajt.com',
+
+    'label_phone': 'Telefon (opciono)',
+    'ph_phone': '+90 5xx xxx xx xx',
+
+    'label_role': 'Uloga',
+    'role_resident': 'Stanар',
+
+    'label_apartment': 'Povezani stan (opciono)',
+    'apartment_none': 'Nije izabrano',
+
+    'label_password': 'Lozinka',
+    'ph_password': 'Najmanje 6 karaktera',
+
+    'btn_create': 'Kreiraj korisnika',
+
+    'list_title': 'Registrovani korisnici',
+
+    'col_name': 'Ime i prezime',
+    'col_email': 'E-pošta',
+    'col_role': 'Uloga',
+    'col_apartment': 'Stan',
+    'col_status': 'Status',
+
+    'badge_admin': 'Upravnik',
+    'badge_resident': 'Stanар',
+
+    'apartment_unlinked': 'Nije povezano',
+
+    'active': 'Aktivan',
+    'passive': 'Neaktivan',
+
+    'btn_deactivate': 'Deaktiviraj',
+    'btn_activate': 'Aktiviraj',
+
+    'empty': 'Još nema registrovanih korisnika u sistemu (osim admina).'
+  }
+} %}
+
+{% macro tp(k) -%}
+  {{ I18N_PAGE.get(LANG, I18N_PAGE['tr']).get(k, I18N_PAGE['tr'].get(k, k)) }}
+{%- endmacro %}
+
+{% block title %}{{ tp('page_title') }}{% endblock %}
 {% block topbar_title %}
-  Kullanıcı Yönetimi
+  {{ tp('topbar_title') }}
   {% if session.active_site_name %}
     – {{ session.active_site_name }}
   {% elif current_site_name %}
@@ -17,62 +173,62 @@
   <!-- SOL: YENİ KULLANICI EKLE -->
   <section>
     <div class="card">
-      <h2 style="font-size:16px; margin-bottom:12px;">Yeni Kullanıcı Ekle</h2>
+      <h2 style="font-size:16px; margin-bottom:12px;">{{ tp('new_user') }}</h2>
 
       <form method="post" style="display:flex; flex-direction:column; gap:10px;">
 
         <div>
-          <label for="name" style="display:block; font-size:13px; margin-bottom:3px;">Ad Soyad</label>
+          <label for="name" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('label_name') }}</label>
           <input
             type="text"
             id="name"
             name="name"
             required
-            placeholder="Örn: Ahmet Yılmaz"
+            placeholder="{{ tp('ph_name') }}"
             style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
         </div>
 
         <div>
-          <label for="email" style="display:block; font-size:13px; margin-bottom:3px;">E-posta</label>
+          <label for="email" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('label_email') }}</label>
           <input
             type="email"
             id="email"
             name="email"
             required
-            placeholder="ornek@site.com"
+            placeholder="{{ tp('ph_email') }}"
             style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
         </div>
 
         <div>
-          <label for="phone" style="display:block; font-size:13px; margin-bottom:3px;">Telefon (opsiyonel)</label>
+          <label for="phone" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('label_phone') }}</label>
           <input
             type="text"
             id="phone"
             name="phone"
-            placeholder="+90 5xx xxx xx xx"
+            placeholder="{{ tp('ph_phone') }}"
             style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
         </div>
 
         <div style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px;">
           <div>
-            <label for="role" style="display:block; font-size:13px; margin-bottom:3px;">Rol</label>
+            <label for="role" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('label_role') }}</label>
             <select
               id="role"
               name="role"
               style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
-              <option value="resident">Sakin</option>
-                <!-- Yönetici rolü seçeneği -->
-              <!--   <option value="admin">Yönetici</option> -->
+              <option value="resident">{{ tp('role_resident') }}</option>
+              <!-- Yönetici rolü seçeneği -->
+              <!-- <option value="admin">Yönetici</option> -->
             </select>
           </div>
 
           <div>
-            <label for="apartment_id" style="display:block; font-size:13px; margin-bottom:3px;">Bağlı Daire (opsiyonel)</label>
+            <label for="apartment_id" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('label_apartment') }}</label>
             <select
               id="apartment_id"
               name="apartment_id"
               style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
-              <option value="">Seçili değil</option>
+              <option value="">{{ tp('apartment_none') }}</option>
               {% for apt in apartments %}
                 <option value="{{ apt.id }}">
                   {{ apt.block }} Blok • Kat {{ apt.floor }} • No {{ apt.number }}
@@ -83,20 +239,20 @@
         </div>
 
         <div>
-          <label for="password" style="display:block; font-size:13px; margin-bottom:3px;">Şifre</label>
+          <label for="password" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('label_password') }}</label>
           <input
             type="password"
             id="password"
             name="password"
             required
-            placeholder="En az 6 karakter"
+            placeholder="{{ tp('ph_password') }}"
             style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
         </div>
 
         <div style="margin-top:4px;">
           <button type="submit"
                   style="padding:8px 12px; border-radius:999px; border:none; background:#2563eb; color:white; font-size:13px; cursor:pointer;">
-            Kullanıcıyı Oluştur
+            {{ tp('btn_create') }}
           </button>
         </div>
 
@@ -107,18 +263,18 @@
   <!-- SAĞ: KULLANICI LİSTESİ -->
   <section>
     <div class="card">
-      <h2 style="font-size:16px; margin-bottom:10px;">Kayıtlı Kullanıcılar</h2>
+      <h2 style="font-size:16px; margin-bottom:10px;">{{ tp('list_title') }}</h2>
 
       {% if users %}
         <div style="width:100%; overflow-x:auto;">
           <table style="width:100%; border-collapse:collapse; font-size:12px;">
             <thead>
               <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
-                <th style="text-align:left; padding:6px 4px;">Ad Soyad</th>
-                <th style="text-align:left; padding:6px 4px;">E-posta</th>
-                <th style="text-align:left; padding:6px 4px;">Rol</th>
-                <th style="text-align:left; padding:6px 4px;">Daire</th>
-                <th style="text-align:left; padding:6px 4px;">Durum</th>
+                <th style="text-align:left; padding:6px 4px;">{{ tp('col_name') }}</th>
+                <th style="text-align:left; padding:6px 4px;">{{ tp('col_email') }}</th>
+                <th style="text-align:left; padding:6px 4px;">{{ tp('col_role') }}</th>
+                <th style="text-align:left; padding:6px 4px;">{{ tp('col_apartment') }}</th>
+                <th style="text-align:left; padding:6px 4px;">{{ tp('col_status') }}</th>
                 <th style="text-align:left; padding:6px 4px;"></th>
               </tr>
             </thead>
@@ -133,23 +289,23 @@
                   </td>
                   <td style="padding:6px 4px; white-space:nowrap;">
                     {% if user.role == "admin" %}
-                      <span style="padding:2px 8px; border-radius:999px; background:#eef2ff; color:#4f46e5;">Yönetici</span>
+                      <span style="padding:2px 8px; border-radius:999px; background:#eef2ff; color:#4f46e5;">{{ tp('badge_admin') }}</span>
                     {% else %}
-                      <span style="padding:2px 8px; border-radius:999px; background:#ecfeff; color:#0891b2;">Sakin</span>
+                      <span style="padding:2px 8px; border-radius:999px; background:#ecfeff; color:#0891b2;">{{ tp('badge_resident') }}</span>
                     {% endif %}
                   </td>
                   <td style="padding:6px 4px; white-space:nowrap;">
                     {% if user.apartment %}
                       {{ user.apartment.block }} Blok • {{ user.apartment.floor }}/{{ user.apartment.number }}
                     {% else %}
-                      <span style="color:#9ca3af;">Bağlı değil</span>
+                      <span style="color:#9ca3af;">{{ tp('apartment_unlinked') }}</span>
                     {% endif %}
                   </td>
                   <td style="padding:6px 4px; white-space:nowrap;">
                     {% if user.is_active %}
-                      <span style="padding:2px 8px; border-radius:999px; background:#dcfce7; color:#15803d;">Aktif</span>
+                      <span style="padding:2px 8px; border-radius:999px; background:#dcfce7; color:#15803d;">{{ tp('active') }}</span>
                     {% else %}
-                      <span style="padding:2px 8px; border-radius:999px; background:#fee2e2; color:#b91c1c;">Pasif</span>
+                      <span style="padding:2px 8px; border-radius:999px; background:#fee2e2; color:#b91c1c;">{{ tp('passive') }}</span>
                     {% endif %}
                   </td>
                   <td style="padding:6px 4px; white-space:nowrap;">
@@ -163,7 +319,7 @@
                                      {% else %}
                                        background:#dcfce7; color:#166534;
                                      {% endif %}">
-                        {% if user.is_active %}Pasifleştir{% else %}Aktifleştir{% endif %}
+                        {% if user.is_active %}{{ tp('btn_deactivate') }}{% else %}{{ tp('btn_activate') }}{% endif %}
                       </button>
                     </form>
                   </td>
@@ -174,7 +330,7 @@
         </div>
       {% else %}
         <p style="font-size:13px; color:#6b7280;">
-          Henüz sistemde kayıtlı bir kullanıcı bulunmuyor (admin hariç).
+          {{ tp('empty') }}
         </p>
       {% endif %}
     </div>

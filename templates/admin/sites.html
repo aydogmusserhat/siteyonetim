@@ -4,214 +4,259 @@
 {% block topbar_title %}Site Yönetimi (Super Admin){% endblock %}
 
 {% block content %}
+
+<style>
+/* ------------------------------
+   GENEL STİL DÜZENLEMELERİ
+--------------------------------*/
+
+.action-btn {
+  padding:6px 12px;
+  border-radius:999px;
+  border:none;
+  font-size:12px;
+  cursor:pointer;
+}
+
+/* Mavi buton */
+.btn-blue{
+  background:#2563eb;
+  color:white;
+}
+
+/* Kırmızı buton */
+.btn-red{
+  background:#dc2626;
+  color:white;
+}
+
+/* Küçük form butonları */
+.btn-small{
+  padding:6px 12px;
+  font-size:12px;
+  border-radius:999px;
+  border:none;
+  cursor:pointer;
+}
+
+/* İşlem kolonundaki hizalama */
+.actions-box{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  align-items:flex-start;
+}
+
+/* Admin listesi hizalı */
+.admin-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  margin-bottom:4px;
+}
+
+/* Admin info */
+.admin-info{
+  display:flex;
+  flex-direction:column;
+  font-size:12px;
+}
+
+/* Tablo başlığı kalın */
+th{
+  font-weight:600;
+}
+
+/* Mobil uyum */
+@media(max-width:700px){
+  .actions-box{
+    gap:4px;
+  }
+}
+
+.form-action{
+  width:25%;
+  min-width:140px;     /* Mobilde çok küçülmesin */
+  text-align:center;
+  border-radius:999px;
+  padding:8px 10px;
+  font-size:12px;
+  background:#2563eb;
+  color:white;
+  border:none;
+  cursor:pointer;
+}
+
+/* Mobil uyum */
+@media(max-width:700px){
+  .form-action{
+    width:40%;
+  }
+}
+
+.sites-table th{
+  text-align:left !important;
+}
+.sites-table td{
+  text-align:left;
+}
+
+</style>
+
+
+
 <div class="dashboard-grid">
 
-  <!-- SOL: Site & Admin Oluşturma -->
+  <!-- SOL FORM ALANI -->
   <section>
+
     <!-- Yeni Site -->
     <div class="card" style="margin-bottom:14px;">
-      <h2 style="font-size:16px; margin-bottom:8px;">Yeni Site Oluştur</h2>
-      <p style="font-size:12px; color:#6b7280; margin-bottom:10px;">
-        Buradan yeni bir site / apartman kompleksi ekleyebilirsin.
-      </p>
+      <h2 style="font-size:16px;">Yeni Site Oluştur</h2>
 
       <form method="post" action="{{ url_for('admin.manage_sites') }}"
             style="display:flex; flex-direction:column; gap:10px;">
-        <div>
-          <label for="site-name" style="display:block; font-size:13px; margin-bottom:3px;">
-            Site Adı
-          </label>
-          <input
-            type="text"
-            id="site-name"
-            name="name"
-            required
-            placeholder="Örn: Güneş Park Evleri"
-            style="width:100%; padding:7px 9px; border-radius:8px;
-                   border:1px solid #e5e7eb; font-size:13px;"
-          >
-        </div>
 
-        <div>
-          <label for="site-description" style="display:block; font-size:13px; margin-bottom:3px;">
-             Adres Giriniz.. / Açıklama (opsiyonel)
-          </label>
-          <textarea
-            id="site-description"
-            name="description"
-            rows="2"
-            placeholder="Çankaya mah. 1453 sok. No:12 Kepez/ANTALYA"
-            style="width:100%; padding:7px 9px; border-radius:8px;
-                   border:1px solid #e5e7eb; font-size:13px; resize:vertical;"
-          ></textarea>
-        </div>
+        <input type="text" name="name" required placeholder="Site adı"
+               style="padding:8px; border-radius:8px; border:1px solid #ddd;">
 
-        <button
-          type="submit"
-          style="margin-top:4px; padding:8px 12px; border-radius:999px; border:none;
-                 background:#2563eb; color:#fff; font-size:13px; cursor:pointer;"
-        >
+        <textarea name="description" rows="2" placeholder="Adres / açıklama"
+                  style="padding:8px; border-radius:8px; border:1px solid #ddd;"></textarea>
+
+        <button type="submit" class="form-action">
           Siteyi Kaydet
         </button>
       </form>
     </div>
 
+
     <!-- Yeni Admin -->
     <div class="card">
-      <h2 style="font-size:16px; margin-bottom:8px;">Yeni Admin Oluştur</h2>
-      <p style="font-size:12px; color:#6b7280; margin-bottom:10px;">
-        Buradan yeni bir admin kullanıcı oluşturup doğrudan bir siteye bağlayabilirsin.
-      </p>
+      <h2 style="font-size:16px;">Yeni Admin Oluştur</h2>
 
       <form method="post" action="{{ url_for('admin.create_site_admin') }}"
             style="display:flex; flex-direction:column; gap:10px;">
 
-        <div>
-          <label for="admin-name" style="display:block; font-size:13px; margin-bottom:3px;">
-            İsim Soyisim
-          </label>
-          <input
-            type="text"
-            id="admin-name"
-            name="admin_name"
-            required
-            placeholder="Örn: Ahmet Yılmaz"
-            style="width:100%; padding:7px 9px; border-radius:8px;
-                   border:1px solid #e5e7eb; font-size:13px;"
-          >
-        </div>
+        <input type="text" name="admin_name" required placeholder="İsim Soyisim"
+               style="padding:8px; border-radius:8px; border:1px solid #ddd;">
 
-        <div>
-          <label for="admin-email" style="display:block; font-size:13px; margin-bottom:3px;">
-            E-posta
-          </label>
-          <input
-            type="email"
-            id="admin-email"
-            name="admin_email"
-            required
-            placeholder="admin@mail.com"
-            style="width:100%; padding:7px 9px; border-radius:8px;
-                   border:1px solid #e5e7eb; font-size:13px;"
-          >
-        </div>
+        <input type="email" name="admin_email" required placeholder="E-posta"
+               style="padding:8px; border-radius:8px; border:1px solid #ddd;">
 
-        <div>
-          <label for="admin-phone" style="display:block; font-size:13px; margin-bottom:3px;">
-            Telefon (opsiyonel)
-          </label>
-          <input
-            type="text"
-            id="admin-phone"
-            name="admin_phone"
-            placeholder="5xx xxx xx xx"
-            style="width:100%; padding:7px 9px; border-radius:8px;
-                   border:1px solid #e5e7eb; font-size:13px;"
-          >
-        </div>
+        <input type="password" name="admin_password" required placeholder="Şifre"
+               style="padding:8px; border-radius:8px; border:1px solid #ddd;">
 
-        <div>
-          <label for="admin-password" style="display:block; font-size:13px; margin-bottom:3px;">
-            Şifre
-          </label>
-          <input
-            type="password"
-            id="admin-password"
-            name="admin_password"
-            required
-            placeholder="Güçlü bir şifre girin"
-            style="width:100%; padding:7px 9px; border-radius:8px;
-                   border:1px solid #e5e7eb; font-size:13px;"
-          >
-        </div>
+        <select name="admin_site_id" required
+                style="padding:8px; border-radius:8px; border:1px solid #ddd;">
+          <option value="">Site seçin</option>
+          {% for site in sites %}
+            <option value="{{ site.id }}">{{ site.name }}</option>
+          {% endfor %}
+        </select>
 
-        <div>
-          <label for="admin-site" style="display:block; font-size:13px; margin-bottom:3px;">
-            Bağlanacağı Site
-          </label>
-          <select
-            id="admin-site"
-            name="admin_site_id"
-            required
-            style="width:100%; padding:7px 9px; border-radius:8px;
-                   border:1px solid #e5e7eb; font-size:13px;"
-          >
-            <option value="">Site seçin</option>
-            {% for site in sites %}
-              <option value="{{ site.id }}">{{ site.name }}</option>
-            {% endfor %}
-          </select>
-        </div>
-
-        <button
-          type="submit"
-          style="margin-top:4px; padding:8px 12px; border-radius:999px; border:none;
-                 background:#16a34a; color:#fff; font-size:13px; cursor:pointer;"
-        >
+        <button type="submit" class="form-action">
           Admini Oluştur
         </button>
       </form>
     </div>
+
   </section>
 
-  <!-- SAĞ: Siteler & Atanan Adminler -->
-  <section>
-    <div class="card">
-      <h2 style="font-size:16px; margin-bottom:8px;">Oluşturulan Siteler ve Adminler</h2>
-      <p style="font-size:12px; color:#6b7280; margin-bottom:10px;">
-        Aşağıda sadece oluşturulmuş siteler ve her siteye atanmış admin kullanıcıları görünür.
-      </p>
 
-      {% if sites %}
-        <div style="overflow-x:auto;">
-          <table style="width:100%; border-collapse:collapse; font-size:13px;">
-            <thead>
-              <tr style="background:#f3f4f6;">
-                <th style="text-align:left; padding:8px; border-bottom:1px solid #e5e7eb;">Site Adı</th>
-                <th style="text-align:left; padding:8px; border-bottom:1px solid #e5e7eb;">Açıklama</th>
-                <th style="text-align:left; padding:8px; border-bottom:1px solid #e5e7eb;">Atanmış Adminler</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for site in sites %}
-                <tr style="border-bottom:1px solid #f3f4f6;">
-                  <td style="padding:8px; font-weight:500;">
-                    {{ site.name }}
-                  </td>
-                  <td style="padding:8px; color:#6b7280;">
-                    {{ site.description or '-' }}
-                  </td>
-                  <td style="padding:8px;">
-                    {% set admins = site_admins_map.get(site.id) %}
-                    {% if admins %}
-                      <ul style="margin:0; padding-left:18px;">
-                        {% for admin in admins %}
-                          <li>
-                            {{ admin.name }}
-                            <span style="color:#6b7280; font-size:11px;">
-                              ({{ admin.email }})
-                            </span>
-                          </li>
-                        {% endfor %}
-                      </ul>
-                    {% else %}
-                      <span style="color:#9ca3af; font-size:12px;">
-                        Bu siteye henüz admin atanmadı.
-                      </span>
-                    {% endif %}
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      {% else %}
-        <p style="font-size:13px; color:#9ca3af;">
-          Henüz kayıtlı bir site yok. Sol taraftan yeni bir site oluşturabilirsin.
-        </p>
-      {% endif %}
+
+
+  <!-- SAĞ TABLO -->
+  <section>
+
+    <div class="card">
+      <h2 style="font-size:16px;">Oluşturulan Siteler ve Adminler</h2>
+
+        <table class="sites-table" style="width:100%; border-collapse:collapse;">
+          <thead>
+          <tr style="background:#f3f4f6;">
+            <th style="padding:10px;">Site Adı</th>
+            <th style="padding:10px;">Açıklama</th>
+            <th style="padding:10px;">Adminler</th>
+            <th style="padding:10px;">İşlemler</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+        {% for site in sites %}
+          <tr style="border-bottom:1px solid #eee;">
+
+            <td style="padding:10px;">{{ site.name }}</td>
+
+            <td style="padding:10px; color:#666;">
+              {{ site.description or "-" }}
+            </td>
+
+            <td style="padding:10px;">
+              {% set admins = site_admins_map.get(site.id) %}
+
+              {% if admins %}
+                {% for admin in admins %}
+                  <div class="admin-item">
+
+                    <div class="admin-info">
+                      <strong>{{ admin.name }}</strong>
+                      <span style="color:#777;">{{ admin.email }}</span>
+                    </div>
+
+                    <form method="post"
+                          action="{{ url_for('admin.delete_site_admin', admin_id=admin.id) }}">
+                      <button class="action-btn btn-red">
+                        Admini Sil
+                      </button>
+                    </form>
+
+                  </div>
+                {% endfor %}
+              {% else %}
+                <span style="color:#aaa;">Admin atanmadı</span>
+              {% endif %}
+            </td>
+
+
+            <td style="padding:10px;">
+
+              <div class="actions-box">
+
+                <form method="get"
+                      action="{{ url_for('admin.switch_active_site', site_id=site.id) }}">
+                  <button class="action-btn btn-blue">
+                    Bu Siteye Geç
+                  </button>
+                </form>
+
+                {% if not admins %}
+                  <form method="post"
+                        action="{{ url_for('admin.delete_site', site_id=site.id) }}">
+                    <button class="action-btn btn-red">
+                      Siteyi Sil
+                    </button>
+                  </form>
+                {% else %}
+                  <span style="font-size:11px; color:#888;">
+                    Silmek için önce adminleri kaldırın
+                  </span>
+                {% endif %}
+
+              </div>
+
+            </td>
+
+          </tr>
+        {% endfor %}
+
+        </tbody>
+      </table>
     </div>
+
   </section>
 
 </div>
+
 {% endblock %}

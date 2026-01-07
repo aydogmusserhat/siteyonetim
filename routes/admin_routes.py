@@ -221,6 +221,34 @@ def manage_sites():
         site_admins_map=site_admins_map,
     )
 
+@admin_bp.route("/sites/<int:site_id>/switch", methods=["GET"])
+@super_admin_required
+def switch_active_site(site_id: int):
+    """
+    Super admin için: aktif siteyi değiştirir ve o sitenin dashboard'una gider.
+    """
+    from models.site_model import Site  # döngüyü önlemek için lokal import
+
+    try:
+        site = Site.query.get(site_id)
+        if not site:
+            flash("Site bulunamadı.", "error")
+            return redirect(url_for("admin.manage_sites"))
+
+        # 🔹 Aktif siteyi session'a yaz
+        session["active_site_id"] = site.id
+        session["active_site_name"] = site.name
+        # Context processor'un kullandığı isim
+        session["site_name"] = site.name
+
+        flash(f"'{site.name}' sitesi için yönetim paneli açıldı.", "success")
+        return redirect(url_for("admin.dashboard"))
+
+    except SQLAlchemyError as exc:
+        current_app.logger.exception("Aktif site değiştirilemedi: %s", exc)
+        flash("Aktif site değiştirilirken bir hata oluştu.", "error")
+        return redirect(url_for("admin.manage_sites"))
+
 
 @admin_bp.route("/sites/create-admin", methods=["POST"])
 @super_admin_required
@@ -272,6 +300,49 @@ def create_site_admin():
         flash("Admin oluşturulurken bir hata oluştu.", "error")
 
     return redirect(url_for("admin.manage_sites"))
+
+@admin_bp.route("/sites/admins/<int:admin_id>/delete", methods=["POST"])
+@super_admin_required
+def delete_site_admin(admin_id: int):
+    """
+    Super admin tarafından oluşturulan admin kullanıcısını
+    sistemden tamamen siler.
+    """
+
+    try:
+        admin_user = User.query.get(admin_id)
+
+        if not admin_user:
+            flash("Silinecek kullanıcı bulunamadı.", "error")
+            return redirect(url_for("admin.manage_sites"))
+
+        # Sadece admin rolündekiler silinsin
+        if admin_user.role != "admin":
+            flash("Sadece admin kullanıcılar silinebilir.", "error")
+            return redirect(url_for("admin.manage_sites"))
+
+        # Kendi hesabını silmesin
+        if session.get("user_id") == admin_user.id:
+            flash("Kendi hesabınızı silemezsiniz.", "error")
+            return redirect(url_for("admin.manage_sites"))
+
+        # Eğer site eşleşme alanı varsa temizle
+        # örn: admin_user.site_id
+        admin_user.site_id = None
+
+        # TAMAMEN SİL
+        db.session.delete(admin_user)
+        db.session.commit()
+
+        flash("Admin kullanıcı sistemden tamamen silindi.", "success")
+
+    except SQLAlchemyError as exc:
+        db.session.rollback()
+        current_app.logger.exception("Admin silinemedi: %s", exc)
+        flash("Admin silinirken hata oluştu.", "error")
+
+    return redirect(url_for("admin.manage_sites"))
+
 
 @admin_bp.route("/sites/<int:site_id>/assign-admin", methods=["POST"])
 @super_admin_required

@@ -1,8 +1,80 @@
 {% extends "base.html" %}
 
-{% block title %}Sistem Ayarları{% endblock %}
+{# ============================================================
+   SİSTEM AYARLARI - 3 DİL (TR / EN / ME) UYUMLU
+   ============================================================ #}
+
+{% set LANG = session.get('lang','tr') %}
+
+{% set I18N_PAGE = {
+  'tr': {
+    'page_title': 'Sistem Ayarları',
+    'topbar_title': 'Sistem Ayarları',
+
+    'card_title': 'Site / Apartman Bilgileri',
+
+    'site_name_label': 'Site / Apartman Adı',
+    'address_label': 'Adres',
+    'manager_name_label': 'Yönetici Adı',
+    'phone_label': 'Telefon',
+    'email_label': 'E-posta',
+
+    'default_dues_label': 'Varsayılan Aylık Aidat Tutarı (₺)',
+    'default_dues_hint': 'Bu tutar, yeni ay başında tüm daireler için otomatik oluşturulan aidat borçlarında kullanılacaktır.',
+
+    'global_hint': 'Buradaki bilgiler ve aidat tutarı kaydedildikten sonra sistem genelinde kullanılacaktır.',
+
+    'save': 'Kaydet'
+  },
+
+  'en': {
+    'page_title': 'System Settings',
+    'topbar_title': 'System Settings',
+
+    'card_title': 'Site / Apartment Information',
+
+    'site_name_label': 'Site / Apartment Name',
+    'address_label': 'Address',
+    'manager_name_label': 'Manager Name',
+    'phone_label': 'Phone',
+    'email_label': 'Email',
+
+    'default_dues_label': 'Default Monthly Dues Amount (₺)',
+    'default_dues_hint': 'This amount will be used for automatically created monthly dues bills for all apartments at the beginning of each month.',
+
+    'global_hint': 'After saving, these details and the dues amount will be used throughout the system.',
+
+    'save': 'Save'
+  },
+
+  'me': {
+    'page_title': 'Sistemska podešavanja',
+    'topbar_title': 'Sistemska podešavanja',
+
+    'card_title': 'Podaci o naselju / zgradi',
+
+    'site_name_label': 'Naziv naselja / zgrade',
+    'address_label': 'Adresa',
+    'manager_name_label': 'Ime upravnika',
+    'phone_label': 'Telefon',
+    'email_label': 'E-pošta',
+
+    'default_dues_label': 'Podrazumijevani iznos mjesečne članarine (₺)',
+    'default_dues_hint': 'Ovaj iznos će se koristiti za automatski kreirana mjesečna dugovanja članarine za sve stanove na početku svakog mjeseca.',
+
+    'global_hint': 'Nakon čuvanja, ovi podaci i iznos članarine koristiće se kroz cijeli sistem.',
+
+    'save': 'Sačuvaj'
+  }
+} %}
+
+{% macro tp(k) -%}
+  {{ I18N_PAGE.get(LANG, I18N_PAGE['tr']).get(k, I18N_PAGE['tr'].get(k, k)) }}
+{%- endmacro %}
+
+{% block title %}{{ tp('page_title') }}{% endblock %}
 {% block topbar_title %}
-  Sistem Ayarları
+  {{ tp('topbar_title') }}
   {% if session.active_site_name %}
     – {{ session.active_site_name }}
   {% elif current_site_name %}
@@ -13,14 +85,14 @@
 {% block content %}
 
 <div class="card">
-  <h2 style="font-size:16px; margin-bottom:10px;">Site / Apartman Bilgileri</h2>
+  <h2 style="font-size:16px; margin-bottom:10px;">{{ tp('card_title') }}</h2>
 
   <form method="post" style="display:flex; flex-direction:column; gap:10px; max-width:540px;">
 
     {# Sadece super_admin site / apartman adını değiştirebilsin #}
     {% if session.user_role == 'super_admin' %}
     <div>
-      <label for="site_name" style="display:block; font-size:13px; margin-bottom:3px;">Site / Apartman Adı</label>
+      <label for="site_name" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('site_name_label') }}</label>
       <input
         type="text"
         id="site_name"
@@ -31,7 +103,7 @@
     {% endif %}
 
     <div>
-      <label for="address" style="display:block; font-size:13px; margin-bottom:3px;">Adres</label>
+      <label for="address" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('address_label') }}</label>
       <textarea
         id="address"
         name="address"
@@ -41,7 +113,7 @@
 
     <div style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px;">
       <div>
-        <label for="manager_name" style="display:block; font-size:13px; margin-bottom:3px;">Yönetici Adı</label>
+        <label for="manager_name" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('manager_name_label') }}</label>
         <input
           type="text"
           id="manager_name"
@@ -51,7 +123,7 @@
       </div>
 
       <div>
-        <label for="manager_phone" style="display:block; font-size:13px; margin-bottom:3px;">Telefon</label>
+        <label for="manager_phone" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('phone_label') }}</label>
         <input
           type="text"
           id="manager_phone"
@@ -62,7 +134,7 @@
     </div>
 
     <div>
-      <label for="manager_email" style="display:block; font-size:13px; margin-bottom:3px;">E-posta</label>
+      <label for="manager_email" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('email_label') }}</label>
       <input
         type="email"
         id="manager_email"
@@ -74,7 +146,7 @@
     <!-- ✅ Varsayılan aylık aidat tutarı -->
     <div>
       <label for="default_monthly_dues_amount" style="display:block; font-size:13px; margin-bottom:3px;">
-        Varsayılan Aylık Aidat Tutarı (₺)
+        {{ tp('default_dues_label') }}
       </label>
       <input
         type="number"
@@ -85,18 +157,18 @@
         value="{{ '%.2f'|format(settings.default_monthly_dues_amount or 0) }}"
         style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
       <p style="font-size:12px; color:#6b7280; margin-top:4px;">
-        Bu tutar, yeni ay başında tüm daireler için otomatik oluşturulan aidat borçlarında kullanılacaktır.
+        {{ tp('default_dues_hint') }}
       </p>
     </div>
 
     <p style="font-size:12px; color:#6b7280; margin-top:4px;">
-      Buradaki bilgiler ve aidat tutarı kaydedildikten sonra sistem genelinde kullanılacaktır.
+      {{ tp('global_hint') }}
     </p>
 
     <div style="margin-top:4px;">
       <button type="submit"
               style="padding:8px 12px; border-radius:999px; border:none; background:#2563eb; color:white; font-size:13px; cursor:pointer;">
-        Kaydet
+        {{ tp('save') }}
       </button>
     </div>
 

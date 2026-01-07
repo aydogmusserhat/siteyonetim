@@ -1,7 +1,119 @@
 {% extends "base.html" %}
 
-{% block title %}Aidat Durumu{% endblock %}
-{% block topbar_title %}Yıllık Aidat Durumu{% endblock %}
+{# ============================================================
+   AİDAT DURUMU - 3 DİL (TR / EN / ME) UYUMLU
+   ============================================================ #}
+
+{% set LANG = session.get('lang','tr') %}
+
+{% set I18N_PAGE = {
+  'tr': {
+    'page_title': 'Aidat Durumu',
+    'topbar_title': 'Yıllık Aidat Durumu',
+
+    'table_title': 'Daire Bazlı Aidat Tablosu',
+    'table_desc': 'Her satır bir daireyi, sütunlar Ocak–Aralık aylarını gösterir. Varsa daireye atanmış sakin bilgisi sol tarafta gösterilir.',
+
+    'year': 'Yıl',
+    'show': 'Göster',
+
+    'col_apartment': 'Daire',
+    'col_resident': 'Sakin',
+
+    'owner': 'Mal Sahibi',
+    'undefined_apartment': '(Tanımsız daire)',
+
+    'no_assigned_resident': 'Atanmış sakin yok',
+
+    'paid': 'Ödendi',
+    'partial': 'Kısmi',
+    'unpaid': 'Ödenmedi',
+    'not_defined': '-',
+
+    'legend_paid': 'Ödendi',
+    'legend_partial': 'Kısmi',
+    'legend_unpaid': 'Ödenmedi',
+    'legend_not_defined': 'Aidat tanımlı değil',
+
+    'no_data': 'Görüntülenecek daire veya aidat kaydı bulunamadı.'
+  },
+
+  'en': {
+    'page_title': 'Dues Status',
+    'topbar_title': 'Annual Dues Status',
+
+    'table_title': 'Apartment-Based Dues Table',
+    'table_desc': 'Each row represents an apartment and columns represent January–December. If a resident is assigned to the apartment, their info is shown on the left.',
+
+    'year': 'Year',
+    'show': 'Show',
+
+    'col_apartment': 'Apartment',
+    'col_resident': 'Resident',
+
+    'owner': 'Owner',
+    'undefined_apartment': '(Undefined apartment)',
+
+    'no_assigned_resident': 'No resident assigned',
+
+    'paid': 'Paid',
+    'partial': 'Partial',
+    'unpaid': 'Unpaid',
+    'not_defined': '-',
+
+    'legend_paid': 'Paid',
+    'legend_partial': 'Partial',
+    'legend_unpaid': 'Unpaid',
+    'legend_not_defined': 'No dues defined',
+
+    'no_data': 'No apartments or dues records found to display.'
+  },
+
+  'me': {
+    'page_title': 'Status članarine',
+    'topbar_title': 'Godišnji status članarine',
+
+    'table_title': 'Tabela članarine po stanovima',
+    'table_desc': 'Svaki red predstavlja stan, a kolone predstavljaju januar–decembar. Ako je stanaru dodijeljen stan, njegovi podaci se prikazuju lijevo.',
+
+    'year': 'Godina',
+    'show': 'Prikaži',
+
+    'col_apartment': 'Stan',
+    'col_resident': 'Stanar',
+
+    'owner': 'Vlasnik',
+    'undefined_apartment': '(Nedefinisan stan)',
+
+    'no_assigned_resident': 'Nema dodijeljenog stanara',
+
+    'paid': 'Plaćeno',
+    'partial': 'Djelimično',
+    'unpaid': 'Neplaćeno',
+    'not_defined': '-',
+
+    'legend_paid': 'Plaćeno',
+    'legend_partial': 'Djelimično',
+    'legend_unpaid': 'Neplaćeno',
+    'legend_not_defined': 'Članarina nije definisana',
+
+    'no_data': 'Nema stanova ili evidencija članarine za prikaz.'
+  }
+} %}
+
+{% macro tp(k) -%}
+  {{ I18N_PAGE.get(LANG, I18N_PAGE['tr']).get(k, I18N_PAGE['tr'].get(k, k)) }}
+{%- endmacro %}
+
+{# Ay isimleri (tablo başlıkları için) #}
+{% set MONTHS = {
+  'tr': {1:"Ocak",2:"Şubat",3:"Mart",4:"Nisan",5:"Mayıs",6:"Haziran",7:"Temmuz",8:"Ağustos",9:"Eylül",10:"Ekim",11:"Kasım",12:"Aralık"},
+  'en': {1:"January",2:"February",3:"March",4:"April",5:"May",6:"June",7:"July",8:"August",9:"September",10:"October",11:"November",12:"December"},
+  'me': {1:"Januar",2:"Februar",3:"Mart",4:"April",5:"Maj",6:"Jun",7:"Jul",8:"Avgust",9:"Septembar",10:"Oktobar",11:"Novembar",12:"Decembar"}
+} %}
+
+{% block title %}{{ tp('page_title') }}{% endblock %}
+{% block topbar_title %}{{ tp('topbar_title') }}{% endblock %}
 
 {% block content %}
 
@@ -9,14 +121,14 @@
 
   <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap;">
     <div>
-      <h2 style="font-size:16px; margin:0 0 4px;">Daire Bazlı Aidat Tablosu</h2>
+      <h2 style="font-size:16px; margin:0 0 4px;">{{ tp('table_title') }}</h2>
       <p style="font-size:12px; color:#6b7280; margin:0;">
-        Her satır bir daireyi, sütunlar Ocak–Aralık aylarını gösterir. Varsa daireye atanmış sakin bilgisi sol tarafta gösterilir.
+        {{ tp('table_desc') }}
       </p>
     </div>
 
     <form method="get" style="display:flex; gap:6px; align-items:center;">
-      <label for="year" style="font-size:12px; color:#4b5563;">Yıl:</label>
+      <label for="year" style="font-size:12px; color:#4b5563;">{{ tp('year') }}:</label>
       <input
         type="number"
         id="year"
@@ -27,7 +139,7 @@
         style="width:80px; padding:5px 7px; border-radius:999px; border:1px solid #e5e7eb; font-size:12px; text-align:center;">
       <button type="submit"
               style="padding:6px 10px; border-radius:999px; border:none; background:#2563eb; color:white; font-size:12px; cursor:pointer;">
-        Göster
+        {{ tp('show') }}
       </button>
     </form>
   </div>
@@ -37,10 +149,12 @@
       <table style="border-collapse:collapse; min-width:720px; font-size:11px;">
         <thead>
           <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
-            <th style="text-align:left; padding:6px 6px;">Daire</th>
-            <th style="text-align:left; padding:6px 6px;">Sakin</th>
+            <th style="text-align:left; padding:6px 6px;">{{ tp('col_apartment') }}</th>
+            <th style="text-align:left; padding:6px 6px;">{{ tp('col_resident') }}</th>
             {% for m_num, m_label in months %}
-              <th style="text-align:center; padding:6px 4px; min-width:60px;">{{ m_label }}</th>
+              <th style="text-align:center; padding:6px 4px; min-width:60px;">
+                {{ MONTHS.get(LANG, MONTHS['tr'])[m_num] }}
+              </th>
             {% endfor %}
           </tr>
         </thead>
@@ -55,11 +169,11 @@
                   {{ apt.block }} Blok • {{ apt.floor }}/{{ apt.number }}
                   {% if apt.owner_name %}
                     <div style="font-size:10px; color:#9ca3af;">
-                      Mal Sahibi: {{ apt.owner_name }}
+                      {{ tp('owner') }}: {{ apt.owner_name }}
                     </div>
                   {% endif %}
                 {% else %}
-                  <span style="color:#9ca3af;">(Tanımsız daire)</span>
+                  <span style="color:#9ca3af;">{{ tp('undefined_apartment') }}</span>
                 {% endif %}
               </td>
 
@@ -71,7 +185,7 @@
                     {{ res.email }}
                   </div>
                 {% else %}
-                  <span style="color:#9ca3af; font-size:11px;">Atanmış sakin yok</span>
+                  <span style="color:#9ca3af; font-size:11px;">{{ tp('no_assigned_resident') }}</span>
                 {% endif %}
               </td>
 
@@ -83,25 +197,25 @@
                     <span style="display:inline-flex; align-items:center; justify-content:center;
                                  padding:3px 6px; border-radius:999px; font-size:10px;
                                  background:#dcfce7; color:#15803d;">
-                      Ödendi
+                      {{ tp('paid') }}
                     </span>
                   {% elif st == 'partial' %}
                     <span style="display:inline-flex; align-items:center; justify-content:center;
                                  padding:3px 6px; border-radius:999px; font-size:10px;
                                  background:#fef9c3; color:#854d0e;">
-                      Kısmi
+                      {{ tp('partial') }}
                     </span>
                   {% elif st == 'open' %}
                     <span style="display:inline-flex; align-items:center; justify-content:center;
                                  padding:3px 6px; border-radius:999px; font-size:10px;
                                  background:#fee2e2; color:#b91c1c;">
-                      Ödenmedi
+                      {{ tp('unpaid') }}
                     </span>
                   {% else %}
                     <span style="display:inline-flex; align-items:center; justify-content:center;
                                  padding:3px 6px; border-radius:999px; font-size:10px;
                                  background:#f3f4f6; color:#9ca3af;">
-                      -
+                      {{ tp('not_defined') }}
                     </span>
                   {% endif %}
                 </td>
@@ -113,15 +227,15 @@
     </div>
 
     <div style="margin-top:10px; font-size:11px; color:#6b7280; display:flex; flex-wrap:wrap; gap:10px;">
-      <div><span style="display:inline-block; width:12px; height:12px; border-radius:999px; background:#dcfce7; border:1px solid #bbf7d0; margin-right:4px;"></span>Ödendi</div>
-      <div><span style="display:inline-block; width:12px; height:12px; border-radius:999px; background:#fef9c3; border:1px solid #fef3c7; margin-right:4px;"></span>Kısmi</div>
-      <div><span style="display:inline-block; width:12px; height:12px; border-radius:999px; background:#fee2e2; border:1px solid #fecaca; margin-right:4px;"></span>Ödenmedi</div>
-      <div><span style="display:inline-block; width:12px; height:12px; border-radius:999px; background:#f3f4f6; border:1px solid #e5e7eb; margin-right:4px;"></span>Aidat tanımlı değil</div>
+      <div><span style="display:inline-block; width:12px; height:12px; border-radius:999px; background:#dcfce7; border:1px solid #bbf7d0; margin-right:4px;"></span>{{ tp('legend_paid') }}</div>
+      <div><span style="display:inline-block; width:12px; height:12px; border-radius:999px; background:#fef9c3; border:1px solid #fef3c7; margin-right:4px;"></span>{{ tp('legend_partial') }}</div>
+      <div><span style="display:inline-block; width:12px; height:12px; border-radius:999px; background:#fee2e2; border:1px solid #fecaca; margin-right:4px;"></span>{{ tp('legend_unpaid') }}</div>
+      <div><span style="display:inline-block; width:12px; height:12px; border-radius:999px; background:#f3f4f6; border:1px solid #e5e7eb; margin-right:4px;"></span>{{ tp('legend_not_defined') }}</div>
     </div>
 
   {% else %}
     <p style="font-size:13px; color:#6b7280; margin-top:8px;">
-      Görüntülenecek daire veya aidat kaydı bulunamadı.
+      {{ tp('no_data') }}
     </p>
   {% endif %}
 </div>

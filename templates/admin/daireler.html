@@ -1,8 +1,176 @@
 {% extends "base.html" %}
 
-{% block title %}Daireler{% endblock %}
+{# ============================================================
+   DAİRELER - 3 DİL (TR / EN / ME) UYUMLU
+   ============================================================ #}
+
+{% set LANG = session.get('lang','tr') %}
+
+{% set I18N_PAGE = {
+  'tr': {
+    'page_title': 'Daireler',
+    'topbar_title': 'Daire Yönetimi',
+
+    'new_title': 'Yeni Daire Ekle',
+    'new_desc': 'Blok, kat ve daire numarası zorunludur. Diğer alanlar isteğe bağlıdır.',
+
+    'btn_new_add': 'Yeni daire ekle',
+    'btn_new_hide': 'Yeni daire formunu gizle',
+
+    'block': 'Blok',
+    'floor': 'Kat',
+    'number': 'Daire No',
+    'area_m2': 'Metrekare (m²)',
+    'owner_name': 'Mülk Sahibi Adı',
+    'owner_phone': 'Mülk Sahibi Telefonu',
+    'notes': 'Not / Açıklama',
+
+    'ph_block': 'Örn: A',
+    'ph_floor': 'Örn: 3',
+    'ph_number': 'Örn: 7',
+    'ph_area_m2': 'Örn: 120',
+    'ph_owner_name': 'Ad Soyad',
+    'ph_owner_phone': '+90 5xx xxx xx xx',
+    'ph_notes': 'Örn: Kiracı bilgisi, özel notlar...',
+
+    'save_apartment': 'Daireyi Kaydet',
+
+    'list_title': 'Daire Listesi',
+
+    'col_block': 'Blok',
+    'col_floor': 'Kat',
+    'col_no': 'No',
+    'col_m2': 'm²',
+    'col_owner': 'Mülk Sahibi',
+    'col_phone': 'Telefon',
+    'col_note': 'Not',
+    'col_actions': 'İşlemler',
+
+    'edit': 'Düzenle',
+    'save': 'Kaydet',
+    'cancel': 'Vazgeç',
+    'delete': 'Sil',
+
+    'confirm_delete': 'Bu daireyi silmek istediğinize emin misiniz?',
+
+    'not_specified': 'Belirtilmemiş',
+    'dash': '-',
+
+    'no_apartments': 'Henüz tanımlı daire bulunmuyor.'
+  },
+
+  'en': {
+    'page_title': 'Apartments',
+    'topbar_title': 'Apartment Management',
+
+    'new_title': 'Add New Apartment',
+    'new_desc': 'Block, floor and apartment number are required. Other fields are optional.',
+
+    'btn_new_add': 'Add new apartment',
+    'btn_new_hide': 'Hide new apartment form',
+
+    'block': 'Block',
+    'floor': 'Floor',
+    'number': 'Apt No',
+    'area_m2': 'Square meters (m²)',
+    'owner_name': 'Owner Name',
+    'owner_phone': 'Owner Phone',
+    'notes': 'Note / Description',
+
+    'ph_block': 'e.g., A',
+    'ph_floor': 'e.g., 3',
+    'ph_number': 'e.g., 7',
+    'ph_area_m2': 'e.g., 120',
+    'ph_owner_name': 'Full name',
+    'ph_owner_phone': '+90 5xx xxx xx xx',
+    'ph_notes': 'e.g., tenant info, special notes...',
+
+    'save_apartment': 'Save Apartment',
+
+    'list_title': 'Apartment List',
+
+    'col_block': 'Block',
+    'col_floor': 'Floor',
+    'col_no': 'No',
+    'col_m2': 'm²',
+    'col_owner': 'Owner',
+    'col_phone': 'Phone',
+    'col_note': 'Note',
+    'col_actions': 'Actions',
+
+    'edit': 'Edit',
+    'save': 'Save',
+    'cancel': 'Cancel',
+    'delete': 'Delete',
+
+    'confirm_delete': 'Are you sure you want to delete this apartment?',
+
+    'not_specified': 'Not specified',
+    'dash': '-',
+
+    'no_apartments': 'No apartments have been defined yet.'
+  },
+
+  'me': {
+    'page_title': 'Stanovi',
+    'topbar_title': 'Upravljanje stanovima',
+
+    'new_title': 'Dodaj novi stan',
+    'new_desc': 'Blok, sprat i broj stana su obavezni. Ostala polja su opciona.',
+
+    'btn_new_add': 'Dodaj novi stan',
+    'btn_new_hide': 'Sakrij formu za novi stan',
+
+    'block': 'Blok',
+    'floor': 'Sprat',
+    'number': 'Broj stana',
+    'area_m2': 'Kvadratura (m²)',
+    'owner_name': 'Ime vlasnika',
+    'owner_phone': 'Telefon vlasnika',
+    'notes': 'Napomena / Opis',
+
+    'ph_block': 'npr. A',
+    'ph_floor': 'npr. 3',
+    'ph_number': 'npr. 7',
+    'ph_area_m2': 'npr. 120',
+    'ph_owner_name': 'Ime i prezime',
+    'ph_owner_phone': '+90 5xx xxx xx xx',
+    'ph_notes': 'npr. podaci o stanaru, posebne napomene...',
+
+    'save_apartment': 'Sačuvaj stan',
+
+    'list_title': 'Lista stanova',
+
+    'col_block': 'Blok',
+    'col_floor': 'Sprat',
+    'col_no': 'Broj',
+    'col_m2': 'm²',
+    'col_owner': 'Vlasnik',
+    'col_phone': 'Telefon',
+    'col_note': 'Napomena',
+    'col_actions': 'Radnje',
+
+    'edit': 'Uredi',
+    'save': 'Sačuvaj',
+    'cancel': 'Otkaži',
+    'delete': 'Obriši',
+
+    'confirm_delete': 'Da li ste sigurni da želite da obrišete ovaj stan?',
+
+    'not_specified': 'Nije navedeno',
+    'dash': '-',
+
+    'no_apartments': 'Još nema definisanih stanova.'
+  }
+} %}
+
+{% macro tp(k) -%}
+  {{ I18N_PAGE.get(LANG, I18N_PAGE['tr']).get(k, I18N_PAGE['tr'].get(k, k)) }}
+{%- endmacro %}
+
+{% block title %}{{ tp('page_title') }}{% endblock %}
 {% block topbar_title %}
-  Daire Yönetimi
+  {{ tp('topbar_title') }}
   {% if session.active_site_name %}
     – {{ session.active_site_name }}
   {% elif current_site_name %}
@@ -19,16 +187,16 @@
     <div class="card card--compact">
       <div class="card-header-inline">
         <div>
-          <h2 style="font-size:15px; margin:0 0 4px;">Yeni Daire Ekle</h2>
+          <h2 style="font-size:15px; margin:0 0 4px;">{{ tp('new_title') }}</h2>
           <p style="font-size:12px; color:#6b7280; margin:0;">
-            Blok, kat ve daire numarası zorunludur. Diğer alanlar isteğe bağlıdır.
+            {{ tp('new_desc') }}
           </p>
         </div>
 
         <button type="button"
                 class="btn-mini btn-toggle-new-apt"
                 aria-expanded="false">
-          Yeni daire ekle
+          {{ tp('btn_new_add') }}
         </button>
       </div>
 
@@ -38,59 +206,59 @@
 
           <div style="display:flex; gap:8px; flex-wrap:wrap;">
             <div style="flex:1; min-width:80px;">
-              <label for="block" style="display:block; font-size:13px; margin-bottom:3px;">Blok</label>
+              <label for="block" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('block') }}</label>
               <input type="text" id="block" name="block" required
-                     placeholder="Örn: A"
+                     placeholder="{{ tp('ph_block') }}"
                      style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
             </div>
             <div style="flex:1; min-width:80px;">
-              <label for="floor" style="display:block; font-size:13px; margin-bottom:3px;">Kat</label>
+              <label for="floor" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('floor') }}</label>
               <input type="text" id="floor" name="floor" required
-                     placeholder="Örn: 3"
+                     placeholder="{{ tp('ph_floor') }}"
                      style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
             </div>
             <div style="flex:1; min-width:80px;">
-              <label for="number" style="display:block; font-size:13px; margin-bottom:3px;">Daire No</label>
+              <label for="number" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('number') }}</label>
               <input type="text" id="number" name="number" required
-                     placeholder="Örn: 7"
+                     placeholder="{{ tp('ph_number') }}"
                      style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
             </div>
           </div>
 
           <div style="display:flex; gap:8px; flex-wrap:wrap;">
             <div style="flex:1; min-width:120px;">
-              <label for="area_m2" style="display:block; font-size:13px; margin-bottom:3px;">Metrekare (m²)</label>
+              <label for="area_m2" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('area_m2') }}</label>
               <input type="text" id="area_m2" name="area_m2"
-                     placeholder="Örn: 120"
+                     placeholder="{{ tp('ph_area_m2') }}"
                      style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
             </div>
           </div>
 
           <div>
-            <label for="owner_name" style="display:block; font-size:13px; margin-bottom:3px;">Mülk Sahibi Adı</label>
+            <label for="owner_name" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('owner_name') }}</label>
             <input type="text" id="owner_name" name="owner_name"
-                   placeholder="Ad Soyad"
+                   placeholder="{{ tp('ph_owner_name') }}"
                    style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
           </div>
 
           <div>
-            <label for="owner_phone" style="display:block; font-size:13px; margin-bottom:3px;">Mülk Sahibi Telefonu</label>
+            <label for="owner_phone" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('owner_phone') }}</label>
             <input type="text" id="owner_phone" name="owner_phone"
-                   placeholder="+90 5xx xxx xx xx"
+                   placeholder="{{ tp('ph_owner_phone') }}"
                    style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
           </div>
 
           <div>
-            <label for="notes" style="display:block; font-size:13px; margin-bottom:3px;">Not / Açıklama</label>
+            <label for="notes" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('notes') }}</label>
             <textarea id="notes" name="notes" rows="3"
-                      placeholder="Örn: Kiracı bilgisi, özel notlar..."
+                      placeholder="{{ tp('ph_notes') }}"
                       style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px; resize:vertical;"></textarea>
           </div>
 
           <div style="margin-top:2px;">
             <button type="submit"
                     style="padding:8px 12px; border-radius:999px; border:none; background:#2563eb; color:white; font-size:13px; cursor:pointer;">
-              Daireyi Kaydet
+              {{ tp('save_apartment') }}
             </button>
           </div>
 
@@ -102,7 +270,7 @@
   <!-- SAĞ: DAİRE LİSTESİ -->
   <section>
     <div class="card">
-      <h2 style="font-size:16px; margin-bottom:8px;">Daire Listesi</h2>
+      <h2 style="font-size:16px; margin-bottom:8px;">{{ tp('list_title') }}</h2>
 
       <style>
         .btn-table {
@@ -142,14 +310,14 @@
           <table style="width:100%; border-collapse:collapse; font-size:12px;">
             <thead>
               <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
-                <th style="text-align:left; padding:6px 4px;">Blok</th>
-                <th style="text-align:left; padding:6px 4px;">Kat</th>
-                <th style="text-align:left; padding:6px 4px;">No</th>
-                <th style="text-align:left; padding:6px 4px;">m²</th>
-                <th style="text-align:left; padding:6px 4px;">Mülk Sahibi</th>
-                <th style="text-align:left; padding:6px 4px;">Telefon</th>
-                <th style="text-align:left; padding:6px 4px;">Not</th>
-                <th style="text-align:left; padding:6px 4px;">İşlemler</th>
+                <th style="text-align:left; padding:6px 4px;">{{ tp('col_block') }}</th>
+                <th style="text-align:left; padding:6px 4px;">{{ tp('col_floor') }}</th>
+                <th style="text-align:left; padding:6px 4px;">{{ tp('col_no') }}</th>
+                <th style="text-align:left; padding:6px 4px;">{{ tp('col_m2') }}</th>
+                <th style="text-align:left; padding:6px 4px;">{{ tp('col_owner') }}</th>
+                <th style="text-align:left; padding:6px 4px;">{{ tp('col_phone') }}</th>
+                <th style="text-align:left; padding:6px 4px;">{{ tp('col_note') }}</th>
+                <th style="text-align:left; padding:6px 4px;">{{ tp('col_actions') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -162,21 +330,21 @@
                     {% if apt.area_m2 %}
                       {{ "%.0f"|format(apt.area_m2) }}
                     {% else %}
-                      <span style="color:#9ca3af;">-</span>
+                      <span style="color:#9ca3af;">{{ tp('dash') }}</span>
                     {% endif %}
                   </td>
                   <td data-field="owner_name" style="padding:6px 4px;">
                     {% if apt.owner_name %}
                       {{ apt.owner_name }}
                     {% else %}
-                      <span style="color:#9ca3af;">Belirtilmemiş</span>
+                      <span style="color:#9ca3af;">{{ tp('not_specified') }}</span>
                     {% endif %}
                   </td>
                   <td data-field="owner_phone" style="padding:6px 4px; white-space:nowrap;">
                     {% if apt.owner_phone %}
                       {{ apt.owner_phone }}
                     {% else %}
-                      <span style="color:#9ca3af;">-</span>
+                      <span style="color:#9ca3af;">{{ tp('dash') }}</span>
                     {% endif %}
                   </td>
                   <td data-field="notes" style="padding:6px 4px; max-width:200px;">
@@ -185,21 +353,21 @@
                         {{ apt.notes }}
                       </span>
                     {% else %}
-                      <span style="color:#9ca3af;">-</span>
+                      <span style="color:#9ca3af;">{{ tp('dash') }}</span>
                     {% endif %}
                   </td>
                   <td style="padding:6px 4px; white-space:nowrap;">
-                    <button type="button" class="btn-table btn-edit-apt">Düzenle</button>
-                    <button type="button" class="btn-table btn-save-apt" style="display:none;">Kaydet</button>
-                    <button type="button" class="btn-table btn-cancel-apt" style="display:none;">Vazgeç</button>
+                    <button type="button" class="btn-table btn-edit-apt">{{ tp('edit') }}</button>
+                    <button type="button" class="btn-table btn-save-apt" style="display:none;">{{ tp('save') }}</button>
+                    <button type="button" class="btn-table btn-cancel-apt" style="display:none;">{{ tp('cancel') }}</button>
 
                     <form method="post"
                           action="{{ url_for('admin.delete_apartment', apartment_id=apt.id) }}"
                           style="display:inline;">
                       <button type="submit"
                               class="btn-table btn-danger"
-                              onclick="return confirm('Bu daireyi silmek istediğinize emin misiniz?');">
-                        Sil
+                              onclick="return confirm('{{ tp('confirm_delete') }}');">
+                        {{ tp('delete') }}
                       </button>
                     </form>
                   </td>
@@ -209,7 +377,7 @@
           </table>
         </div>
       {% else %}
-        <p style="font-size:13px; color:#6b7280;">Henüz tanımlı daire bulunmuyor.</p>
+        <p style="font-size:13px; color:#6b7280;">{{ tp('no_apartments') }}</p>
       {% endif %}
     </div>
   </section>
@@ -218,6 +386,31 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+
+  const I18N = {
+    tr: {
+      btn_new_add: "Yeni daire ekle",
+      btn_new_hide: "Yeni daire formunu gizle",
+      not_specified: "Belirtilmemiş",
+      dash: "-"
+    },
+    en: {
+      btn_new_add: "Add new apartment",
+      btn_new_hide: "Hide new apartment form",
+      not_specified: "Not specified",
+      dash: "-"
+    },
+    me: {
+      btn_new_add: "Dodaj novi stan",
+      btn_new_hide: "Sakrij formu za novi stan",
+      not_specified: "Nije navedeno",
+      dash: "-"
+    }
+  };
+
+  const LANG = "{{ LANG }}";
+  const T = (k) => (I18N[LANG] && I18N[LANG][k]) ? I18N[LANG][k] : (I18N.tr[k] || k);
+
   /* === YENİ DAİRE FORMUNU AÇ/KAPA === */
   const toggleBtn = document.querySelector(".btn-toggle-new-apt");
   const formContainer = document.getElementById("new-apt-form");
@@ -228,11 +421,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const updateState = () => {
       if (isOpen) {
         formContainer.classList.add("is-open");
-        toggleBtn.textContent = "Yeni daire formunu gizle";
+        toggleBtn.textContent = T("btn_new_hide");
         toggleBtn.setAttribute("aria-expanded", "true");
       } else {
         formContainer.classList.remove("is-open");
-        toggleBtn.textContent = "Yeni daire ekle";
+        toggleBtn.textContent = T("btn_new_add");
         toggleBtn.setAttribute("aria-expanded", "false");
       }
     };
@@ -277,7 +470,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         input.name = field;
-        input.value = (original === "-" || original === "Belirtilmemiş") ? "" : original;
+        input.value = (original === T("dash") || original === T("not_specified")) ? "" : original;
         input.style.width = "100%";
         input.style.fontSize = "12px";
         input.style.padding = "4px 6px";
@@ -303,9 +496,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (!original) {
           if (field === "owner_name") {
-            td.innerHTML = '<span style="color:#9ca3af;">Belirtilmemiş</span>';
+            td.innerHTML = '<span style="color:#9ca3af;">' + T("not_specified") + '</span>';
           } else if (field === "owner_phone" || field === "notes" || field === "area_m2") {
-            td.innerHTML = '<span style="color:#9ca3af;">-</span>';
+            td.innerHTML = '<span style="color:#9ca3af;">' + T("dash") + '</span>';
           } else {
             td.textContent = "";
           }

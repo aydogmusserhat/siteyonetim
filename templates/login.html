@@ -1,21 +1,70 @@
 <!doctype html>
-<html lang="tr">
+<html lang="{{ session.get('lang','tr') }}">
 <head>
   <meta charset="utf-8">
-  <title>Giriş Yap - Apartman Yönetimi</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>
+    {% if session.get('lang') == 'en' %}
+      Login - Apartment Management
+    {% elif session.get('lang') == 'me' %}
+      Prijava - Upravljanje Zgradom
+    {% else %}
+      Giriş Yap - Apartman Yönetimi
+    {% endif %}
+  </title>
 
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
 </head>
+
 <body class="login-body">
 
 <div class="login-wrapper">
+
+  <!-- 🌍 DİL SEÇİCİ -->
+  <div style="display:flex; justify-content:flex-end; margin-bottom:10px; gap:6px;">
+    <a href="{{ url_for('set_lang', lang='tr', next=request.path) }}"
+       style="font-size:12px; text-decoration:none; padding:4px 8px; border-radius:999px;
+              {% if session.get('lang','tr') == 'tr' %}background:#2563eb; color:white;{% else %}background:#f3f4f6; color:#111827;{% endif %}">
+      TR
+    </a>
+    <a href="{{ url_for('set_lang', lang='en', next=request.path) }}"
+       style="font-size:12px; text-decoration:none; padding:4px 8px; border-radius:999px;
+              {% if session.get('lang') == 'en' %}background:#2563eb; color:white;{% else %}background:#f3f4f6; color:#111827;{% endif %}">
+      EN
+    </a>
+    <a href="{{ url_for('set_lang', lang='me', next=request.path) }}"
+       style="font-size:12px; text-decoration:none; padding:4px 8px; border-radius:999px;
+              {% if session.get('lang') == 'me' %}background:#2563eb; color:white;{% else %}background:#f3f4f6; color:#111827;{% endif %}">
+      ME
+    </a>
+  </div>
+
   <div class="login-card">
+
+    <!-- BAŞLIK -->
     <div class="login-card__header">
-      <h1>Apartman Yönetimi</h1>
-      <p>Lütfen hesabınıza giriş yapın.</p>
+      <h1>
+        {% if session.get('lang') == 'en' %}
+          Apartment Management
+        {% elif session.get('lang') == 'me' %}
+          Upravljanje Zgradom
+        {% else %}
+          Apartman Yönetimi
+        {% endif %}
+      </h1>
+
+      <p>
+        {% if session.get('lang') == 'en' %}
+          Please sign in to your account.
+        {% elif session.get('lang') == 'me' %}
+          Molimo prijavite se na svoj nalog.
+        {% else %}
+          Lütfen hesabınıza giriş yapın.
+        {% endif %}
+      </p>
     </div>
 
+    <!-- FLASH MESAJLAR -->
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         <div class="login-card__flash">
@@ -28,33 +77,60 @@
       {% endif %}
     {% endwith %}
 
+    <!-- FORM -->
     <form action="{{ url_for('auth.login') }}" method="post" class="login-form">
+
       <div class="form-group">
-        <label for="email">E-posta</label>
+        <label for="email">
+          {% if session.get('lang') == 'en' %}
+            Email
+          {% elif session.get('lang') == 'me' %}
+            E-pošta
+          {% else %}
+            E-posta
+          {% endif %}
+        </label>
+
         <input
           type="email"
           id="email"
           name="email"
           required
-          placeholder="ornek@site.com"
+          placeholder="{% if session.get('lang') == 'en' %}example@site.com{% elif session.get('lang') == 'me' %}primjer@sajt.com{% else %}ornek@site.com{% endif %}"
           value="{{ email or '' }}"
         >
       </div>
 
       <div class="form-group">
-        <label for="password">Şifre</label>
+        <label for="password">
+          {% if session.get('lang') == 'en' %}
+            Password
+          {% elif session.get('lang') == 'me' %}
+            Lozinka
+          {% else %}
+            Şifre
+          {% endif %}
+        </label>
+
         <input
           type="password"
           id="password"
           name="password"
           required
-          placeholder="Şifrenizi girin"
+          placeholder="{% if session.get('lang') == 'en' %}Enter your password{% elif session.get('lang') == 'me' %}Unesite lozinku{% else %}Şifrenizi girin{% endif %}"
         >
       </div>
 
       <button type="submit" class="btn btn--primary btn--full">
-        Giriş Yap
+        {% if session.get('lang') == 'en' %}
+          Sign In
+        {% elif session.get('lang') == 'me' %}
+          Prijavi se
+        {% else %}
+          Giriş Yap
+        {% endif %}
       </button>
+
     </form>
   </div>
 </div>

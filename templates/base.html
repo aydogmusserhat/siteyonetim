@@ -1,15 +1,186 @@
 <!doctype html>
-<html lang="tr">
+<html lang="{{ session.get('lang','tr') }}">
 <head>
   <meta charset="utf-8">
-  <title>{% block title %}Apartman Yönetim Paneli{% endblock %}</title>
+  <title>{% block title %}{{ 'Apartman Yönetim Paneli' if session.get('lang','tr')=='tr' else ('Apartment Management Panel' if session.get('lang')=='en' else 'Panel upravljanja zgradom') }}{% endblock %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
 
   {% block head_extra %}{% endblock %}
+
+  <style>
+    /* Dil seçici (topbar sağ) */
+    .lang-switch {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .lang-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      cursor: pointer;
+      font-size: 12px;
+      color: #111827;
+      white-space: nowrap;
+    }
+    .lang-btn:active { transform: scale(0.99); }
+    .lang-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: #111827;
+      opacity: .15;
+    }
+    .lang-menu {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 8px);
+      min-width: 170px;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.08);
+      padding: 6px;
+      display: none;
+      z-index: 9999;
+    }
+    .lang-menu.is-open { display: block; }
+    .lang-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      text-decoration: none;
+      color: #111827;
+      font-size: 12px;
+    }
+    .lang-item:hover { background: #f3f4f6; }
+    .lang-code {
+      font-size: 11px;
+      color: #6b7280;
+    }
+    .lang-flag {
+      display: inline-flex;
+      width: 22px;
+      height: 16px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      border: 1px solid #e5e7eb;
+      font-size: 11px;
+      background: #fff;
+    }
+    @media (max-width: 520px) {
+      .lang-menu { left: auto; right: 0; }
+      .lang-btn { padding: 6px 8px; }
+    }
+  </style>
 </head>
+
 <body class="{% block body_class %}{% endblock %}">
+
+{% set LANG = session.get('lang','tr') %}
+{% set I18N = {
+  'tr': {
+    'panel_title': 'Yönetim Paneli',
+    'admin_view': 'Yönetici görünümü',
+    'resident_view': 'Sakin görünümü',
+    'system_view': 'Apartman / Site yönetim sistemi',
+    'menu_admin_dashboard': 'Yönetim Paneli',
+    'menu_apartments': 'Daireler',
+    'menu_users': 'Kullanıcılar',
+    'menu_bills': 'Borç / Aidatlar',
+    'menu_payments': 'Ödemeler',
+    'menu_announcements': 'Duyurular',
+    'menu_tickets': 'Talepler',
+    'menu_settings': 'Ayarlar',
+    'menu_site_mgmt': 'Site Yönetimi',
+    'menu_resident_dashboard': 'Ana Panel',
+    'menu_my_debts': 'Borçlarım',
+    'menu_my_payments': 'Ödemelerim',
+    'menu_my_tickets': 'Taleplerim',
+    'menu_profile': 'Profilim',
+    'logout': 'Çıkış Yap',
+    'logged_in': 'Giriş Yapıldı',
+    'role_admin': 'Yönetici',
+    'role_resident': 'Sakin',
+    'role_admin_of': 'Yönetici • ',
+    'role_resident_of': 'Sakin • ',
+    'open_close_menu': 'Menüyü aç/kapa',
+    'close_menu': 'Menüyü kapat',
+    'language': 'Dil'
+  },
+  'en': {
+    'panel_title': 'Management Panel',
+    'admin_view': 'Admin view',
+    'resident_view': 'Resident view',
+    'system_view': 'Apartment / Site management system',
+    'menu_admin_dashboard': 'Dashboard',
+    'menu_apartments': 'Apartments',
+    'menu_users': 'Users',
+    'menu_bills': 'Dues / Bills',
+    'menu_payments': 'Payments',
+    'menu_announcements': 'Announcements',
+    'menu_tickets': 'Requests',
+    'menu_settings': 'Settings',
+    'menu_site_mgmt': 'Site Management',
+    'menu_resident_dashboard': 'Home',
+    'menu_my_debts': 'My Debts',
+    'menu_my_payments': 'My Payments',
+    'menu_my_tickets': 'My Requests',
+    'menu_profile': 'My Profile',
+    'logout': 'Log out',
+    'logged_in': 'Logged in',
+    'role_admin': 'Admin',
+    'role_resident': 'Resident',
+    'role_admin_of': 'Admin • ',
+    'role_resident_of': 'Resident • ',
+    'open_close_menu': 'Open/close menu',
+    'close_menu': 'Close menu',
+    'language': 'Language'
+  },
+  'me': {
+    'panel_title': 'Upravljački panel',
+    'admin_view': 'Prikaz administratora',
+    'resident_view': 'Prikaz stanara',
+    'system_view': 'Sistem upravljanja zgradom / naseljem',
+    'menu_admin_dashboard': 'Kontrolna tabla',
+    'menu_apartments': 'Stanovi',
+    'menu_users': 'Korisnici',
+    'menu_bills': 'Dugovanja / Članarine',
+    'menu_payments': 'Uplate',
+    'menu_announcements': 'Obavještenja',
+    'menu_tickets': 'Zahtjevi',
+    'menu_settings': 'Podešavanja',
+    'menu_site_mgmt': 'Upravljanje naseljem',
+    'menu_resident_dashboard': 'Početna',
+    'menu_my_debts': 'Moja dugovanja',
+    'menu_my_payments': 'Moje uplate',
+    'menu_my_tickets': 'Moji zahtjevi',
+    'menu_profile': 'Moj profil',
+    'logout': 'Odjava',
+    'logged_in': 'Prijavljeno',
+    'role_admin': 'Administrator',
+    'role_resident': 'Stanar',
+    'role_admin_of': 'Administrator • ',
+    'role_resident_of': 'Stanar • ',
+    'open_close_menu': 'Otvori/zatvori meni',
+    'close_menu': 'Zatvori meni',
+    'language': 'Jezik'
+  }
+} %}
+{% macro t(k) -%}
+  {{ I18N.get(LANG, I18N['tr']).get(k, I18N['tr'].get(k, k)) }}
+{%- endmacro %}
 
 <div class="layout">
 
@@ -24,7 +195,7 @@
 
   <div class="sidebar__logo-wrapper">
 
-    <!-- LOGO (aynı boyutta kalıyor) -->
+    <!-- LOGO -->
     <img
       src="{{ url_for('static', filename='logo1.png') }}"
       alt="Logo"
@@ -39,19 +210,20 @@
       </div>
 
       <div class="sidebar__brand-subtitle">
-        Yönetim Paneli
+        {{ t('panel_title') }}
       </div>
     </div>
+
       {% if session.get("user_role") == "super_admin" %}
         <a href="{{ url_for('admin.manage_sites') }}" class="sidebar__link">
-          Site Yönetimi
+          {{ t('menu_site_mgmt') }}
         </a>
       {% endif %}
 
   </div>
 
   <!-- sadece mobilde görünen buton -->
-  <button class="sidebar__close-btn" id="sidebarCloseBtn" aria-label="Menüyü kapat">
+  <button class="sidebar__close-btn" id="sidebarCloseBtn" aria-label="{{ t('close_menu') }}">
     ✕
   </button>
 
@@ -68,14 +240,14 @@
         {% if user_name %}
           {{ user_name }}
         {% else %}
-          Giriş Yapıldı
+          {{ t('logged_in') }}
         {% endif %}
       </div>
       <div class="sidebar__user-role">
         {% if user_role == "admin" %}
-          Yönetici • {{ site_name }}
+          {{ t('role_admin_of') }} {{ site_name }}
         {% elif user_role == "resident" %}
-          Sakin • {{ site_name }}
+          {{ t('role_resident_of') }} {{ site_name }}
         {% else %}
           {{ site_name }}
         {% endif %}
@@ -84,7 +256,6 @@
 
     {# ===========================================
        NAV MENÜ
-       Admin / Sakin için ayrı göster
        =========================================== #}
     <nav class="sidebar__nav">
       {% set endpoint = request.endpoint or "" %}
@@ -93,83 +264,82 @@
 
         <a href="{{ url_for('admin.dashboard') }}"
            class="sidebar__link {% if endpoint == 'admin.dashboard' %}sidebar__link--active{% endif %}">
-          🏠 Yönetim Paneli
+          🏠 {{ t('menu_admin_dashboard') }}
         </a>
 
         <a href="{{ url_for('admin.manage_apartments') }}"
            class="sidebar__link {% if endpoint == 'admin.manage_apartments' %}sidebar__link--active{% endif %}">
-          🏢 Daireler
+          🏢 {{ t('menu_apartments') }}
         </a>
 
         <a href="{{ url_for('admin.manage_users') }}"
            class="sidebar__link {% if endpoint == 'admin.manage_users' %}sidebar__link--active{% endif %}">
-          👥 Kullanıcılar
+          👥 {{ t('menu_users') }}
         </a>
 
         <a href="{{ url_for('admin.manage_bills') }}"
            class="sidebar__link {% if endpoint == 'admin.manage_bills' or endpoint == 'admin.dues_summary' %}sidebar__link--active{% endif %}">
-          💳 Borç / Aidatlar
+          💳 {{ t('menu_bills') }}
         </a>
 
         <a href="{{ url_for('admin.manage_payments') }}"
            class="sidebar__link {% if endpoint == 'admin.manage_payments' %}sidebar__link--active{% endif %}">
-          💰 Ödemeler
+          💰 {{ t('menu_payments') }}
         </a>
 
         <a href="{{ url_for('admin.manage_announcements') }}"
            class="sidebar__link {% if endpoint == 'admin.manage_announcements' %}sidebar__link--active{% endif %}">
-          📢 Duyurular
+          📢 {{ t('menu_announcements') }}
         </a>
 
         <a href="{{ url_for('admin.manage_tickets') }}"
            class="sidebar__link {% if endpoint == 'admin.manage_tickets' %}sidebar__link--active{% endif %}">
-          🛠 Talepler
+          🛠 {{ t('menu_tickets') }}
         </a>
 
         <a href="{{ url_for('admin.settings') }}"
            class="sidebar__link {% if endpoint == 'admin.settings' %}sidebar__link--active{% endif %}">
-          ⚙️ Ayarlar
+          ⚙️ {{ t('menu_settings') }}
         </a>
 
       {% elif user_role == "resident" %}
 
         <a href="{{ url_for('resident.dashboard') }}"
            class="sidebar__link {% if endpoint == 'resident.dashboard' %}sidebar__link--active{% endif %}">
-          🏠 Ana Panel
+          🏠 {{ t('menu_resident_dashboard') }}
         </a>
 
         <a href="{{ url_for('resident.borclarim') }}"
            class="sidebar__link {% if endpoint == 'resident.borclarim' %}sidebar__link--active{% endif %}">
-          💳 Borçlarım
+          💳 {{ t('menu_my_debts') }}
         </a>
 
         <a href="{{ url_for('resident.odemelerim') }}"
            class="sidebar__link {% if endpoint == 'resident.odemelerim' %}sidebar__link--active{% endif %}">
-          💰 Ödemelerim
+          💰 {{ t('menu_my_payments') }}
         </a>
 
         <a href="{{ url_for('resident.taleplerim') }}"
            class="sidebar__link {% if endpoint == 'resident.taleplerim' %}sidebar__link--active{% endif %}">
-          🛠 Taleplerim
+          🛠 {{ t('menu_my_tickets') }}
         </a>
 
         <a href="{{ url_for('resident.profil') }}"
            class="sidebar__link {% if endpoint == 'resident.profil' %}sidebar__link--active{% endif %}">
-          👤 Profilim
+          👤 {{ t('menu_profile') }}
         </a>
 
       {% else %}
-        {# Rol yoksa minimum menü (güvenlik için) #}
         <a href="{{ url_for('admin.dashboard') }}"
            class="sidebar__link {% if endpoint == 'admin.dashboard' %}sidebar__link--active{% endif %}">
-          🏠 Panel
+          🏠 {{ t('menu_admin_dashboard') }}
         </a>
       {% endif %}
     </nav>
 
     <div class="sidebar__footer">
       <a href="{{ url_for('auth.logout') }}" class="sidebar__logout-btn">
-        Çıkış Yap
+        {{ t('logout') }}
       </a>
     </div>
   </aside>
@@ -181,32 +351,66 @@
 
     {# TOPBAR #}
     <header class="topbar">
-      <button class="topbar__menu-btn" id="sidebarToggleBtn" aria-label="Menüyü aç/kapa">
+      <button class="topbar__menu-btn" id="sidebarToggleBtn" aria-label="{{ t('open_close_menu') }}">
         ☰
       </button>
 
       <div>
         <div class="topbar__title">
-          {% block topbar_title %}Yönetim Paneli{% endblock %}
+          {% block topbar_title %}{{ t('panel_title') }}{% endblock %}
         </div>
         <div class="topbar__subtitle">
           {% if user_role == "admin" %}
-            Yönetici görünümü
+            {{ t('admin_view') }}
           {% elif user_role == "resident" %}
-            Sakin görünümü
+            {{ t('resident_view') }}
           {% else %}
-            Apartman / Site yönetim sistemi
+            {{ t('system_view') }}
           {% endif %}
         </div>
       </div>
 
-      <div class="topbar__user">
+      <div class="topbar__user" style="display:flex; align-items:center; gap:10px;">
+        <!-- Dil seçici -->
+        <div class="lang-switch" id="langSwitch">
+          <button type="button" class="lang-btn" id="langBtn" aria-haspopup="true" aria-expanded="false">
+            <span class="lang-dot"></span>
+            <span style="font-weight:600;">{{ t('language') }}</span>
+            <span style="color:#6b7280; font-size:11px;">({{ LANG|upper }})</span>
+          </button>
+
+          {% set nxt = request.full_path %}
+          <div class="lang-menu" id="langMenu" role="menu" aria-label="Language menu">
+            <a class="lang-item" role="menuitem"
+               href="/set-lang/tr?next={{ nxt|urlencode }}">
+              <span style="display:flex; align-items:center; gap:10px;">
+                <span class="lang-flag">TR</span> Türkçe
+              </span>
+              <span class="lang-code">TR</span>
+            </a>
+            <a class="lang-item" role="menuitem"
+               href="/set-lang/en?next={{ nxt|urlencode }}">
+              <span style="display:flex; align-items:center; gap:10px;">
+                <span class="lang-flag">EN</span> English
+              </span>
+              <span class="lang-code">EN</span>
+            </a>
+            <a class="lang-item" role="menuitem"
+               href="/set-lang/me?next={{ nxt|urlencode }}">
+              <span style="display:flex; align-items:center; gap:10px;">
+                <span class="lang-flag">ME</span> Crnogorski
+              </span>
+              <span class="lang-code">ME</span>
+            </a>
+          </div>
+        </div>
+
         {% if user_name %}
           <span class="topbar__user-name">{{ user_name }}</span>
         {% endif %}
         {% if user_role %}
           <span class="topbar__user-role">
-            {% if user_role == "admin" %}Yönetici{% elif user_role == "resident" %}Sakin{% endif %}
+            {% if user_role == "admin" %}{{ t('role_admin') }}{% elif user_role == "resident" %}{{ t('role_resident') }}{% endif %}
           </span>
         {% endif %}
       </div>
@@ -243,7 +447,7 @@
 </div>
 
 {# ===========================================
-   GENEL JS (sidebar toggle + flash auto-hide)
+   GENEL JS (sidebar toggle + flash auto-hide + language dropdown)
    =========================================== #}
 <script>
   document.addEventListener('DOMContentLoaded', function () {
@@ -288,6 +492,36 @@
           }
         }, 450);
       }, 4000);
+    }
+
+    // Dil dropdown
+    const langSwitch = document.getElementById('langSwitch');
+    const langBtn = document.getElementById('langBtn');
+    const langMenu = document.getElementById('langMenu');
+
+    function closeLang() {
+      if (!langMenu || !langBtn) return;
+      langMenu.classList.remove('is-open');
+      langBtn.setAttribute('aria-expanded', 'false');
+    }
+    function toggleLang() {
+      if (!langMenu || !langBtn) return;
+      const open = langMenu.classList.toggle('is-open');
+      langBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    if (langBtn && langMenu) {
+      langBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        toggleLang();
+      });
+      document.addEventListener('click', function (e) {
+        if (!langSwitch) return;
+        if (!langSwitch.contains(e.target)) closeLang();
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeLang();
+      });
     }
   });
 </script>

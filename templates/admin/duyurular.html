@@ -1,8 +1,113 @@
 {% extends "base.html" %}
 
-{% block title %}Duyurular{% endblock %}
+{# ============================================================
+   DUYURULAR - 3 DİL (TR / EN / ME) UYUMLU
+   ============================================================ #}
+
+{% set LANG = session.get('lang','tr') %}
+
+{% set I18N_PAGE = {
+  'tr': {
+    'page_title': 'Duyurular',
+    'topbar_title': 'Duyuru Yönetimi',
+
+    'new_card_title': 'Yeni Duyuru Yayınla',
+    'label_title': 'Başlık',
+    'ph_title': 'Örn: Asansör Bakım Çalışması',
+
+    'label_content': 'İçerik',
+    'ph_content': 'Duyuru metnini buraya yazın...',
+
+    'label_target': 'Hedef Kitle',
+    'target_all': 'Tüm sakinler',
+    'target_admins': 'Sadece yöneticiler',
+
+    'btn_publish': 'Duyuruyu Yayınla',
+
+    'list_title': 'Yayınlanan Duyurular',
+
+    'target_prefix': 'Hedef:',
+    'target_admins_short': 'Yöneticiler',
+    'target_all_short': 'Tüm sakinler',
+
+    'expired': '(Süresi doldu)',
+
+    'publisher_prefix': 'Yayınlayan:',
+    'system': 'Sistem',
+
+    'empty': 'Henüz yayınlanmış bir duyuru bulunmuyor.'
+  },
+
+  'en': {
+    'page_title': 'Announcements',
+    'topbar_title': 'Announcement Management',
+
+    'new_card_title': 'Publish New Announcement',
+    'label_title': 'Title',
+    'ph_title': 'e.g., Elevator Maintenance Work',
+
+    'label_content': 'Content',
+    'ph_content': 'Write the announcement text here...',
+
+    'label_target': 'Audience',
+    'target_all': 'All residents',
+    'target_admins': 'Admins only',
+
+    'btn_publish': 'Publish Announcement',
+
+    'list_title': 'Published Announcements',
+
+    'target_prefix': 'Target:',
+    'target_admins_short': 'Admins',
+    'target_all_short': 'All residents',
+
+    'expired': '(Expired)',
+
+    'publisher_prefix': 'Published by:',
+    'system': 'System',
+
+    'empty': 'There are no published announcements yet.'
+  },
+
+  'me': {
+    'page_title': 'Obavještenja',
+    'topbar_title': 'Upravljanje obavještenjima',
+
+    'new_card_title': 'Objavi novo obavještenje',
+    'label_title': 'Naslov',
+    'ph_title': 'npr. Servisiranje lifta',
+
+    'label_content': 'Sadržaj',
+    'ph_content': 'Upišite tekst obavještenja ovdje...',
+
+    'label_target': 'Ciljna grupa',
+    'target_all': 'Svi stanari',
+    'target_admins': 'Samo upravnici',
+
+    'btn_publish': 'Objavi obavještenje',
+
+    'list_title': 'Objavljena obavještenja',
+
+    'target_prefix': 'Cilj:',
+    'target_admins_short': 'Upravnici',
+    'target_all_short': 'Svi stanari',
+
+    'expired': '(Isteklo)',
+
+    'publisher_prefix': 'Objavio/la:',
+    'system': 'Sistem',
+
+    'empty': 'Još nema objavljenih obavještenja.'
+  }
+} %}
+
+{% macro tp(k) -%}
+  {{ I18N_PAGE.get(LANG, I18N_PAGE['tr']).get(k, I18N_PAGE['tr'].get(k, k)) }}
+{%- endmacro %}
+
+{% block title %}{{ tp('page_title') }}{% endblock %}
 {% block topbar_title %}
-  Duyuru Yönetimi
+  {{ tp('topbar_title') }}
   {% if session.active_site_name %}
     – {{ session.active_site_name }}
   {% elif current_site_name %}
@@ -17,47 +122,47 @@
   <!-- SOL: YENİ DUYURU -->
   <section>
     <div class="card">
-      <h2 style="font-size:16px; margin-bottom:12px;">Yeni Duyuru Yayınla</h2>
+      <h2 style="font-size:16px; margin-bottom:12px;">{{ tp('new_card_title') }}</h2>
 
       <form method="post" style="display:flex; flex-direction:column; gap:10px;">
 
         <div>
-          <label for="title" style="display:block; font-size:13px; margin-bottom:3px;">Başlık</label>
+          <label for="title" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('label_title') }}</label>
           <input
             type="text"
             id="title"
             name="title"
             required
-            placeholder="Örn: Asansör Bakım Çalışması"
+            placeholder="{{ tp('ph_title') }}"
             style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
         </div>
 
         <div>
-          <label for="content" style="display:block; font-size:13px; margin-bottom:3px;">İçerik</label>
+          <label for="content" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('label_content') }}</label>
           <textarea
             id="content"
             name="content"
             rows="4"
             required
-            placeholder="Duyuru metnini buraya yazın..."
+            placeholder="{{ tp('ph_content') }}"
             style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px; resize:vertical;"></textarea>
         </div>
 
         <div>
-          <label for="target" style="display:block; font-size:13px; margin-bottom:3px;">Hedef Kitle</label>
+          <label for="target" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('label_target') }}</label>
           <select
             id="target"
             name="target"
             style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
-            <option value="all">Tüm sakinler</option>
-            <option value="admins">Sadece yöneticiler</option>
+            <option value="all">{{ tp('target_all') }}</option>
+            <option value="admins">{{ tp('target_admins') }}</option>
           </select>
         </div>
 
         <div style="margin-top:4px;">
           <button type="submit"
                   style="padding:8px 12px; border-radius:999px; border:none; background:#2563eb; color:white; font-size:13px; cursor:pointer;">
-            Duyuruyu Yayınla
+            {{ tp('btn_publish') }}
           </button>
         </div>
 
@@ -68,7 +173,7 @@
   <!-- SAĞ: DUYURU LİSTESİ -->
   <section>
     <div class="card">
-      <h2 style="font-size:16px; margin-bottom:10px;">Yayınlanan Duyurular</h2>
+      <h2 style="font-size:16px; margin-bottom:10px;">{{ tp('list_title') }}</h2>
 
       {% if announcements %}
         <ul style="list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px;">
@@ -93,19 +198,19 @@
               <div style="display:flex; justify-content:space-between; font-size:11px; color:#6b7280;">
                 <span>
                   {% if ann.target == "admins" %}
-                    Hedef: Yöneticiler
+                    {{ tp('target_prefix') }} {{ tp('target_admins_short') }}
                   {% else %}
-                    Hedef: Tüm sakinler
+                    {{ tp('target_prefix') }} {{ tp('target_all_short') }}
                   {% endif %}
                   {% if is_expired %}
-                    · <span style="font-style:italic;">(Süresi doldu)</span>
+                    · <span style="font-style:italic;">{{ tp('expired') }}</span>
                   {% endif %}
                 </span>
                 <span>
                   {% if user %}
-                    Yayınlayan: {{ user.name }}
+                    {{ tp('publisher_prefix') }} {{ user.name }}
                   {% else %}
-                    Sistem
+                    {{ tp('system') }}
                   {% endif %}
                 </span>
               </div>
@@ -115,7 +220,7 @@
 
       {% else %}
         <p style="font-size:13px; color:#6b7280;">
-          Henüz yayınlanmış bir duyuru bulunmuyor.
+          {{ tp('empty') }}
         </p>
       {% endif %}
     </div>

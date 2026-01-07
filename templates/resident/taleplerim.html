@@ -1,8 +1,107 @@
 {% extends "base.html" %}
 
-{% block title %}Taleplerim{% endblock %}
+{# ============================================================
+   TALEPLERİM - 3 DİL (TR / EN / ME)
+   ============================================================ #}
+
+{% set LANG = session.get('lang','tr') %}
+
+{% set I18N_PAGE = {
+  'tr': {
+    'page_title': 'Taleplerim',
+    'topbar_title': 'Taleplerim / Arızalarım',
+
+    'new_title': 'Yeni Talep Oluştur',
+    'title_label': 'Başlık',
+    'title_ph': 'Örn: Asansör arızası',
+    'desc_label': 'Açıklama',
+    'desc_ph': 'Sorunu mümkün olduğunca detaylı açıklayın...',
+    'priority_label': 'Öncelik',
+    'priority_normal': 'Normal',
+    'priority_high': 'Yüksek',
+    'priority_low': 'Düşük',
+    'btn_create': 'Talep Oluştur',
+
+    'list_title': 'Mevcut Taleplerim',
+    'col_title': 'Başlık',
+    'col_status': 'Durum',
+    'col_priority': 'Öncelik',
+    'col_date': 'Tarih',
+
+    'status_open': 'Açık',
+    'status_in_progress': 'Devam ediyor',
+    'status_closed': 'Kapalı',
+
+    'empty': 'Henüz bir talep oluşturmadınız.',
+    'dash': '-'
+  },
+
+  'en': {
+    'page_title': 'My Requests',
+    'topbar_title': 'My Requests / Issues',
+
+    'new_title': 'Create a New Request',
+    'title_label': 'Title',
+    'title_ph': 'e.g., Elevator malfunction',
+    'desc_label': 'Description',
+    'desc_ph': 'Describe the issue in detail...',
+    'priority_label': 'Priority',
+    'priority_normal': 'Normal',
+    'priority_high': 'High',
+    'priority_low': 'Low',
+    'btn_create': 'Create Request',
+
+    'list_title': 'My Current Requests',
+    'col_title': 'Title',
+    'col_status': 'Status',
+    'col_priority': 'Priority',
+    'col_date': 'Date',
+
+    'status_open': 'Open',
+    'status_in_progress': 'In progress',
+    'status_closed': 'Closed',
+
+    'empty': 'You have not created any requests yet.',
+    'dash': '-'
+  },
+
+  'me': {
+    'page_title': 'Moji zahtjevi',
+    'topbar_title': 'Moji zahtjevi / Kvarovi',
+
+    'new_title': 'Kreiraj novi zahtjev',
+    'title_label': 'Naslov',
+    'title_ph': 'npr. Kvar lifta',
+    'desc_label': 'Opis',
+    'desc_ph': 'Opišite problem što detaljnije...',
+    'priority_label': 'Prioritet',
+    'priority_normal': 'Normalno',
+    'priority_high': 'Visok',
+    'priority_low': 'Nizak',
+    'btn_create': 'Kreiraj zahtjev',
+
+    'list_title': 'Moji postojeći zahtjevi',
+    'col_title': 'Naslov',
+    'col_status': 'Status',
+    'col_priority': 'Prioritet',
+    'col_date': 'Datum',
+
+    'status_open': 'Otvoreno',
+    'status_in_progress': 'U toku',
+    'status_closed': 'Zatvoreno',
+
+    'empty': 'Još niste kreirali nijedan zahtjev.',
+    'dash': '-'
+  }
+} %}
+
+{% macro tp(k) -%}
+  {{ I18N_PAGE.get(LANG, I18N_PAGE['tr']).get(k, I18N_PAGE['tr'].get(k, k)) }}
+{%- endmacro %}
+
+{% block title %}{{ tp('page_title') }}{% endblock %}
 {% block topbar_title %}
-  Taleplerim / Arızalarım
+  {{ tp('topbar_title') }}
   {% if session.active_site_name %}
     – {{ session.active_site_name }}
   {% elif current_site_name %}
@@ -17,48 +116,48 @@
   <!-- SOL: YENİ TALEP -->
   <section>
     <div class="card">
-      <h2 style="font-size:16px; margin-bottom:8px;">Yeni Talep Oluştur</h2>
+      <h2 style="font-size:16px; margin-bottom:8px;">{{ tp('new_title') }}</h2>
 
       <form method="post" style="display:flex; flex-direction:column; gap:10px;">
 
         <div>
-          <label for="title" style="display:block; font-size:13px; margin-bottom:3px;">Başlık</label>
+          <label for="title" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('title_label') }}</label>
           <input
             type="text"
             id="title"
             name="title"
             required
-            placeholder="Örn: Asansör arızası"
+            placeholder="{{ tp('title_ph') }}"
             style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
         </div>
 
         <div>
-          <label for="description" style="display:block; font-size:13px; margin-bottom:3px;">Açıklama</label>
+          <label for="description" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('desc_label') }}</label>
           <textarea
             id="description"
             name="description"
             rows="4"
             required
-            placeholder="Sorunu mümkün olduğunca detaylı açıklayın..."
+            placeholder="{{ tp('desc_ph') }}"
             style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px; resize:vertical;"></textarea>
         </div>
 
         <div>
-          <label for="priority" style="display:block; font-size:13px; margin-bottom:3px;">Öncelik</label>
+          <label for="priority" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('priority_label') }}</label>
           <select
             id="priority"
             name="priority"
             style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
-            <option value="normal">Normal</option>
-            <option value="high">Yüksek</option>
-            <option value="low">Düşük</option>
+            <option value="normal">{{ tp('priority_normal') }}</option>
+            <option value="high">{{ tp('priority_high') }}</option>
+            <option value="low">{{ tp('priority_low') }}</option>
           </select>
         </div>
 
         <div style="margin-top:4px;">
           <button type="submit"
                   style="padding:8px 12px; border-radius:999px; border:none; background:#2563eb; color:white; font-size:13px; cursor:pointer;">
-            Talep Oluştur
+            {{ tp('btn_create') }}
           </button>
         </div>
 
@@ -69,17 +168,17 @@
   <!-- SAĞ: TALEP LİSTESİ -->
   <section>
     <div class="card">
-      <h2 style="font-size:16px; margin-bottom:8px;">Mevcut Taleplerim</h2>
+      <h2 style="font-size:16px; margin-bottom:8px;">{{ tp('list_title') }}</h2>
 
       {% if tickets %}
         <div style="max-height:360px; overflow:auto;">
           <table style="width:100%; border-collapse:collapse; font-size:12px;">
             <thead>
               <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
-                <th style="text-align:left; padding:6px 4px;">Başlık</th>
-                <th style="text-align:left; padding:6px 4px;">Durum</th>
-                <th style="text-align:left; padding:6px 4px;">Öncelik</th>
-                <th style="text-align:left; padding:6px 4px;">Tarih</th>
+                <th style="text-align:left; padding:6px 4px;">{{ tp('col_title') }}</th>
+                <th style="text-align:left; padding:6px 4px;">{{ tp('col_status') }}</th>
+                <th style="text-align:left; padding:6px 4px;">{{ tp('col_priority') }}</th>
+                <th style="text-align:left; padding:6px 4px;">{{ tp('col_date') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -90,29 +189,32 @@
                       {{ t.title }}
                     </span>
                   </td>
+
                   <td style="padding:6px 4px; white-space:nowrap;">
                     {% if t.status == 'closed' %}
-                      <span style="padding:2px 8px; border-radius:999px; background:#dcfce7; color:#15803d;">Kapalı</span>
+                      <span style="padding:2px 8px; border-radius:999px; background:#dcfce7; color:#15803d;">{{ tp('status_closed') }}</span>
                     {% elif t.status == 'in_progress' %}
-                      <span style="padding:2px 8px; border-radius:999px; background:#fef9c3; color:#854d0e;">Devam ediyor</span>
+                      <span style="padding:2px 8px; border-radius:999px; background:#fef9c3; color:#854d0e;">{{ tp('status_in_progress') }}</span>
                     {% else %}
-                      <span style="padding:2px 8px; border-radius:999px; background:#fee2e2; color:#b91c1c;">Açık</span>
+                      <span style="padding:2px 8px; border-radius:999px; background:#fee2e2; color:#b91c1c;">{{ tp('status_open') }}</span>
                     {% endif %}
                   </td>
+
                   <td style="padding:6px 4px; white-space:nowrap;">
                     {% if t.priority == 'high' %}
-                      <span style="color:#b91c1c;">Yüksek</span>
+                      <span style="color:#b91c1c;">{{ tp('priority_high') }}</span>
                     {% elif t.priority == 'low' %}
-                      <span style="color:#15803d;">Düşük</span>
+                      <span style="color:#15803d;">{{ tp('priority_low') }}</span>
                     {% else %}
-                      Normal
+                      {{ tp('priority_normal') }}
                     {% endif %}
                   </td>
+
                   <td style="padding:6px 4px; white-space:nowrap;">
                     {% if t.created_at %}
                       {{ t.created_at.strftime('%d.%m.%Y') }}
                     {% else %}
-                      <span style="color:#9ca3af;">-</span>
+                      <span style="color:#9ca3af;">{{ tp('dash') }}</span>
                     {% endif %}
                   </td>
                 </tr>
@@ -122,7 +224,7 @@
         </div>
       {% else %}
         <p style="font-size:13px; color:#6b7280;">
-          Henüz bir talep oluşturmadınız.
+          {{ tp('empty') }}
         </p>
       {% endif %}
     </div>

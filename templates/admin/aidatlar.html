@@ -1,8 +1,228 @@
 {% extends "base.html" %}
 
-{% block title %}Aidatlar / Borçlar{% endblock %}
+{# ============================================================
+   AİDATLAR / BORÇLAR - 3 DİL (TR / EN / ME) UYUMLU
+   ============================================================ #}
+
+{% set LANG = session.get('lang','tr') %}
+
+{% set I18N_PAGE = {
+  'tr': {
+    'page_title': 'Aidatlar / Borçlar',
+    'topbar_title': 'Aidatlar / Borçlar',
+
+    'new_record_title': 'Yeni Borç / Aidat Kaydı',
+    'apartment': 'Daire',
+    'choose_apartment': 'Daire seçin...',
+    'for_all': 'Bu borcu tüm daireler için oluştur',
+    'for_all_hint': 'Eğer işaretlerseniz, üstteki daire seçimi yok sayılır ve tüm dairelere aynı borç eklenir.',
+
+    'description': 'Açıklama',
+    'description_ph': 'Örn: Ocak 2026 Aidatı',
+
+    'amount': 'Tutar (₺)',
+    'amount_ph': 'Örn: 750',
+
+    'due_date': 'Vade Tarihi',
+
+    'type_optional': 'Tür (opsiyonel)',
+    'not_selected': 'Seçilmedi',
+
+    'type_aidat': 'Aidat',
+    'type_elektrik': 'Elektrik',
+    'type_su': 'Su',
+    'type_dogalgaz': 'Doğalgaz',
+    'type_ekstra': 'Ekstra Gider',
+
+    'create_bill': 'Borç Kaydını Oluştur',
+
+    'existing_title': 'Mevcut Borç / Aidat Kayıtları',
+    'filter_status': 'Durum',
+    'filter_type': 'Tür',
+    'filter': 'Filtrele',
+
+    'all': 'Hepsi',
+    'status_open': 'Açık',
+    'status_partial': 'Kısmi',
+    'status_paid': 'Ödendi',
+
+    'col_apartment': 'Daire',
+    'col_description': 'Açıklama',
+    'col_type': 'Tür',
+    'col_amount': 'Tutar',
+    'col_due': 'Vade',
+    'col_status': 'Durum',
+
+    'not_specified': 'Belirtilmedi',
+    'none': 'Yok',
+
+    'total': 'Toplam',
+    'record': 'kayıt',
+    'page': 'Sayfa',
+    'first': 'İlk',
+    'prev': 'Önceki',
+    'next': 'Sonraki',
+    'last': 'Son',
+
+    'no_bills': 'Henüz kayıtlı bir borç / aidat bulunmuyor. Soldaki formdan ilk kaydı ekleyebilirsiniz.',
+
+    'apartment_summary_title': 'Daire Bazında Toplam Borç Özeti',
+    'debt_types': 'Borç Türleri',
+    'total_col': 'Toplam',
+    'paid_col': 'Ödenen',
+    'remaining_col': 'Kalan',
+    'no_summary': 'Henüz özetlenecek borç kaydı bulunmuyor.'
+  },
+
+  'en': {
+    'page_title': 'Dues / Bills',
+    'topbar_title': 'Dues / Bills',
+
+    'new_record_title': 'New Bill / Dues Record',
+    'apartment': 'Apartment',
+    'choose_apartment': 'Select an apartment...',
+    'for_all': 'Create this bill for all apartments',
+    'for_all_hint': 'If checked, the apartment selection above is ignored and the same bill is added to all apartments.',
+
+    'description': 'Description',
+    'description_ph': 'e.g., January 2026 Dues',
+
+    'amount': 'Amount (₺)',
+    'amount_ph': 'e.g., 750',
+
+    'due_date': 'Due Date',
+
+    'type_optional': 'Type (optional)',
+    'not_selected': 'Not selected',
+
+    'type_aidat': 'Dues',
+    'type_elektrik': 'Electricity',
+    'type_su': 'Water',
+    'type_dogalgaz': 'Natural Gas',
+    'type_ekstra': 'Extra Expense',
+
+    'create_bill': 'Create Bill',
+
+    'existing_title': 'Existing Bill / Dues Records',
+    'filter_status': 'Status',
+    'filter_type': 'Type',
+    'filter': 'Filter',
+
+    'all': 'All',
+    'status_open': 'Open',
+    'status_partial': 'Partial',
+    'status_paid': 'Paid',
+
+    'col_apartment': 'Apartment',
+    'col_description': 'Description',
+    'col_type': 'Type',
+    'col_amount': 'Amount',
+    'col_due': 'Due',
+    'col_status': 'Status',
+
+    'not_specified': 'Not specified',
+    'none': 'None',
+
+    'total': 'Total',
+    'record': 'records',
+    'page': 'Page',
+    'first': 'First',
+    'prev': 'Previous',
+    'next': 'Next',
+    'last': 'Last',
+
+    'no_bills': 'No bill/dues records yet. You can add the first record using the form on the left.',
+
+    'apartment_summary_title': 'Apartment-Based Total Debt Summary',
+    'debt_types': 'Debt Types',
+    'total_col': 'Total',
+    'paid_col': 'Paid',
+    'remaining_col': 'Remaining',
+    'no_summary': 'No bills to summarize yet.'
+  },
+
+  'me': {
+    'page_title': 'Članarine / Dugovanja',
+    'topbar_title': 'Članarine / Dugovanja',
+
+    'new_record_title': 'Novi zapis dugovanja / članarine',
+    'apartment': 'Stan',
+    'choose_apartment': 'Izaberite stan...',
+    'for_all': 'Kreiraj ovo dugovanje za sve stanove',
+    'for_all_hint': 'Ako je označeno, izbor stana iznad se ignoriše i isto dugovanje se dodaje svim stanovima.',
+
+    'description': 'Opis',
+    'description_ph': 'npr. Članarina januar 2026',
+
+    'amount': 'Iznos (₺)',
+    'amount_ph': 'npr. 750',
+
+    'due_date': 'Rok dospijeća',
+
+    'type_optional': 'Tip (opciono)',
+    'not_selected': 'Nije izabrano',
+
+    'type_aidat': 'Članarina',
+    'type_elektrik': 'Struja',
+    'type_su': 'Voda',
+    'type_dogalgaz': 'Gas',
+    'type_ekstra': 'Dodatni trošak',
+
+    'create_bill': 'Kreiraj dugovanje',
+
+    'existing_title': 'Postojeći zapisi dugovanja / članarine',
+    'filter_status': 'Status',
+    'filter_type': 'Tip',
+    'filter': 'Filtriraj',
+
+    'all': 'Svi',
+    'status_open': 'Otvoreno',
+    'status_partial': 'Djelimično',
+    'status_paid': 'Plaćeno',
+
+    'col_apartment': 'Stan',
+    'col_description': 'Opis',
+    'col_type': 'Tip',
+    'col_amount': 'Iznos',
+    'col_due': 'Rok',
+    'col_status': 'Status',
+
+    'not_specified': 'Nije navedeno',
+    'none': 'Nema',
+
+    'total': 'Ukupno',
+    'record': 'zapisa',
+    'page': 'Strana',
+    'first': 'Prva',
+    'prev': 'Prethodna',
+    'next': 'Sledeća',
+    'last': 'Poslednja',
+
+    'no_bills': 'Još nema zapisa dugovanja/članarine. Prvi zapis možete dodati putem forme lijevo.',
+
+    'apartment_summary_title': 'Sažetak ukupnog duga po stanovima',
+    'debt_types': 'Tipovi duga',
+    'total_col': 'Ukupno',
+    'paid_col': 'Plaćeno',
+    'remaining_col': 'Preostalo',
+    'no_summary': 'Još nema dugovanja za sažetak.'
+  }
+} %}
+
+{% macro tp(k) -%}
+  {{ I18N_PAGE.get(LANG, I18N_PAGE['tr']).get(k, I18N_PAGE['tr'].get(k, k)) }}
+{%- endmacro %}
+
+{# Tip çevirileri (ekran için) #}
+{% set TYPE_LABEL = {
+  'tr': {'aidat':'Aidat','elektrik':'Elektrik','su':'Su','dogalgaz':'Doğalgaz','ekstra':'Ekstra Gider'},
+  'en': {'aidat':'Dues','elektrik':'Electricity','su':'Water','dogalgaz':'Natural Gas','ekstra':'Extra Expense'},
+  'me': {'aidat':'Članarina','elektrik':'Struja','su':'Voda','dogalgaz':'Gas','ekstra':'Dodatni trošak'}
+} %}
+
+{% block title %}{{ tp('page_title') }}{% endblock %}
 {% block topbar_title %}
-  Aidatlar / Borçlar
+  {{ tp('topbar_title') }}
   {% if session.active_site_name %}
     – {{ session.active_site_name }}
   {% elif current_site_name %}
@@ -17,17 +237,17 @@
   <!-- SOL: YENİ BORÇ / AİDAT EKLE -->
   <section>
     <div class="card">
-      <h2 style="font-size:16px; margin-bottom:12px;">Yeni Borç / Aidat Kaydı</h2>
+      <h2 style="font-size:16px; margin-bottom:12px;">{{ tp('new_record_title') }}</h2>
 
       <form method="post" style="display:flex; flex-direction:column; gap:10px;">
 
         <div>
-          <label for="apartment_id" style="display:block; font-size:13px; margin-bottom:3px;">Daire</label>
+          <label for="apartment_id" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('apartment') }}</label>
           <select
             id="apartment_id"
             name="apartment_id"
             style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
-            <option value="">Daire seçin...</option>
+            <option value="">{{ tp('choose_apartment') }}</option>
             {% for apt in apartments %}
               <option value="{{ apt.id }}">
                 {{ apt.block }} Blok • Kat {{ apt.floor }} • No {{ apt.number }}
@@ -38,38 +258,38 @@
           <!-- ✅ Tüm daireler için borç -->
           <label style="display:flex; align-items:center; gap:6px; margin-top:6px; font-size:12px; color:#4b5563;">
             <input type="checkbox" id="for_all" name="for_all" value="1">
-            Bu borcu tüm daireler için oluştur
+            {{ tp('for_all') }}
           </label>
           <p style="font-size:11px; color:#9ca3af; margin-top:2px;">
-            Eğer işaretlerseniz, üstteki daire seçimi yok sayılır ve tüm dairelere aynı borç eklenir.
+            {{ tp('for_all_hint') }}
           </p>
         </div>
 
         <div>
-          <label for="description" style="display:block; font-size:13px; margin-bottom:3px;">Açıklama</label>
+          <label for="description" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('description') }}</label>
           <input
             type="text"
             id="description"
             name="description"
             required
-            placeholder="Örn: Ocak 2026 Aidatı"
+            placeholder="{{ tp('description_ph') }}"
             style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
         </div>
 
         <div style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px;">
           <div>
-            <label for="amount" style="display:block; font-size:13px; margin-bottom:3px;">Tutar (₺)</label>
+            <label for="amount" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('amount') }}</label>
             <input
               type="text"
               id="amount"
               name="amount"
               required
-              placeholder="Örn: 750"
+              placeholder="{{ tp('amount_ph') }}"
               style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
           </div>
 
           <div>
-            <label for="due_date" style="display:block; font-size:13px; margin-bottom:3px;">Vade Tarihi</label>
+            <label for="due_date" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('due_date') }}</label>
             <input
               type="date"
               id="due_date"
@@ -79,64 +299,65 @@
         </div>
 
         <div>
-          <label for="type" style="display:block; font-size:13px; margin-bottom:3px;">Tür (opsiyonel)</label>
+          <label for="type" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('type_optional') }}</label>
           <select
             id="type"
             name="type"
             style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
-            <option value="">Seçilmedi</option>
-            <option value="aidat">Aidat</option>
-            <option value="elektrik">Elektrik</option>
-            <option value="su">Su</option>
-            <option value="dogalgaz">Doğalgaz</option>
-            <option value="ekstra">Ekstra Gider</option>
+            <option value="">{{ tp('not_selected') }}</option>
+            <option value="aidat">{{ tp('type_aidat') }}</option>
+            <option value="elektrik">{{ tp('type_elektrik') }}</option>
+            <option value="su">{{ tp('type_su') }}</option>
+            <option value="dogalgaz">{{ tp('type_dogalgaz') }}</option>
+            <option value="ekstra">{{ tp('type_ekstra') }}</option>
           </select>
         </div>
 
         <div style="margin-top:4px;">
           <button type="submit"
                   style="padding:8px 12px; border-radius:999px; border:none; background:#2563eb; color:white; font-size:13px; cursor:pointer;">
-            Borç Kaydını Oluştur
+            {{ tp('create_bill') }}
           </button>
         </div>
 
       </form>
     </div>
   </section>
+
   <!-- SAĞ: BORÇ / AİDAT LİSTESİ + ÖZET -->
   <section>
     <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <h2 style="font-size:16px;">Mevcut Borç / Aidat Kayıtları</h2>
+        <h2 style="font-size:16px;">{{ tp('existing_title') }}</h2>
 
         <!-- 🔎 Filtre Formu -->
         <form method="get" style="display:flex; gap:6px; align-items:center; font-size:11px;">
           <input type="hidden" name="sort" value="{{ current_sort }}">
           <input type="hidden" name="dir" value="{{ current_dir }}">
 
-          <label style="color:#6b7280;">Durum</label>
+          <label style="color:#6b7280;">{{ tp('filter_status') }}</label>
           <select name="status"
                   style="padding:4px 6px; border-radius:999px; border:1px solid #e5e7eb; font-size:11px;">
-            <option value="" {{ '' == filter_status and 'selected' or '' }}>Hepsi</option>
-            <option value="open" {{ filter_status == 'open' and 'selected' or '' }}>Açık</option>
-            <option value="partial" {{ filter_status == 'partial' and 'selected' or '' }}>Kısmi</option>
-            <option value="paid" {{ filter_status == 'paid' and 'selected' or '' }}>Ödendi</option>
+            <option value="" {{ '' == filter_status and 'selected' or '' }}>{{ tp('all') }}</option>
+            <option value="open" {{ filter_status == 'open' and 'selected' or '' }}>{{ tp('status_open') }}</option>
+            <option value="partial" {{ filter_status == 'partial' and 'selected' or '' }}>{{ tp('status_partial') }}</option>
+            <option value="paid" {{ filter_status == 'paid' and 'selected' or '' }}>{{ tp('status_paid') }}</option>
           </select>
 
-          <label style="color:#6b7280;">Tür</label>
+          <label style="color:#6b7280;">{{ tp('filter_type') }}</label>
           <select name="bill_type"
                   style="padding:4px 6px; border-radius:999px; border:1px solid #e5e7eb; font-size:11px;">
-            <option value="" {{ '' == filter_type and 'selected' or '' }}>Hepsi</option>
-            <option value="aidat" {{ filter_type == 'aidat' and 'selected' or '' }}>Aidat</option>
-            <option value="elektrik" {{ filter_type == 'elektrik' and 'selected' or '' }}>Elektrik</option>
-            <option value="su" {{ filter_type == 'su' and 'selected' or '' }}>Su</option>
-            <option value="dogalgaz" {{ filter_type == 'dogalgaz' and 'selected' or '' }}>Doğalgaz</option>
-            <option value="ekstra" {{ filter_type == 'ekstra' and 'selected' or '' }}>Ekstra Gider</option>
+            <option value="" {{ '' == filter_type and 'selected' or '' }}>{{ tp('all') }}</option>
+            <option value="aidat" {{ filter_type == 'aidat' and 'selected' or '' }}>{{ tp('type_aidat') }}</option>
+            <option value="elektrik" {{ filter_type == 'elektrik' and 'selected' or '' }}>{{ tp('type_elektrik') }}</option>
+            <option value="su" {{ filter_type == 'su' and 'selected' or '' }}>{{ tp('type_su') }}</option>
+            <option value="dogalgaz" {{ filter_type == 'dogalgaz' and 'selected' or '' }}>{{ tp('type_dogalgaz') }}</option>
+            <option value="ekstra" {{ filter_type == 'ekstra' and 'selected' or '' }}>{{ tp('type_ekstra') }}</option>
           </select>
 
           <button type="submit"
                   style="padding:4px 10px; border-radius:999px; border:none; background:#2563eb; color:white; cursor:pointer;">
-            Filtrele
+            {{ tp('filter') }}
           </button>
         </form>
       </div>
@@ -166,22 +387,22 @@
                 {% endmacro %}
 
                 <th style="text-align:left; padding:6px 4px;">
-                  {{ sort_link('Daire', 'apartment') }}
+                  {{ sort_link(tp('col_apartment'), 'apartment') }}
                 </th>
                 <th style="text-align:left; padding:6px 4px;">
-                  {{ sort_link('Açıklama', 'description') }}
+                  {{ sort_link(tp('col_description'), 'description') }}
                 </th>
                 <th style="text-align:left; padding:6px 4px;">
-                  {{ sort_link('Tür', 'type') }}
+                  {{ sort_link(tp('col_type'), 'type') }}
                 </th>
                 <th style="text-align:left; padding:6px 4px;">
-                  {{ sort_link('Tutar', 'amount') }}
+                  {{ sort_link(tp('col_amount'), 'amount') }}
                 </th>
                 <th style="text-align:left; padding:6px 4px;">
-                  {{ sort_link('Vade', 'due_date') }}
+                  {{ sort_link(tp('col_due'), 'due_date') }}
                 </th>
                 <th style="text-align:left; padding:6px 4px;">
-                  {{ sort_link('Durum', 'status') }}
+                  {{ sort_link(tp('col_status'), 'status') }}
                 </th>
               </tr>
             </thead>
@@ -196,9 +417,9 @@
                   </td>
                   <td style="padding:6px 4px; white-space:nowrap;">
                     {% if bill.type %}
-                      {{ bill.type|capitalize }}
+                      {{ TYPE_LABEL.get(LANG, TYPE_LABEL['tr']).get(bill.type, bill.type) }}
                     {% else %}
-                      <span style="color:#9ca3af;">Belirtilmedi</span>
+                      <span style="color:#9ca3af;">{{ tp('not_specified') }}</span>
                     {% endif %}
                   </td>
                   <td style="padding:6px 4px; white-space:nowrap;">
@@ -208,16 +429,16 @@
                     {% if bill.due_date %}
                       {{ bill.due_date.strftime('%d.%m.%Y') }}
                     {% else %}
-                      <span style="color:#9ca3af;">Yok</span>
+                      <span style="color:#9ca3af;">{{ tp('none') }}</span>
                     {% endif %}
                   </td>
                   <td style="padding:6px 4px; white-space:nowrap;">
                     {% if bill.status == 'paid' %}
-                      <span style="padding:2px 8px; border-radius:999px; background:#dcfce7; color:#15803d;">Ödendi</span>
+                      <span style="padding:2px 8px; border-radius:999px; background:#dcfce7; color:#15803d;">{{ tp('status_paid') }}</span>
                     {% elif bill.status == 'partial' %}
-                      <span style="padding:2px 8px; border-radius:999px; background:#fef9c3; color:#854d0e;">Kısmi</span>
+                      <span style="padding:2px 8px; border-radius:999px; background:#fef9c3; color:#854d0e;">{{ tp('status_partial') }}</span>
                     {% else %}
-                      <span style="padding:2px 8px; border-radius:999px; background:#fee2e2; color:#b91c1c;">Açık</span>
+                      <span style="padding:2px 8px; border-radius:999px; background:#fee2e2; color:#b91c1c;">{{ tp('status_open') }}</span>
                     {% endif %}
                   </td>
                 </tr>
@@ -229,8 +450,8 @@
         <!-- 📄 Sayfalama -->
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:12px; color:#6b7280;">
           <div>
-            Toplam {{ total_bills }} kayıt •
-            Sayfa {{ page }} / {{ pages }}
+            {{ tp('total') }} {{ total_bills }} {{ tp('record') }} •
+            {{ tp('page') }} {{ page }} / {{ pages }}
           </div>
           <div style="display:flex; gap:4px;">
             {% if page > 1 %}
@@ -241,7 +462,7 @@
                                   status=filter_status,
                                   bill_type=filter_type) }}"
                  style="padding:3px 8px; border-radius:999px; border:1px solid #e5e7eb; text-decoration:none; color:#374151;">
-                İlk
+                {{ tp('first') }}
               </a>
               <a href="{{ url_for('admin.manage_bills',
                                   page=page-1,
@@ -250,7 +471,7 @@
                                   status=filter_status,
                                   bill_type=filter_type) }}"
                  style="padding:3px 8px; border-radius:999px; border:1px solid #e5e7eb; text-decoration:none; color:#374151;">
-                Önceki
+                {{ tp('prev') }}
               </a>
             {% endif %}
 
@@ -262,7 +483,7 @@
                                   status=filter_status,
                                   bill_type=filter_type) }}"
                  style="padding:3px 8px; border-radius:999px; border:1px solid #e5e7eb; text-decoration:none; color:#374151;">
-                Sonraki
+                {{ tp('next') }}
               </a>
               <a href="{{ url_for('admin.manage_bills',
                                   page=pages,
@@ -271,14 +492,14 @@
                                   status=filter_status,
                                   bill_type=filter_type) }}"
                  style="padding:3px 8px; border-radius:999px; border:1px solid #e5e7eb; text-decoration:none; color:#374151;">
-                Son
+                {{ tp('last') }}
               </a>
             {% endif %}
           </div>
         </div>
       {% else %}
         <p style="font-size:13px; color:#6b7280;">
-          Henüz kayıtlı bir borç / aidat bulunmuyor. Soldaki formdan ilk kaydı ekleyebilirsiniz.
+          {{ tp('no_bills') }}
         </p>
       {% endif %}
     </div>
@@ -286,18 +507,18 @@
 
     <!-- ✅ DAİRE BAZINDA TOPLAM BORÇ ÖZETİ -->
     <div class="card">
-      <h2 style="font-size:16px; margin-bottom:10px;">Daire Bazında Toplam Borç Özeti</h2>
+      <h2 style="font-size:16px; margin-bottom:10px;">{{ tp('apartment_summary_title') }}</h2>
 
       {% if apartment_summaries %}
         <div style="width:100%; overflow-x:auto;">
           <table style="width:100%; border-collapse:separate; border-spacing:0 6px; font-size:12px;">
             <thead>
               <tr style="background:#f9fafb;">
-                <th style="text-align:left; padding:6px 8px;">Daire</th>
-                <th style="text-align:center; padding:6px 8px;">Borç Türleri</th>
-                <th style="text-align:right; padding:6px 8px;">Toplam</th>
-                <th style="text-align:right; padding:6px 8px;">Ödenen</th>
-                <th style="text-align:right; padding:6px 8px;">Kalan</th>
+                <th style="text-align:left; padding:6px 8px;">{{ tp('col_apartment') }}</th>
+                <th style="text-align:center; padding:6px 8px;">{{ tp('debt_types') }}</th>
+                <th style="text-align:right; padding:6px 8px;">{{ tp('total_col') }}</th>
+                <th style="text-align:right; padding:6px 8px;">{{ tp('paid_col') }}</th>
+                <th style="text-align:right; padding:6px 8px;">{{ tp('remaining_col') }}</th>
               </tr>
             </thead>
 
@@ -330,7 +551,7 @@
                             border:1px solid #e5e7eb;
                             font-size:11px;
                           ">
-                            {{ t|capitalize }}: ₺ {{ "%.2f"|format(val) }}
+                            {{ TYPE_LABEL.get(LANG, TYPE_LABEL['tr']).get(t, t) }}: ₺ {{ "%.2f"|format(val) }}
                           </span>
                         {% endfor %}
                       </div>
@@ -360,7 +581,7 @@
         </div>
       {% else %}
         <p style="font-size:13px; color:#6b7280;">
-          Henüz özetlenecek borç kaydı bulunmuyor.
+          {{ tp('no_summary') }}
         </p>
       {% endif %}
     </div>

@@ -1,8 +1,197 @@
 {% extends "base.html" %}
 
-{% block title %}Sakin Ana Panel{% endblock %}
+{# ============================================================
+   SAKİN ANA PANEL - 3 DİL (TR / EN / ME) UYUMLU
+   ============================================================ #}
+
+{% set LANG = session.get('lang','tr') %}
+
+{% set I18N_PAGE = {
+  'tr': {
+    'page_title': 'Sakin Ana Panel',
+    'topbar_title': 'Sakin Ana Paneli',
+
+    'card_remaining_title': 'Kalan Toplam Borç',
+    'card_remaining_sub': 'Tüm faturalar - ödenenler',
+
+    'card_paid_title': 'Toplam Ödenen',
+    'card_paid_sub': 'Sisteme girilen tüm ödemeler',
+
+    'card_gross_title': 'Toplam Borç (Brüt)',
+    'card_gross_sub': 'Tüm fatura / aidat kalemleri toplamı',
+
+    'card_count_title': 'Fatura / Aidat Sayısı',
+    'card_count_sub_open': 'Açık',
+    'card_count_sub_partial': 'Kısmi',
+    'card_count_sub_paid': 'Ödenen',
+
+    'last_bills_title': 'Son Faturalar / Aidatlar',
+    'last_bills_total': 'Toplam',
+
+    'th_type': 'Tür',
+    'th_desc': 'Açıklama',
+    'th_due': 'Vade',
+    'th_amount': 'Tutar',
+    'th_status': 'Durum',
+
+    'view_all_debts': 'Tüm borçları görüntüle →',
+    'empty_bills': 'Kayıtlı fatura / aidat bulunmuyor.',
+
+    'last_payments_title': 'Son Ödemelerim',
+    'last_payments_sub': 'Son 5 ödeme',
+    'th_date': 'Tarih',
+    'th_payment_amount': 'Tutar',
+    'th_payment_type': 'Tür',
+    'view_all_payments': 'Tüm ödemeleri görüntüle →',
+    'empty_payments': 'Henüz ödeme kaydı bulunmuyor.',
+
+    'announcements_title': 'Duyurular',
+    'announcements_sub': 'Son 5 duyuru',
+    'announcements_expired': '(Süresi doldu)',
+    'empty_announcements': 'Henüz duyuru bulunmuyor.',
+
+    'tickets_title': 'Son Taleplerim',
+    'tickets_sub': 'Son 5 talep',
+    'th_ticket_title': 'Başlık',
+    'th_ticket_status': 'Durum',
+    'th_ticket_date': 'Tarih',
+    'view_all_tickets': 'Tüm talepleri görüntüle →',
+    'empty_tickets': 'Henüz talep oluşturmadınız.',
+
+    'status_open': 'Açık',
+    'status_partial': 'Kısmi',
+    'status_paid': 'Ödendi',
+
+    'type_general': 'Genel',
+    'dash': '-'
+  },
+
+  'en': {
+    'page_title': 'Resident Dashboard',
+    'topbar_title': 'Resident Dashboard',
+
+    'card_remaining_title': 'Remaining Total Debt',
+    'card_remaining_sub': 'All bills - paid amounts',
+
+    'card_paid_title': 'Total Paid',
+    'card_paid_sub': 'All payments recorded in the system',
+
+    'card_gross_title': 'Total Debt (Gross)',
+    'card_gross_sub': 'Total of all bill / dues items',
+
+    'card_count_title': 'Bill / Dues Count',
+    'card_count_sub_open': 'Open',
+    'card_count_sub_partial': 'Partial',
+    'card_count_sub_paid': 'Paid',
+
+    'last_bills_title': 'Latest Bills / Dues',
+    'last_bills_total': 'Total',
+
+    'th_type': 'Type',
+    'th_desc': 'Description',
+    'th_due': 'Due',
+    'th_amount': 'Amount',
+    'th_status': 'Status',
+
+    'view_all_debts': 'View all debts →',
+    'empty_bills': 'No bill / dues records found.',
+
+    'last_payments_title': 'My Latest Payments',
+    'last_payments_sub': 'Last 5 payments',
+    'th_date': 'Date',
+    'th_payment_amount': 'Amount',
+    'th_payment_type': 'Type',
+    'view_all_payments': 'View all payments →',
+    'empty_payments': 'No payment records yet.',
+
+    'announcements_title': 'Announcements',
+    'announcements_sub': 'Latest 5 announcements',
+    'announcements_expired': '(Expired)',
+    'empty_announcements': 'No announcements yet.',
+
+    'tickets_title': 'My Latest Requests',
+    'tickets_sub': 'Last 5 requests',
+    'th_ticket_title': 'Title',
+    'th_ticket_status': 'Status',
+    'th_ticket_date': 'Date',
+    'view_all_tickets': 'View all requests →',
+    'empty_tickets': 'You have not created any request yet.',
+
+    'status_open': 'Open',
+    'status_partial': 'Partial',
+    'status_paid': 'Paid',
+
+    'type_general': 'General',
+    'dash': '-'
+  },
+
+  'me': {
+    'page_title': 'Panel stanara',
+    'topbar_title': 'Glavni panel stanara',
+
+    'card_remaining_title': 'Preostali ukupan dug',
+    'card_remaining_sub': 'Svi računi - uplate',
+
+    'card_paid_title': 'Ukupno uplaćeno',
+    'card_paid_sub': 'Sve uplate unesene u sistem',
+
+    'card_gross_title': 'Ukupan dug (bruto)',
+    'card_gross_sub': 'Ukupno svih računa / članarina',
+
+    'card_count_title': 'Broj računa / članarina',
+    'card_count_sub_open': 'Otvoreno',
+    'card_count_sub_partial': 'Djelimično',
+    'card_count_sub_paid': 'Plaćeno',
+
+    'last_bills_title': 'Posljednji računi / članarine',
+    'last_bills_total': 'Ukupno',
+
+    'th_type': 'Tip',
+    'th_desc': 'Opis',
+    'th_due': 'Rok',
+    'th_amount': 'Iznos',
+    'th_status': 'Status',
+
+    'view_all_debts': 'Pogledaj sve dugove →',
+    'empty_bills': 'Nema evidentiranih računa / članarina.',
+
+    'last_payments_title': 'Moje posljednje uplate',
+    'last_payments_sub': 'Posljednjih 5 uplata',
+    'th_date': 'Datum',
+    'th_payment_amount': 'Iznos',
+    'th_payment_type': 'Tip',
+    'view_all_payments': 'Pogledaj sve uplate →',
+    'empty_payments': 'Još nema evidencije uplata.',
+
+    'announcements_title': 'Obavještenja',
+    'announcements_sub': 'Posljednjih 5 obavještenja',
+    'announcements_expired': '(Isteklo)',
+    'empty_announcements': 'Još nema obavještenja.',
+
+    'tickets_title': 'Moji posljednji zahtjevi',
+    'tickets_sub': 'Posljednjih 5 zahtjeva',
+    'th_ticket_title': 'Naslov',
+    'th_ticket_status': 'Status',
+    'th_ticket_date': 'Datum',
+    'view_all_tickets': 'Pogledaj sve zahtjeve →',
+    'empty_tickets': 'Još nijeste kreirali zahtjev.',
+
+    'status_open': 'Otvoreno',
+    'status_partial': 'Djelimično',
+    'status_paid': 'Plaćeno',
+
+    'type_general': 'Opšte',
+    'dash': '-'
+  }
+} %}
+
+{% macro tp(k) -%}
+  {{ I18N_PAGE.get(LANG, I18N_PAGE['tr']).get(k, I18N_PAGE['tr'].get(k, k)) }}
+{%- endmacro %}
+
+{% block title %}{{ tp('page_title') }}{% endblock %}
 {% block topbar_title %}
-  Sakin Ana Paneli
+  {{ tp('topbar_title') }}
   {% if session.active_site_name %}
     – {{ session.active_site_name }}
   {% elif current_site_name %}
@@ -213,45 +402,47 @@
 
       <!-- Kalan Borç -->
       <div class="resident-card">
-        <h3>Kalan Toplam Borç</h3>
+        <h3>{{ tp('card_remaining_title') }}</h3>
         <div class="value amount-negative">
           ₺{{ stats.total_open_amount | float | round(2) }}
         </div>
         <div class="sub">
-          Tüm faturalar - ödenenler
+          {{ tp('card_remaining_sub') }}
         </div>
       </div>
 
       <!-- Toplam Ödenen -->
       <div class="resident-card">
-        <h3>Toplam Ödenen</h3>
+        <h3>{{ tp('card_paid_title') }}</h3>
         <div class="value amount-positive">
           ₺{{ stats.total_paid_amount | float | round(2) }}
         </div>
         <div class="sub">
-          Sisteme girilen tüm ödemeler
+          {{ tp('card_paid_sub') }}
         </div>
       </div>
 
       <!-- TOPLAM BORÇ: Tüm Fatura / Aidat Tutarı -->
       <div class="resident-card">
-        <h3>Toplam Borç (Brüt)</h3>
+        <h3>{{ tp('card_gross_title') }}</h3>
         <div class="value">
           ₺{{ stats.total_bills_amount | float | round(2) }}
         </div>
         <div class="sub">
-          Tüm fatura / aidat kalemleri toplamı
+          {{ tp('card_gross_sub') }}
         </div>
       </div>
 
       <!-- Fatura Adedi -->
       <div class="resident-card">
-        <h3>Fatura / Aidat Sayısı</h3>
+        <h3>{{ tp('card_count_title') }}</h3>
         <div class="value">
           {{ stats.total_bills }}
         </div>
         <div class="sub">
-          Açık: {{ stats.open_bills }} · Kısmi: {{ stats.partial_bills }} · Ödenen: {{ stats.paid_bills }}
+          {{ tp('card_count_sub_open') }}: {{ stats.open_bills }}
+          · {{ tp('card_count_sub_partial') }}: {{ stats.partial_bills }}
+          · {{ tp('card_count_sub_paid') }}: {{ stats.paid_bills }}
         </div>
       </div>
     </div>
@@ -259,9 +450,9 @@
     <!-- Borç Listesi (Son faturalar) -->
     <div class="section-card" style="margin-bottom: 14px;">
       <div class="section-header">
-        <h2>Son Faturalar / Aidatlar</h2>
+        <h2>{{ tp('last_bills_title') }}</h2>
         <span>
-          Toplam: ₺{{ stats.total_bills_amount | float | round(2) }}
+          {{ tp('last_bills_total') }}: ₺{{ stats.total_bills_amount | float | round(2) }}
         </span>
       </div>
 
@@ -270,11 +461,11 @@
           <table class="list-table">
             <thead>
               <tr>
-                <th>Tür</th>
-                <th>Açıklama</th>
-                <th>Vade</th>
-                <th>Tutar</th>
-                <th>Durum</th>
+                <th>{{ tp('th_type') }}</th>
+                <th>{{ tp('th_desc') }}</th>
+                <th>{{ tp('th_due') }}</th>
+                <th>{{ tp('th_amount') }}</th>
+                <th>{{ tp('th_status') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -282,25 +473,25 @@
                 <tr>
                   <td>
                     <span class="pill-small">
-                      {{ bill.type or "Genel" }}
+                      {{ bill.type or tp('type_general') }}
                     </span>
                   </td>
-                  <td>{{ bill.description or "-" }}</td>
+                  <td>{{ bill.description or tp('dash') }}</td>
                   <td>
                     {% if bill.due_date %}
                       {{ bill.due_date.strftime("%d.%m.%Y") }}
                     {% else %}
-                      -
+                      {{ tp('dash') }}
                     {% endif %}
                   </td>
                   <td>₺{{ bill.amount | float | round(2) }}</td>
                   <td>
                     {% if bill.status == "open" %}
-                      <span class="status-pill status-open">Açık</span>
+                      <span class="status-pill status-open">{{ tp('status_open') }}</span>
                     {% elif bill.status == "partial" %}
-                      <span class="status-pill status-partial">Kısmi</span>
+                      <span class="status-pill status-partial">{{ tp('status_partial') }}</span>
                     {% elif bill.status == "paid" %}
-                      <span class="status-pill status-paid">Ödendi</span>
+                      <span class="status-pill status-paid">{{ tp('status_paid') }}</span>
                     {% else %}
                       <span class="status-pill">{{ bill.status }}</span>
                     {% endif %}
@@ -312,12 +503,12 @@
         </div>
         <div style="margin-top: 6px; text-align:right;">
           <a href="{{ url_for('resident.borclarim') }}" style="font-size:11px; color:#2563eb; text-decoration:none;">
-            Tüm borçları görüntüle →
+            {{ tp('view_all_debts') }}
           </a>
         </div>
       {% else %}
         <p style="font-size:12px; color:#6b7280; margin:0;">
-          Kayıtlı fatura / aidat bulunmuyor.
+          {{ tp('empty_bills') }}
         </p>
       {% endif %}
     </div>
@@ -325,8 +516,8 @@
     <!-- Ödemeler -->
     <div class="section-card">
       <div class="section-header">
-        <h2>Son Ödemelerim</h2>
-        <span>Son 5 ödeme</span>
+        <h2>{{ tp('last_payments_title') }}</h2>
+        <span>{{ tp('last_payments_sub') }}</span>
       </div>
 
       {% if payments and payments|length > 0 %}
@@ -334,9 +525,9 @@
           <table class="list-table">
             <thead>
               <tr>
-                <th>Tarih</th>
-                <th>Tutar</th>
-                <th>Tür</th>
+                <th>{{ tp('th_date') }}</th>
+                <th>{{ tp('th_payment_amount') }}</th>
+                <th>{{ tp('th_payment_type') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -346,7 +537,7 @@
                     {% if p.payment_date %}
                       {{ p.payment_date.strftime("%d.%m.%Y") }}
                     {% else %}
-                      -
+                      {{ tp('dash') }}
                     {% endif %}
                   </td>
                   <td>₺{{ p.amount | float | round(2) }}</td>
@@ -354,7 +545,7 @@
                     {% if p.method %}
                       <span class="pill-small">{{ p.method }}</span>
                     {% else %}
-                      -
+                      {{ tp('dash') }}
                     {% endif %}
                   </td>
                 </tr>
@@ -364,12 +555,12 @@
         </div>
         <div style="margin-top: 6px; text-align:right;">
           <a href="{{ url_for('resident.odemelerim') }}" style="font-size:11px; color:#2563eb; text-decoration:none;">
-            Tüm ödemeleri görüntüle →
+            {{ tp('view_all_payments') }}
           </a>
         </div>
       {% else %}
         <p style="font-size:12px; color:#6b7280; margin:0;">
-          Henüz ödeme kaydı bulunmuyor.
+          {{ tp('empty_payments') }}
         </p>
       {% endif %}
     </div>
@@ -382,8 +573,8 @@
     <!-- Duyurular -->
     <div class="section-card">
       <div class="section-header">
-        <h2>Duyurular</h2>
-        <span>Son 5 duyuru</span>
+        <h2>{{ tp('announcements_title') }}</h2>
+        <span>{{ tp('announcements_sub') }}</span>
       </div>
 
       {% if announcements and announcements|length > 0 %}
@@ -398,14 +589,14 @@
             <div class="announcement-meta">
               {{ ann.created_at.strftime("%d.%m.%Y %H:%M") }}
               {% if is_expired %}
-                · <span style="font-style:italic;">(Süresi doldu)</span>
+                · <span style="font-style:italic;">{{ tp('announcements_expired') }}</span>
               {% endif %}
             </div>
           </div>
         {% endfor %}
       {% else %}
         <p style="font-size:12px; color:#6b7280; margin:0;">
-          Henüz duyuru bulunmuyor.
+          {{ tp('empty_announcements') }}
         </p>
       {% endif %}
     </div>
@@ -414,8 +605,8 @@
     <!-- Talepler -->
     <div class="section-card">
       <div class="section-header">
-        <h2>Son Taleplerim</h2>
-        <span>Son 5 talep</span>
+        <h2>{{ tp('tickets_title') }}</h2>
+        <span>{{ tp('tickets_sub') }}</span>
       </div>
 
       {% if tickets and tickets|length > 0 %}
@@ -423,9 +614,9 @@
           <table class="list-table">
             <thead>
               <tr>
-                <th>Başlık</th>
-                <th>Durum</th>
-                <th>Tarih</th>
+                <th>{{ tp('th_ticket_title') }}</th>
+                <th>{{ tp('th_ticket_status') }}</th>
+                <th>{{ tp('th_ticket_date') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -447,12 +638,12 @@
         </div>
         <div style="margin-top: 6px; text-align:right;">
           <a href="{{ url_for('resident.taleplerim') }}" style="font-size:11px; color:#2563eb; text-decoration:none;">
-            Tüm talepleri görüntüle →
+            {{ tp('view_all_tickets') }}
           </a>
         </div>
       {% else %}
         <p style="font-size:12px; color:#6b7280; margin:0;">
-          Henüz talep oluşturmadınız.
+          {{ tp('empty_tickets') }}
         </p>
       {% endif %}
     </div>

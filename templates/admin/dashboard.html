@@ -1,8 +1,250 @@
 {% extends "base.html" %}
 
-{% block title %}Yönetim Paneli{% endblock %}
+{# ============================================================
+   DASHBOARD - 3 DİL (TR / EN / ME) UYUMLU
+   ============================================================ #}
+
+{% set LANG = session.get('lang','tr') %}
+
+{% set I18N_PAGE = {
+  'tr': {
+    'page_title': 'Yönetim Paneli',
+    'topbar_title': 'Yönetim Ana Paneli',
+
+    'general_summary': 'Genel Özet',
+    'general_summary_desc': 'Siteye ait daire, kullanıcı, borç ve talep durumunun kısa özeti.',
+
+    'total_apartments': 'Toplam Daire',
+    'users': 'Kullanıcılar',
+    'admin': 'Yönetici',
+    'resident': 'Sakin',
+
+    'open_partial_debt': 'Açık / Kısmi Borç',
+    'total_bill_records': 'Toplam borç kaydı',
+
+    'total_paid': 'Toplam Ödenmiş',
+    'expected_income_this_month': 'Bu Ay Beklenen Toplam Gelir',
+    'expected_income_hint': 'Bu ay açılan tüm borç kayıtlarının toplamı',
+
+    'open_tickets': 'Açık Talepler',
+    'view_all_tickets': 'Tüm talepleri görüntüle →',
+
+    'monthly_overview_title': 'Aylık Özet (Son 12 Ay)',
+    'monthly_overview_desc': 'Her ay için oluşturulan toplam borç ve tahsil edilen toplam ödeme.',
+
+    'year_total': 'Yıl Geneli',
+    'selected_period': 'Seçili dönem',
+    'billed': 'Oluşturulan borç',
+    'collected': 'Tahsil edilen',
+    'delta': 'Fark',
+
+    'table_month': 'Ay',
+    'table_billed': 'Oluşturulan Borç',
+    'table_paid': 'Tahsil Edilen',
+    'table_delta': 'Fark',
+
+    'not_enough_data': 'Henüz aylık özet oluşturmak için yeterli veri bulunmuyor.',
+
+    'recent_bills': 'Son Eklenen Borçlar',
+    'bill_apartment': 'Daire',
+    'bill_desc': 'Açıklama',
+    'bill_amount': 'Tutar',
+    'bill_status': 'Durum',
+
+    'status_paid': 'Ödendi',
+    'status_partial': 'Kısmi',
+    'status_open': 'Açık',
+
+    'no_bills': 'Henüz borç kaydı bulunmuyor.',
+
+    'recent_payments': 'Son Ödemeler',
+    'pay_date': 'Tarih',
+    'pay_resident': 'Sakin',
+    'pay_amount': 'Tutar',
+    'pay_method': 'Yöntem',
+    'no_payments': 'Henüz ödeme kaydı bulunmuyor.',
+
+    'recent_tickets': 'Son Talepler',
+    'ticket_title': 'Başlık',
+    'ticket_status': 'Durum',
+
+    'ticket_closed': 'Kapalı',
+    'ticket_in_progress': 'Devam',
+    'ticket_open': 'Açık',
+
+    'no_tickets': 'Henüz talep oluşturulmamış.',
+
+    'recent_announcements': 'Son Duyurular',
+    'created_by': 'Oluşturan',
+    'unknown': 'Bilinmiyor',
+    'expired': 'Süresi doldu',
+    'no_announcements': 'Henüz bir duyuru oluşturulmamış.'
+  },
+
+  'en': {
+    'page_title': 'Management Panel',
+    'topbar_title': 'Admin Dashboard',
+
+    'general_summary': 'General Summary',
+    'general_summary_desc': 'A quick overview of apartments, users, debts, and requests.',
+
+    'total_apartments': 'Total Apartments',
+    'users': 'Users',
+    'admin': 'Admin',
+    'resident': 'Resident',
+
+    'open_partial_debt': 'Open / Partial Debt',
+    'total_bill_records': 'Total bill records',
+
+    'total_paid': 'Total Paid',
+    'expected_income_this_month': 'Expected Income This Month',
+    'expected_income_hint': 'Sum of all bills created this month',
+
+    'open_tickets': 'Open Requests',
+    'view_all_tickets': 'View all requests →',
+
+    'monthly_overview_title': 'Monthly Overview (Last 12 Months)',
+    'monthly_overview_desc': 'Total billed and total collected for each month.',
+
+    'year_total': 'Year Total',
+    'selected_period': 'Selected period',
+    'billed': 'Billed',
+    'collected': 'Collected',
+    'delta': 'Difference',
+
+    'table_month': 'Month',
+    'table_billed': 'Billed',
+    'table_paid': 'Collected',
+    'table_delta': 'Difference',
+
+    'not_enough_data': 'Not enough data yet to generate the monthly overview.',
+
+    'recent_bills': 'Recently Added Bills',
+    'bill_apartment': 'Apartment',
+    'bill_desc': 'Description',
+    'bill_amount': 'Amount',
+    'bill_status': 'Status',
+
+    'status_paid': 'Paid',
+    'status_partial': 'Partial',
+    'status_open': 'Open',
+
+    'no_bills': 'No bill records yet.',
+
+    'recent_payments': 'Recent Payments',
+    'pay_date': 'Date',
+    'pay_resident': 'Resident',
+    'pay_amount': 'Amount',
+    'pay_method': 'Method',
+    'no_payments': 'No payment records yet.',
+
+    'recent_tickets': 'Recent Requests',
+    'ticket_title': 'Title',
+    'ticket_status': 'Status',
+
+    'ticket_closed': 'Closed',
+    'ticket_in_progress': 'In progress',
+    'ticket_open': 'Open',
+
+    'no_tickets': 'No requests have been created yet.',
+
+    'recent_announcements': 'Recent Announcements',
+    'created_by': 'Created by',
+    'unknown': 'Unknown',
+    'expired': 'Expired',
+    'no_announcements': 'No announcements yet.'
+  },
+
+  'me': {
+    'page_title': 'Upravljački panel',
+    'topbar_title': 'Administratorska tabla',
+
+    'general_summary': 'Opšti pregled',
+    'general_summary_desc': 'Kratak pregled stanova, korisnika, dugovanja i zahtjeva.',
+
+    'total_apartments': 'Ukupno stanova',
+    'users': 'Korisnici',
+    'admin': 'Administrator',
+    'resident': 'Stanar',
+
+    'open_partial_debt': 'Otvoren / Djelimičan dug',
+    'total_bill_records': 'Ukupno evidencija dugovanja',
+
+    'total_paid': 'Ukupno uplaćeno',
+    'expected_income_this_month': 'Očekivani prihod ovog mjeseca',
+    'expected_income_hint': 'Zbir svih dugovanja otvorenih ovog mjeseca',
+
+    'open_tickets': 'Otvoreni zahtjevi',
+    'view_all_tickets': 'Prikaži sve zahtjeve →',
+
+    'monthly_overview_title': 'Mjesečni pregled (poslednjih 12 mjeseci)',
+    'monthly_overview_desc': 'Ukupno zaduženo i ukupno naplaćeno za svaki mjesec.',
+
+    'year_total': 'Godišnji zbir',
+    'selected_period': 'Izabrani period',
+    'billed': 'Zaduženo',
+    'collected': 'Naplaćeno',
+    'delta': 'Razlika',
+
+    'table_month': 'Mjesec',
+    'table_billed': 'Zaduženo',
+    'table_paid': 'Naplaćeno',
+    'table_delta': 'Razlika',
+
+    'not_enough_data': 'Još nema dovoljno podataka za mjesečni pregled.',
+
+    'recent_bills': 'Najnovija dugovanja',
+    'bill_apartment': 'Stan',
+    'bill_desc': 'Opis',
+    'bill_amount': 'Iznos',
+    'bill_status': 'Status',
+
+    'status_paid': 'Plaćeno',
+    'status_partial': 'Djelimično',
+    'status_open': 'Otvoreno',
+
+    'no_bills': 'Još nema dugovanja.',
+
+    'recent_payments': 'Najnovije uplate',
+    'pay_date': 'Datum',
+    'pay_resident': 'Stanar',
+    'pay_amount': 'Iznos',
+    'pay_method': 'Način',
+    'no_payments': 'Još nema uplata.',
+
+    'recent_tickets': 'Najnoviji zahtjevi',
+    'ticket_title': 'Naslov',
+    'ticket_status': 'Status',
+
+    'ticket_closed': 'Zatvoreno',
+    'ticket_in_progress': 'U toku',
+    'ticket_open': 'Otvoreno',
+
+    'no_tickets': 'Još nema zahtjeva.',
+
+    'recent_announcements': 'Najnovija obavještenja',
+    'created_by': 'Kreirao',
+    'unknown': 'Nepoznato',
+    'expired': 'Isteklo',
+    'no_announcements': 'Još nema obavještenja.'
+  }
+} %}
+
+{% macro tp(k) -%}
+  {{ I18N_PAGE.get(LANG, I18N_PAGE['tr']).get(k, I18N_PAGE['tr'].get(k, k)) }}
+{%- endmacro %}
+
+{# Ay isimleri #}
+{% set MONTHS = {
+  'tr': {1:"Ocak",2:"Şubat",3:"Mart",4:"Nisan",5:"Mayıs",6:"Haziran",7:"Temmuz",8:"Ağustos",9:"Eylül",10:"Ekim",11:"Kasım",12:"Aralık"},
+  'en': {1:"January",2:"February",3:"March",4:"April",5:"May",6:"June",7:"July",8:"August",9:"September",10:"October",11:"November",12:"December"},
+  'me': {1:"Januar",2:"Februar",3:"Mart",4:"April",5:"Maj",6:"Jun",7:"Jul",8:"Avgust",9:"Septembar",10:"Oktobar",11:"Novembar",12:"Decembar"}
+} %}
+
+{% block title %}{{ tp('page_title') }}{% endblock %}
+
 {% block topbar_title %}
-  Yönetim Ana Paneli
+  {{ tp('topbar_title') }}
   {% if session.active_site_name %}
     – {{ session.active_site_name }}
   {% elif current_site_name %}
@@ -21,56 +263,51 @@
        GENEL ÖZET KARTI
        ───────────────────────────── #}
     <div class="card">
-      {% set MONTH_TR = {
-          1:"Ocak", 2:"Şubat", 3:"Mart", 4:"Nisan",
-          5:"Mayıs", 6:"Haziran", 7:"Temmuz", 8:"Ağustos",
-          9:"Eylül", 10:"Ekim", 11:"Kasım", 12:"Aralık"
-        } %}
 
       <h2 style="font-size:16px; margin-bottom:4px;">
-        Genel Özet
+        {{ tp('general_summary') }}
         {% if today %}
           <span style="color:#6b7280; font-weight:500;">
-            — {{ MONTH_TR[today.month] }} {{ today.year }}
+            — {{ MONTHS.get(LANG, MONTHS['tr'])[today.month] }} {{ today.year }}
           </span>
         {% endif %}
       </h2>
 
       <p style="font-size:13px; color:#6b7280; margin-bottom:12px;">
-        Siteye ait daire, kullanıcı, borç ve talep durumunun kısa özeti.
+        {{ tp('general_summary_desc') }}
       </p>
 
       <div class="stat-grid">
 
         <!-- Toplam Daire -->
         <div class="stat-card">
-          <div class="stat-card__label">Toplam Daire</div>
+          <div class="stat-card__label">{{ tp('total_apartments') }}</div>
           <div class="stat-card__value">{{ stats.total_apartments }}</div>
         </div>
 
         <!-- Kullanıcılar -->
         <div class="stat-card">
-          <div class="stat-card__label">Kullanıcılar</div>
+          <div class="stat-card__label">{{ tp('users') }}</div>
           <div class="stat-card__value">{{ stats.total_users }}</div>
           <div class="stat-card__hint">
-            Yönetici: {{ stats.admin_users }} • Sakin: {{ stats.resident_users }}
+            {{ tp('admin') }}: {{ stats.admin_users }} • {{ tp('resident') }}: {{ stats.resident_users }}
           </div>
         </div>
 
         <!-- Açık / Kısmi Borç (NET) -->
         <div class="stat-card">
-          <div class="stat-card__label">Açık / Kısmi Borç</div>
+          <div class="stat-card__label">{{ tp('open_partial_debt') }}</div>
           <div class="stat-card__value">
             ₺ {{ "%.2f"|format(stats.total_open_amount) }}
           </div>
           <div class="stat-card__hint">
-            Toplam borç kaydı: {{ stats.total_bills }}
+            {{ tp('total_bill_records') }}: {{ stats.total_bills }}
           </div>
         </div>
 
         <!-- Toplam Ödenmiş -->
         <div class="stat-card">
-          <div class="stat-card__label">Toplam Ödenmiş</div>
+          <div class="stat-card__label">{{ tp('total_paid') }}</div>
           <div class="stat-card__value">
             ₺ {{ "%.2f"|format(stats.total_paid_amount) }}
           </div>
@@ -78,22 +315,22 @@
 
         <!-- Bu Ay Beklenen Toplam Gelir -->
         <div class="stat-card">
-          <div class="stat-card__label">Bu Ay Beklenen Toplam Gelir</div>
+          <div class="stat-card__label">{{ tp('expected_income_this_month') }}</div>
           <div class="stat-card__value">
             ₺ {{ "%.2f"|format(stats.expected_income_this_month) }}
           </div>
           <div class="stat-card__hint">
-            Bu ay açılan tüm borç kayıtlarının toplamı
+            {{ tp('expected_income_hint') }}
           </div>
         </div>
 
         <!-- Açık Talepler -->
         <div class="stat-card">
-          <div class="stat-card__label">Açık Talepler</div>
+          <div class="stat-card__label">{{ tp('open_tickets') }}</div>
           <div class="stat-card__value">{{ stats.open_tickets }}</div>
           <div class="stat-card__hint">
             <a href="{{ url_for('admin.manage_tickets') }}" style="color:#2563eb; text-decoration:none;">
-              Tüm talepleri görüntüle →
+              {{ tp('view_all_tickets') }}
             </a>
           </div>
         </div>
@@ -126,9 +363,9 @@
         }
       </style>
 
-      <h2 style="font-size:16px; margin-bottom:6px;">Aylık Özet (Son 12 Ay)</h2>
+      <h2 style="font-size:16px; margin-bottom:6px;">{{ tp('monthly_overview_title') }}</h2>
       <p style="font-size:12px; color:#6b7280; margin-bottom:8px;">
-        Her ay için oluşturulan toplam borç ve tahsil edilen toplam ödeme.
+        {{ tp('monthly_overview_desc') }}
       </p>
 
       {% if monthly_overview and today %}
@@ -151,17 +388,18 @@
             class="month-filter-pill"
             data-filter-btn
             data-type="year"
-            data-label="{{ today.year }} Yılı Geneli"
+            data-label="{{ today.year }} {{ tp('year_total') }}"
             data-billed="{{ '%.2f'|format(year_ns.billed) }}"
             data-paid="{{ '%.2f'|format(year_ns.paid) }}"
             data-delta="{{ '%.2f'|format(year_delta) }}"
           >
-            {{ today.year }} Yıl Geneli
+            {{ today.year }} {{ tp('year_total') }}
           </button>
 
           <!-- AY BUTONLARI -->
           {% for m in monthly_overview %}
             {% set is_current = (m.year == today.year and m.month == today.month) %}
+            {% set month_label = MONTHS.get(LANG, MONTHS['tr'])[m.month] ~ ' ' ~ m.year %}
             <button
               type="button"
               class="month-filter-pill{% if is_current %} is-active-filter{% endif %}"
@@ -169,26 +407,26 @@
               data-type="month"
               data-year="{{ m.year }}"
               data-month="{{ m.month }}"
-              data-label="{{ m.label }}"
+              data-label="{{ month_label }}"
               data-billed="{{ '%.2f'|format(m.total_billed) }}"
               data-paid="{{ '%.2f'|format(m.total_paid) }}"
               data-delta="{{ '%.2f'|format(m.delta) }}"
               {% if is_current %}data-default="1"{% endif %}
             >
-              {{ m.label }}
+              {{ month_label }}
             </button>
           {% endfor %}
         </div>
 
         <!-- Seçilen dönem özet kutusu -->
         <div style="padding:6px 8px; border-radius:8px; background:#f9fafb; margin-bottom:8px; font-size:11px;">
-          <div style="font-weight:600; margin-bottom:2px;" data-summary-label>Seçili dönem</div>
+          <div style="font-weight:600; margin-bottom:2px;" data-summary-label>{{ tp('selected_period') }}</div>
           <div>
-            Oluşturulan borç:
+            {{ tp('billed') }}:
             <span data-summary-billed>₺ 0,00</span>
-            · Tahsil edilen:
+            · {{ tp('collected') }}:
             <span data-summary-paid>₺ 0,00</span>
-            · Fark:
+            · {{ tp('delta') }}:
             <span data-summary-delta>₺ 0,00</span>
           </div>
         </div>
@@ -198,15 +436,16 @@
           <table style="width:100%; border-collapse:collapse; font-size:12px;">
             <thead>
               <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
-                <th style="text-align:left; padding:6px 4px; white-space:nowrap;">Ay</th>
-                <th style="text-align:right; padding:6px 4px; white-space:nowrap;">Oluşturulan Borç</th>
-                <th style="text-align:right; padding:6px 4px; white-space:nowrap;">Tahsil Edilen</th>
-                <th style="text-align:right; padding:6px 4px; white-space:nowrap;">Fark</th>
+                <th style="text-align:left; padding:6px 4px; white-space:nowrap;">{{ tp('table_month') }}</th>
+                <th style="text-align:right; padding:6px 4px; white-space:nowrap;">{{ tp('table_billed') }}</th>
+                <th style="text-align:right; padding:6px 4px; white-space:nowrap;">{{ tp('table_paid') }}</th>
+                <th style="text-align:right; padding:6px 4px; white-space:nowrap;">{{ tp('table_delta') }}</th>
               </tr>
             </thead>
             <tbody>
-              {# BURAYI DEĞİŞTİRDİK: EN YENİ AY ÜSTE GELSİN DİYE REVERSE #}
+              {# EN YENİ AY ÜSTE #}
               {% for m in monthly_overview|reverse %}
+                {% set row_label = MONTHS.get(LANG, MONTHS['tr'])[m.month] ~ ' ' ~ m.year %}
                 <tr
                   style="border-bottom:1px solid #f3f4f6;"
                   data-month-row
@@ -214,7 +453,7 @@
                   data-month="{{ m.month }}"
                 >
                   <td style="padding:6px 4px; white-space:nowrap;">
-                    {{ m.label }}
+                    {{ row_label }}
                   </td>
                   <td style="padding:6px 4px; text-align:right; white-space:nowrap;">
                     ₺ {{ "%.2f"|format(m.total_billed) }}
@@ -317,19 +556,16 @@
               });
             });
 
-            // Varsayılan: içinde bulunduğumuz ay (data-default="1") aktif olsun
             const defaultBtn =
               card.querySelector('[data-filter-btn][data-default="1"]') ||
               card.querySelector('[data-filter-btn]');
-            if (defaultBtn) {
-              defaultBtn.click();
-            }
+            if (defaultBtn) defaultBtn.click();
           });
         </script>
 
       {% else %}
         <p style="font-size:13px; color:#6b7280;">
-          Henüz aylık özet oluşturmak için yeterli veri bulunmuyor.
+          {{ tp('not_enough_data') }}
         </p>
       {% endif %}
     </div>
@@ -343,17 +579,17 @@
        Son Borçlar
        ───────────────────────────── #}
     <div class="card">
-      <h2 style="font-size:16px; margin-bottom:6px;">Son Eklenen Borçlar</h2>
+      <h2 style="font-size:16px; margin-bottom:6px;">{{ tp('recent_bills') }}</h2>
 
       {% if recent_bills %}
         <div style="max-height:200px; overflow:auto;">
           <table class="dash-table">
             <thead>
               <tr>
-                <th>Daire</th>
-                <th>Açıklama</th>
-                <th>Tutar</th>
-                <th>Durum</th>
+                <th>{{ tp('bill_apartment') }}</th>
+                <th>{{ tp('bill_desc') }}</th>
+                <th>{{ tp('bill_amount') }}</th>
+                <th>{{ tp('bill_status') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -374,11 +610,11 @@
                   <td>₺ {{ "%.2f"|format(bill.amount) }}</td>
                   <td>
                     {% if bill.status == 'paid' %}
-                      <span class="tag tag--success">Ödendi</span>
+                      <span class="tag tag--success">{{ tp('status_paid') }}</span>
                     {% elif bill.status == 'partial' %}
-                      <span class="tag tag--warning">Kısmi</span>
+                      <span class="tag tag--warning">{{ tp('status_partial') }}</span>
                     {% else %}
-                      <span class="tag tag--danger">Açık</span>
+                      <span class="tag tag--danger">{{ tp('status_open') }}</span>
                     {% endif %}
                   </td>
                 </tr>
@@ -388,7 +624,7 @@
         </div>
       {% else %}
         <p style="font-size:13px; color:#6b7280;">
-          Henüz borç kaydı bulunmuyor.
+          {{ tp('no_bills') }}
         </p>
       {% endif %}
     </div>
@@ -397,18 +633,18 @@
        Son Ödemeler
        ───────────────────────────── #}
     <div class="card">
-      <h2 style="font-size:16px; margin-bottom:6px;">Son Ödemeler</h2>
+      <h2 style="font-size:16px; margin-bottom:6px;">{{ tp('recent_payments') }}</h2>
 
       {% if recent_payments %}
         <div style="max-height:200px; overflow:auto;">
           <table class="dash-table">
             <thead>
               <tr>
-                <th>Tarih</th>
-                <th>Daire</th>
-                <th>Sakin</th>
-                <th>Tutar</th>
-                <th>Yöntem</th>
+                <th>{{ tp('pay_date') }}</th>
+                <th>{{ tp('bill_apartment') }}</th>
+                <th>{{ tp('pay_resident') }}</th>
+                <th>{{ tp('pay_amount') }}</th>
+                <th>{{ tp('pay_method') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -452,7 +688,7 @@
         </div>
       {% else %}
         <p style="font-size:13px; color:#6b7280;">
-          Henüz ödeme kaydı bulunmuyor.
+          {{ tp('no_payments') }}
         </p>
       {% endif %}
     </div>
@@ -461,18 +697,18 @@
        Son Talepler
        ───────────────────────────── #}
     <div class="card">
-      <h2 style="font-size:16px; margin-bottom:6px;">Son Talepler</h2>
+      <h2 style="font-size:16px; margin-bottom:6px;">{{ tp('recent_tickets') }}</h2>
 
       {% if recent_tickets %}
         <div style="max-height:220px; overflow:auto;">
           <table class="dash-table">
             <thead>
               <tr>
-                <th>Tarih</th>
-                <th>Daire</th>
-                <th>Sakin</th>
-                <th>Başlık</th>
-                <th>Durum</th>
+                <th>{{ tp('pay_date') }}</th>
+                <th>{{ tp('bill_apartment') }}</th>
+                <th>{{ tp('pay_resident') }}</th>
+                <th>{{ tp('ticket_title') }}</th>
+                <th>{{ tp('ticket_status') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -506,11 +742,11 @@
                   </td>
                   <td>
                     {% if t.status == 'closed' %}
-                      <span class="tag tag--success">Kapalı</span>
+                      <span class="tag tag--success">{{ tp('ticket_closed') }}</span>
                     {% elif t.status == 'in_progress' %}
-                      <span class="tag tag--warning">Devam</span>
+                      <span class="tag tag--warning">{{ tp('ticket_in_progress') }}</span>
                     {% else %}
-                      <span class="tag tag--danger">Açık</span>
+                      <span class="tag tag--danger">{{ tp('ticket_open') }}</span>
                     {% endif %}
                   </td>
                 </tr>
@@ -520,7 +756,7 @@
         </div>
       {% else %}
         <p style="font-size:13px; color:#6b7280;">
-          Henüz talep oluşturulmamış.
+          {{ tp('no_tickets') }}
         </p>
       {% endif %}
     </div>
@@ -529,12 +765,12 @@
        Son Duyurular
        ───────────────────────────── #}
     <div class="card">
-      <h2 style="font-size:16px; margin-bottom:6px;">Son Duyurular</h2>
+      <h2 style="font-size:16px; margin-bottom:6px;">{{ tp('recent_announcements') }}</h2>
 
       {% if recent_announcements %}
         <ul style="list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px;">
           {% for ann, u in recent_announcements %}
-          {% set is_expired = ann.created_at and (today - ann.created_at.date()).days >= 29 %}
+            {% set is_expired = ann.created_at and (today - ann.created_at.date()).days >= 29 %}
             <li style="padding:8px 10px; border-radius:10px; background:#f9fafb; {% if is_expired %}opacity:0.65;{% endif %}">
               <div style="display:flex; justify-content:space-between; gap:8px; margin-bottom:2px;">
                 <div style="font-size:13px; font-weight:600; {% if is_expired %}text-decoration:line-through;{% endif %}">
@@ -550,14 +786,14 @@
                 {{ ann.content }}
               </div>
               <div style="font-size:11px; color:#6b7280;">
-                Oluşturan:
+                {{ tp('created_by') }}:
                 {% if u %}
                   {{ u.name }}
                 {% else %}
-                  <span style="color:#9ca3af;">Bilinmiyor</span>
+                  <span style="color:#9ca3af;">{{ tp('unknown') }}</span>
                 {% endif %}
                 {% if is_expired %}
-                  · <span style="font-style:italic;">(Süresi doldu)</span>
+                  · <span style="font-style:italic;">({{ tp('expired') }})</span>
                 {% endif %}
               </div>
             </li>
@@ -565,8 +801,8 @@
         </ul>
 
       {% else %}
-        <p style="font-size:13px; color:#6b7280;">
-          Henüz bir duyuru oluşturulmamış.
+SAPŞĞFŞĞQİĞFCV.iXSZ,D        <p style="font-size:13px; color:#6b7280;">
+          {{ tp('no_announcements') }}
         </p>
       {% endif %}
     </div>

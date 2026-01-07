@@ -1,8 +1,134 @@
 {% extends "base.html" %}
 
-{% block title %}Borçlarım{% endblock %}
+{# ============================================================
+   BORÇLARIM (RESIDENT) - 3 DİL (TR / EN / ME) UYUMLU
+   ============================================================ #}
+
+{% set LANG = session.get('lang','tr') %}
+
+{% set I18N_PAGE = {
+  'tr': {
+    'page_title': 'Borçlarım',
+    'topbar_title': 'Borçlarım',
+
+    'summary_remaining_title': 'Kalan Toplam Borç',
+    'summary_remaining_sub': 'Tüm faturalar - ödenenler',
+
+    'summary_paid_title': 'Toplam Ödenen',
+    'summary_paid_sub': 'Şimdiye kadar sisteme girilen ödemeler',
+
+    'summary_total_title': 'Toplam Fatura / Aidat Tutarı',
+    'summary_total_sub': 'Tüm borç kalemlerinin toplamı',
+
+    'summary_count_title': 'Fatura / Aidat Adetleri',
+    'summary_count_sub_prefix_open': 'Açık',
+    'summary_count_sub_prefix_partial': 'Kısmi',
+    'summary_count_sub_prefix_paid': 'Ödenen',
+
+    'list_title': 'Borç Listem',
+    'apt_label': 'Daire',
+
+    'th_type': 'Tür',
+    'th_desc': 'Açıklama',
+    'th_created': 'Oluşturma',
+    'th_due': 'Vade',
+    'th_amount': 'Tutar',
+    'th_status': 'Durum',
+
+    'type_general': 'Genel',
+
+    'status_open': 'Açık',
+    'status_partial': 'Kısmi',
+    'status_paid': 'Ödendi',
+
+    'empty': 'Kayıtlı borcunuz görünmüyor.',
+    'dash': '-'
+  },
+
+  'en': {
+    'page_title': 'My Debts',
+    'topbar_title': 'My Debts',
+
+    'summary_remaining_title': 'Remaining Total Debt',
+    'summary_remaining_sub': 'All bills - paid amounts',
+
+    'summary_paid_title': 'Total Paid',
+    'summary_paid_sub': 'Payments recorded in the system so far',
+
+    'summary_total_title': 'Total Bill / Dues Amount',
+    'summary_total_sub': 'Sum of all debt items',
+
+    'summary_count_title': 'Bill / Dues Count',
+    'summary_count_sub_prefix_open': 'Open',
+    'summary_count_sub_prefix_partial': 'Partial',
+    'summary_count_sub_prefix_paid': 'Paid',
+
+    'list_title': 'My Debt List',
+    'apt_label': 'Apartment',
+
+    'th_type': 'Type',
+    'th_desc': 'Description',
+    'th_created': 'Created',
+    'th_due': 'Due',
+    'th_amount': 'Amount',
+    'th_status': 'Status',
+
+    'type_general': 'General',
+
+    'status_open': 'Open',
+    'status_partial': 'Partial',
+    'status_paid': 'Paid',
+
+    'empty': 'No registered debt found.',
+    'dash': '-'
+  },
+
+  'me': {
+    'page_title': 'Moji dugovi',
+    'topbar_title': 'Moji dugovi',
+
+    'summary_remaining_title': 'Preostali ukupan dug',
+    'summary_remaining_sub': 'Svi računi - uplate',
+
+    'summary_paid_title': 'Ukupno uplaćeno',
+    'summary_paid_sub': 'Uplate unesene u sistem do sada',
+
+    'summary_total_title': 'Ukupan iznos računa / članarine',
+    'summary_total_sub': 'Zbir svih stavki duga',
+
+    'summary_count_title': 'Broj računa / članarina',
+    'summary_count_sub_prefix_open': 'Otvoreno',
+    'summary_count_sub_prefix_partial': 'Djelimično',
+    'summary_count_sub_prefix_paid': 'Plaćeno',
+
+    'list_title': 'Lista mojih dugova',
+    'apt_label': 'Stan',
+
+    'th_type': 'Tip',
+    'th_desc': 'Opis',
+    'th_created': 'Kreirano',
+    'th_due': 'Rok',
+    'th_amount': 'Iznos',
+    'th_status': 'Status',
+
+    'type_general': 'Opšte',
+
+    'status_open': 'Otvoreno',
+    'status_partial': 'Djelimično',
+    'status_paid': 'Plaćeno',
+
+    'empty': 'Nema evidentiranih dugovanja.',
+    'dash': '-'
+  }
+} %}
+
+{% macro tp(k) -%}
+  {{ I18N_PAGE.get(LANG, I18N_PAGE['tr']).get(k, I18N_PAGE['tr'].get(k, k)) }}
+{%- endmacro %}
+
+{% block title %}{{ tp('page_title') }}{% endblock %}
 {% block topbar_title %}
-  Borçlarım
+  {{ tp('topbar_title') }}
   {% if session.active_site_name %}
     – {{ session.active_site_name }}
   {% elif current_site_name %}
@@ -175,45 +301,47 @@
 
     <!-- Kalan Toplam Borç -->
     <div class="borc-card">
-      <h3>Kalan Toplam Borç</h3>
+      <h3>{{ tp('summary_remaining_title') }}</h3>
       <div class="value amount-negative">
         ₺{{ stats.total_open_amount | float | round(2) }}
       </div>
       <div class="sub">
-        Tüm faturalar - ödenenler
+        {{ tp('summary_remaining_sub') }}
       </div>
     </div>
 
     <!-- Toplam Ödenen -->
     <div class="borc-card">
-      <h3>Toplam Ödenen</h3>
+      <h3>{{ tp('summary_paid_title') }}</h3>
       <div class="value amount-positive">
         ₺{{ stats.total_paid_amount | float | round(2) }}
       </div>
       <div class="sub">
-        Şimdiye kadar sisteme girilen ödemeler
+        {{ tp('summary_paid_sub') }}
       </div>
     </div>
 
     <!-- Toplam Fatura Tutarı -->
     <div class="borc-card">
-      <h3>Toplam Fatura / Aidat Tutarı</h3>
+      <h3>{{ tp('summary_total_title') }}</h3>
       <div class="value">
         ₺{{ stats.total_bills_amount | float | round(2) }}
       </div>
       <div class="sub">
-        Tüm borç kalemlerinin toplamı
+        {{ tp('summary_total_sub') }}
       </div>
     </div>
 
     <!-- Adet Bilgisi -->
     <div class="borc-card">
-      <h3>Fatura / Aidat Adetleri</h3>
+      <h3>{{ tp('summary_count_title') }}</h3>
       <div class="value">
         {{ stats.total_bills }}
       </div>
       <div class="sub">
-        Açık: {{ stats.open_bills }} · Kısmi: {{ stats.partial_bills }} · Ödenen: {{ stats.paid_bills }}
+        {{ tp('summary_count_sub_prefix_open') }}: {{ stats.open_bills }}
+        · {{ tp('summary_count_sub_prefix_partial') }}: {{ stats.partial_bills }}
+        · {{ tp('summary_count_sub_prefix_paid') }}: {{ stats.paid_bills }}
       </div>
     </div>
 
@@ -222,10 +350,10 @@
   <!-- BORÇ LİSTESİ -->
   <div class="borc-section">
     <div class="borc-section-header">
-      <h2>Borç Listem</h2>
+      <h2>{{ tp('list_title') }}</h2>
       {% if apartment %}
         <span>
-          Daire: {{ apartment.block or "" }} {{ apartment.floor or "" }} {{ apartment.number or "" }}
+          {{ tp('apt_label') }}: {{ apartment.block or "" }} {{ apartment.floor or "" }} {{ apartment.number or "" }}
         </span>
       {% endif %}
     </div>
@@ -235,12 +363,12 @@
         <table class="borc-table">
           <thead>
             <tr>
-              <th>Tür</th>
-              <th>Açıklama</th>
-              <th>Oluşturma</th>
-              <th>Vade</th>
-              <th>Tutar</th>
-              <th>Durum</th>
+              <th>{{ tp('th_type') }}</th>
+              <th>{{ tp('th_desc') }}</th>
+              <th>{{ tp('th_created') }}</th>
+              <th>{{ tp('th_due') }}</th>
+              <th>{{ tp('th_amount') }}</th>
+              <th>{{ tp('th_status') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -248,32 +376,32 @@
               <tr>
                 <td>
                   <span class="pill-small">
-                    {{ bill.type or "Genel" }}
+                    {{ (bill.type or tp('type_general')) }}
                   </span>
                 </td>
-                <td>{{ bill.description or "-" }}</td>
+                <td>{{ bill.description or tp('dash') }}</td>
                 <td>
                   {% if bill.created_at %}
                     {{ bill.created_at.strftime("%d.%m.%Y") }}
                   {% else %}
-                    -
+                    {{ tp('dash') }}
                   {% endif %}
                 </td>
                 <td>
                   {% if bill.due_date %}
                     {{ bill.due_date.strftime("%d.%m.%Y") }}
                   {% else %}
-                    -
+                    {{ tp('dash') }}
                   {% endif %}
                 </td>
                 <td>₺{{ bill.amount | float | round(2) }}</td>
                 <td>
                   {% if bill.status == "open" %}
-                    <span class="status-pill status-open">Açık</span>
+                    <span class="status-pill status-open">{{ tp('status_open') }}</span>
                   {% elif bill.status == "partial" %}
-                    <span class="status-pill status-partial">Kısmi</span>
+                    <span class="status-pill status-partial">{{ tp('status_partial') }}</span>
                   {% elif bill.status == "paid" %}
-                    <span class="status-pill status-paid">Ödendi</span>
+                    <span class="status-pill status-paid">{{ tp('status_paid') }}</span>
                   {% else %}
                     <span class="status-pill">{{ bill.status }}</span>
                   {% endif %}
@@ -285,7 +413,7 @@
       </div>
     {% else %}
       <p style="font-size:12px; color:#6b7280; margin:0;">
-        Kayıtlı borcunuz görünmüyor.
+        {{ tp('empty') }}
       </p>
     {% endif %}
   </div>

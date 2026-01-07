@@ -1,8 +1,95 @@
 {% extends "base.html" %}
 
-{% block title %}Profilim{% endblock %}
+{# ============================================================
+   PROFİLİM - 3 DİL (TR / EN / ME)
+   ============================================================ #}
+
+{% set LANG = session.get('lang','tr') %}
+
+{% set I18N_PAGE = {
+  'tr': {
+    'page_title': 'Profilim',
+    'topbar_title': 'Profilim',
+
+    'card_title': 'Profil Bilgileriniz',
+    'apartment_label': 'Daireniz',
+
+    'name_label': 'Ad Soyad',
+    'email_label': 'E-posta',
+    'email_help': 'E-posta adresiniz değiştirilmek isteniyorsa yönetici ile iletişime geçebilirsiniz.',
+    'phone_label': 'Telefon',
+
+    'pw_section_title': 'Şifre Güncelle (opsiyonel)',
+    'pw_section_help': 'Şifrenizi değiştirmek istemiyorsanız bu alanları boş bırakabilirsiniz.',
+    'new_pw_label': 'Yeni Şifre',
+    'new_pw_ph': 'En az 6 karakter',
+    'new_pw2_label': 'Yeni Şifre (Tekrar)',
+    'new_pw2_ph': 'Yeni şifre ile aynı olmalı',
+
+    'btn_save': 'Profilimi Güncelle',
+
+    'phone_ph': '+90 5xx xxx xx xx',
+    'email_disabled_bg_hint': '',
+  },
+
+  'en': {
+    'page_title': 'My Profile',
+    'topbar_title': 'My Profile',
+
+    'card_title': 'Your Profile Information',
+    'apartment_label': 'Your apartment',
+
+    'name_label': 'Full Name',
+    'email_label': 'Email',
+    'email_help': 'If you want to change your email address, please contact the administrator.',
+    'phone_label': 'Phone',
+
+    'pw_section_title': 'Update Password (optional)',
+    'pw_section_help': 'If you do not want to change your password, you can leave these fields empty.',
+    'new_pw_label': 'New Password',
+    'new_pw_ph': 'At least 6 characters',
+    'new_pw2_label': 'New Password (Confirm)',
+    'new_pw2_ph': 'Must match the new password',
+
+    'btn_save': 'Update Profile',
+
+    'phone_ph': '+90 5xx xxx xx xx',
+    'email_disabled_bg_hint': '',
+  },
+
+  'me': {
+    'page_title': 'Moj profil',
+    'topbar_title': 'Moj profil',
+
+    'card_title': 'Vaše profil informacije',
+    'apartment_label': 'Vaš stan',
+
+    'name_label': 'Ime i prezime',
+    'email_label': 'E-mail',
+    'email_help': 'Ako želite promijeniti e-mail adresu, kontaktirajte administratora.',
+    'phone_label': 'Telefon',
+
+    'pw_section_title': 'Promjena lozinke (opciono)',
+    'pw_section_help': 'Ako ne želite mijenjati lozinku, ostavite ova polja prazna.',
+    'new_pw_label': 'Nova lozinka',
+    'new_pw_ph': 'Najmanje 6 karaktera',
+    'new_pw2_label': 'Nova lozinka (ponovo)',
+    'new_pw2_ph': 'Mora biti ista kao nova lozinka',
+
+    'btn_save': 'Ažuriraj profil',
+
+    'phone_ph': '+90 5xx xxx xx xx',
+    'email_disabled_bg_hint': '',
+  }
+} %}
+
+{% macro tp(k) -%}
+  {{ I18N_PAGE.get(LANG, I18N_PAGE['tr']).get(k, I18N_PAGE['tr'].get(k, k)) }}
+{%- endmacro %}
+
+{% block title %}{{ tp('page_title') }}{% endblock %}
 {% block topbar_title %}
-  Profilim
+  {{ tp('topbar_title') }}
   {% if session.active_site_name %}
     – {{ session.active_site_name }}
   {% elif current_site_name %}
@@ -13,18 +100,19 @@
 {% block content %}
 
 <div class="card" style="max-width:640px;">
-  <h2 style="font-size:16px; margin-bottom:8px;">Profil Bilgileriniz</h2>
+  <h2 style="font-size:16px; margin-bottom:8px;">{{ tp('card_title') }}</h2>
 
   {% if apartment %}
     <p style="font-size:12px; color:#4b5563; margin-bottom:10px;">
-      Daireniz: <strong>{{ apartment.block }} Blok • Kat {{ apartment.floor }} • No {{ apartment.number }}</strong>
+      {{ tp('apartment_label') }}:
+      <strong>{{ apartment.block }} Blok • Kat {{ apartment.floor }} • No {{ apartment.number }}</strong>
     </p>
   {% endif %}
 
   <form method="post" style="display:flex; flex-direction:column; gap:10px;">
 
     <div>
-      <label for="name" style="display:block; font-size:13px; margin-bottom:3px;">Ad Soyad</label>
+      <label for="name" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('name_label') }}</label>
       <input
         type="text"
         id="name"
@@ -35,7 +123,7 @@
     </div>
 
     <div>
-      <label for="email" style="display:block; font-size:13px; margin-bottom:3px;">E-posta</label>
+      <label for="email" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('email_label') }}</label>
       <input
         type="email"
         id="email"
@@ -44,54 +132,54 @@
         disabled
         style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px; background:#f9fafb;">
       <p style="font-size:11px; color:#6b7280; margin-top:3px;">
-        E-posta adresiniz değiştirilmek isteniyorsa yönetici ile iletişime geçebilirsiniz.
+        {{ tp('email_help') }}
       </p>
     </div>
 
     <div>
-      <label for="phone" style="display:block; font-size:13px; margin-bottom:3px;">Telefon</label>
+      <label for="phone" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('phone_label') }}</label>
       <input
         type="text"
         id="phone"
         name="phone"
         value="{{ user.phone or '' }}"
-        placeholder="+90 5xx xxx xx xx"
+        placeholder="{{ tp('phone_ph') }}"
         style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
     </div>
 
     <hr style="border:none; border-top:1px solid #e5e7eb; margin:8px 0;">
 
     <div>
-      <label style="display:block; font-size:13px; margin-bottom:3px;">Şifre Güncelle (opsiyonel)</label>
+      <label style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('pw_section_title') }}</label>
       <p style="font-size:11px; color:#6b7280; margin-bottom:4px;">
-        Şifrenizi değiştirmek istemiyorsanız bu alanları boş bırakabilirsiniz.
+        {{ tp('pw_section_help') }}
       </p>
     </div>
 
     <div>
-      <label for="password" style="display:block; font-size:13px; margin-bottom:3px;">Yeni Şifre</label>
+      <label for="password" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('new_pw_label') }}</label>
       <input
         type="password"
         id="password"
         name="password"
-        placeholder="En az 6 karakter"
+        placeholder="{{ tp('new_pw_ph') }}"
         style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
     </div>
 
     <div>
-      <label for="password_confirm" style="display:block; font-size:13px; margin-bottom:3px;">Yeni Şifre (Tekrar)</label>
+      <label for="password_confirm" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('new_pw2_label') }}</label>
       <input
         type="password"
         id="password_confirm"
         name="password_confirm"
-        placeholder="Yeni şifre ile aynı olmalı"
+        placeholder="{{ tp('new_pw2_ph') }}"
         style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
     </div>
 
     <div style="margin-top:6px;">
       <button type="submit"
               style="padding:8px 12px; border-radius:999px; border:none; background:#2563eb; color:white; font-size:13px; cursor:pointer;">
-        Profilimi Güncelle
+        {{ tp('btn_save') }}
       </button>
     </div>
 

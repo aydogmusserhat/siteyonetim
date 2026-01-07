@@ -2,7 +2,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 import os
 
-from flask import Flask, render_template, redirect, url_for, session, g
+from flask import Flask, render_template, redirect, url_for, session, g, request
 
 from config import Config
 from models import db
@@ -111,6 +111,17 @@ def create_app(config_class=Config) -> Flask:
             db.session.rollback()
             app.logger.exception("İlk super admin oluşturulurken hata: %s", exc)
 
+    @app.get("/set-lang/<lang>")
+    def set_lang(lang):
+        # izin verilen diller
+        if lang not in ("tr", "en", "me"):
+            lang = "tr"
+
+        session["lang"] = lang
+
+        # geldigi sayfaya geri dön
+        next_url = request.args.get("next")
+        return redirect(next_url or url_for("index"))
 
     return app
 
