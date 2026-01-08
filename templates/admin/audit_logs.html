@@ -1,0 +1,467 @@
+{% extends "base.html" %}
+
+{% block title %}Audit Log{% endblock %}
+{% block topbar_title %}Denetim İzleri (Audit Log) — Super Admin{% endblock %}
+
+{% block content %}
+
+<style>
+  .audit-wrap { display:flex; flex-direction:column; gap:14px; max-width:1900px; margin:0 auto; }
+
+  /* Header */
+  .meta-row {
+    display:flex; justify-content:space-between; align-items:center;
+    gap:10px; flex-wrap:wrap;
+  }
+  .meta-row .count { color:#6b7280; font-size:13px; }
+  .badge {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:6px 10px; border-radius:999px;
+    font-size:12px; font-weight:700;
+    border:1px solid #e5e7eb;
+    background:#fff;
+    white-space:nowrap;
+  }
+  .badge-success { border-color:#bbf7d0; background:#f0fdf4; color:#166534; }
+  .badge-failure { border-color:#fecaca; background:#fef2f2; color:#991b1b; }
+
+  /* Buttons */
+  .btn {
+    padding:10px 14px;
+    border:none;
+    border-radius:12px;
+    cursor:pointer;
+    font-size:14px;
+    font-weight:600;
+  }
+  .btn-primary { background:#111827; color:#fff; }
+  .btn-ghost { background:#f3f4f6; color:#111827; text-decoration:none; }
+  .btn-small {
+    padding:8px 12px;
+    border-radius:12px;
+    border:1px solid #e5e7eb;
+    background:#fff;
+    font-size:13px;
+    font-weight:800;
+    cursor:pointer;
+  }
+
+  /* Filters */
+  .filters-head {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top:10px;
+  }
+  .filters-title {
+    font-weight:900;
+    font-size:14px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .filters-panel {
+    margin-top:10px;
+  }
+
+  .audit-filters {
+    display:grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap:10px;
+    align-items:end;
+  }
+  .f { grid-column: span 3; }
+  .f-wide { grid-column: span 6; }
+  .f-btn { grid-column: span 3; display:flex; gap:8px; justify-content:flex-end; }
+
+  .audit-filters label { display:block; font-size:12px; color:#6b7280; margin-bottom:6px; }
+  .audit-filters select, .audit-filters input {
+    width:100%;
+    padding:10px 12px;
+    border:1px solid #e5e7eb;
+    border-radius:12px;
+    font-size:14px;
+    outline:none;
+    background:#fff;
+  }
+
+  /* Table */
+  .table-wrap { overflow:auto; border:1px solid #e5e7eb; border-radius:16px; background:#fff; }
+  table { width:100%; border-collapse:collapse; min-width:980px; }
+  thead th {
+    position:sticky; top:0;
+    background:#f9fafb; color:#374151;
+    font-size:12px; text-align:left;
+    padding:12px;
+    border-bottom:1px solid #e5e7eb;
+    z-index:1;
+    white-space:nowrap;
+  }
+  tbody td {
+    padding:12px;
+    border-bottom:1px solid #f3f4f6;
+    vertical-align:top;
+    font-size:13px;
+    color:#111827;
+    min-width:0;
+  }
+  .muted { color:#6b7280; }
+  .link { color:#2563eb; text-decoration:none; font-weight:800; }
+  .link:hover { text-decoration:underline; }
+
+  .desc {
+    max-width:520px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  /* Pagination */
+  .pager { display:flex; gap:8px; align-items:center; justify-content:flex-end; flex-wrap:wrap; }
+  .pager a, .pager span {
+    padding:8px 12px;
+    border:1px solid #e5e7eb;
+    border-radius:12px;
+    text-decoration:none;
+    font-size:13px;
+    color:#111827;
+    background:#fff;
+    white-space:nowrap;
+  }
+  .pager .active { background:#111827; color:#fff; border-color:#111827; }
+  .pager .disabled { opacity:.45; pointer-events:none; }
+
+  /* Mobile Cards */
+  .cards { display:none; }
+  .cardx {
+    border:1px solid #e5e7eb;
+    border-radius:16px;
+    background:#fff;
+    padding:12px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .cardx .top { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+  .cardx .title {
+    font-weight:900;
+    font-size:14px;
+    line-height:1.25;
+    word-break:break-word;
+    overflow-wrap:anywhere;
+  }
+  .kv {
+    display:grid;
+    grid-template-columns: 120px 1fr;
+    gap:6px 10px;
+    font-size:13px;
+  }
+  .kv .k { color:#6b7280; font-weight:700; }
+  .kv .v { color:#111827; word-break:break-word; overflow-wrap:anywhere; min-width:0; }
+
+  /* Responsive */
+  @media (max-width: 980px) {
+    .audit-wrap { max-width:100%; padding:0 2px; }
+    .audit-filters { grid-template-columns: 1fr 1fr; }
+    .f, .f-wide, .f-btn { grid-column: span 1; }
+    .f-btn { justify-content:stretch; }
+    .f-btn .btn { flex:1; }
+  }
+
+  @media (max-width: 640px) {
+    .table-wrap { display:none; }
+    .cards { display:flex; flex-direction:column; gap:10px; }
+
+    .audit-filters { grid-template-columns: 1fr; }
+    .f, .f-wide, .f-btn { grid-column: span 1; }
+
+    .f-btn { gap:10px; }
+    .btn { width:100%; }
+
+    .pager { justify-content:stretch; }
+    .pager a, .pager span { width:100%; text-align:center; }
+
+    .kv { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="audit-wrap">
+
+  <div class="card">
+    <div class="meta-row">
+      <div>
+        <h2 style="font-size:16px; margin:0;">Denetim İzleri</h2>
+        <div class="count">Toplam kayıt: <b>{{ total }}</b></div>
+      </div>
+
+      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+        {% if filters.status == "success" %}
+          <span class="badge badge-success">Durum: Başarılı</span>
+        {% elif filters.status == "failure" %}
+          <span class="badge badge-failure">Durum: Başarısız</span>
+        {% else %}
+          <span class="badge">Durum: Tümü</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Mobilde filtreleri katla/aç -->
+    <div class="filters-head">
+      <div class="filters-title">🔎 Filtreler</div>
+      <button type="button" class="btn-small" id="toggleFiltersBtn">Filtreleri Göster</button>
+    </div>
+
+    <div class="filters-panel" id="filtersPanel" style="display:block;">
+      <form method="GET" class="audit-filters" action="{{ url_for('admin.audit_logs') }}">
+        <div class="f">
+          <label>İşlem</label>
+          <select name="action">
+            <option value="">Tümü</option>
+            {% for a in all_actions %}
+              <option value="{{ a }}" {% if filters.action == a %}selected{% endif %}>{{ a }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="f">
+          <label>Varlık Türü</label>
+          <select name="entity_type">
+            <option value="">Tümü</option>
+            {% for et in all_entity_types %}
+              <option value="{{ et }}" {% if filters.entity_type == et %}selected{% endif %}>{{ et }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="f">
+          <label>Durum</label>
+          <select name="status">
+            <option value="">Tümü</option>
+            <option value="success" {% if filters.status == "success" %}selected{% endif %}>success</option>
+            <option value="failure" {% if filters.status == "failure" %}selected{% endif %}>failure</option>
+          </select>
+        </div>
+
+        <div class="f">
+          <label>Site</label>
+          <select name="site_id">
+            <option value="">Tümü</option>
+            {% for s in all_sites %}
+              <option value="{{ s.id }}" {% if filters.site_id == s.id %}selected{% endif %}>
+                {{ s.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="f">
+          <label>Kullanıcı</label>
+          <select name="user_id">
+            <option value="">Tümü</option>
+            {% for u in all_users %}
+              <option value="{{ u.id }}" {% if filters.user_id == u.id %}selected{% endif %}>
+                {{ u.name }} ({{ u.role }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="f-wide">
+          <label>Ara (description / ip / entity_type)</label>
+          <input name="q" value="{{ filters.q }}" placeholder="Örn: ödeme, 192.168..., Payment" />
+        </div>
+
+        <div class="f-btn">
+          <button class="btn btn-primary" type="submit">Filtrele</button>
+          <a class="btn btn-ghost" href="{{ url_for('admin.audit_logs') }}" style="text-align:center; line-height:20px;">Sıfırla</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Desktop Table -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Zaman</th>
+          <th>Durum</th>
+          <th>İşlem</th>
+          <th>Varlık</th>
+          <th>Varlık ID</th>
+          <th>Kullanıcı</th>
+          <th>Site</th>
+          <th>IP</th>
+          <th>Açıklama</th>
+          <th>Detay</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+          <tr>
+            <td class="muted">#{{ log.id }}</td>
+            <td>{{ log.created_at.strftime("%d.%m.%Y %H:%M:%S") if log.created_at else "-" }}</td>
+            <td>
+              {% if log.status == "success" %}
+                <span class="badge badge-success">success</span>
+              {% else %}
+                <span class="badge badge-failure">failure</span>
+              {% endif %}
+            </td>
+            <td><b>{{ log.action }}</b></td>
+            <td>{{ log.entity_type }}</td>
+            <td class="muted">{{ log.entity_id if log.entity_id is not none else "-" }}</td>
+            <td>
+              {% if log.user %}
+                <b>{{ log.user.name }}</b>
+                <div class="muted" style="font-size:12px;">id={{ log.user_id }}</div>
+              {% else %}
+                <span class="muted">Sistem / Bilinmiyor</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if log.site %}
+                <b>{{ log.site.name }}</b>
+                <div class="muted" style="font-size:12px;">id={{ log.site_id }}</div>
+              {% else %}
+                <span class="muted">-</span>
+              {% endif %}
+            </td>
+            <td class="muted">{{ log.ip_address or "-" }}</td>
+            <td class="desc" title="{{ log.description or '' }}">{{ log.description or "-" }}</td>
+            <td>
+              <a class="link" href="{{ url_for('admin.audit_log_detail', log_id=log.id) }}">Aç</a>
+            </td>
+          </tr>
+        {% endfor %}
+
+        {% if logs|length == 0 %}
+          <tr>
+            <td colspan="11" class="muted" style="padding:18px;">Kayıt bulunamadı.</td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Mobile Cards -->
+  <div class="cards">
+    {% for log in logs %}
+      <div class="cardx">
+        <div class="top">
+          <div style="min-width:0;">
+            <div class="title">#{{ log.id }} — {{ log.action }} {{ log.entity_type }}</div>
+            <div class="muted" style="font-size:12px; margin-top:4px; word-break:break-word; overflow-wrap:anywhere;">
+              {{ log.created_at.strftime("%d.%m.%Y %H:%M:%S") if log.created_at else "-" }}
+            </div>
+          </div>
+          <div>
+            {% if log.status == "success" %}
+              <span class="badge badge-success">success</span>
+            {% else %}
+              <span class="badge badge-failure">failure</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="kv">
+          <div class="k">Varlık ID</div>
+          <div class="v">{{ log.entity_id if log.entity_id is not none else "-" }}</div>
+
+          <div class="k">Kullanıcı</div>
+          <div class="v">
+            {% if log.user %}{{ log.user.name }} (id={{ log.user_id }}){% else %}Sistem / Bilinmiyor{% endif %}
+          </div>
+
+          <div class="k">Site</div>
+          <div class="v">
+            {% if log.site %}{{ log.site.name }} (id={{ log.site_id }}){% else %}-{% endif %}
+          </div>
+
+          <div class="k">IP</div>
+          <div class="v">{{ log.ip_address or "-" }}</div>
+
+          <div class="k">Açıklama</div>
+          <div class="v">{{ log.description or "-" }}</div>
+        </div>
+
+        <a class="btn btn-primary" style="text-decoration:none; text-align:center;"
+           href="{{ url_for('admin.audit_log_detail', log_id=log.id) }}">
+          Detay
+        </a>
+      </div>
+    {% endfor %}
+
+    {% if logs|length == 0 %}
+      <div class="cardx">
+        <div class="muted">Kayıt bulunamadı.</div>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Pagination -->
+  <div class="card">
+    <div class="pager">
+      {% set args = request.args.to_dict() %}
+      {% set prev_page = page - 1 %}
+      {% set next_page = page + 1 %}
+
+      {% set args_prev = args.copy() %}
+      {% set _ = args_prev.update({"page": prev_page}) %}
+
+      {% set args_next = args.copy() %}
+      {% set _ = args_next.update({"page": next_page}) %}
+
+      <a class="{% if page <= 1 %}disabled{% endif %}"
+         href="{{ url_for('admin.audit_logs', **args_prev) }}">
+        ‹ Önceki
+      </a>
+
+      <span class="active">Sayfa {{ page }} / {{ pages }}</span>
+
+      <a class="{% if page >= pages %}disabled{% endif %}"
+         href="{{ url_for('admin.audit_logs', **args_next) }}">
+        Sonraki ›
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  (function () {
+    var btn = document.getElementById("toggleFiltersBtn");
+    var panel = document.getElementById("filtersPanel");
+
+    if (!btn || !panel) return;
+
+    function isMobile() {
+      return window.matchMedia && window.matchMedia("(max-width: 640px)").matches;
+    }
+
+    function setInitial() {
+      // Mobilde varsayılan kapalı, desktop'ta açık
+      if (isMobile()) {
+        panel.style.display = "none";
+        btn.textContent = "Filtreleri Göster";
+      } else {
+        panel.style.display = "block";
+        btn.textContent = "Filtreleri Gizle";
+      }
+    }
+
+    btn.addEventListener("click", function () {
+      var open = panel.style.display !== "none";
+      panel.style.display = open ? "none" : "block";
+      btn.textContent = open ? "Filtreleri Göster" : "Filtreleri Gizle";
+    });
+
+    window.addEventListener("resize", setInitial);
+    setInitial();
+  })();
+</script>
+
+{% endblock %}

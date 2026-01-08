@@ -33,6 +33,12 @@ from models.payment_model import Payment
 from models.announcement_model import Announcement
 from models.ticket_model import Ticket
 from models.site_model import Site  # 🔸 site modeli
+from audit_logging import log_action
+
+
+import json
+from audit_logging import AuditLog  # audit_logging.py içindeki model
+
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -64,6 +70,147 @@ def admin_required(view_func):
         return view_func(*args, **kwargs)
 
     return wrapped_view
+
+# ==================================================superadmin log ekranı ===============================
+def _require_super_admin():
+    """Sadece super_admin erişebilsin. Değilse 403/redirect."""
+    admin_user = _get_current_admin()
+    if not admin_user or admin_user.role != "super_admin":
+        return False
+    return True
+
+@admin_bp.route("/audit-logs", methods=["GET"])
+@admin_required
+def audit_logs():
+    """Denetim izleri ekranı (sadece super_admin)."""
+
+    if not _require_super_admin():
+        flash("Bu sayfayı sadece Süper Admin görüntüleyebilir.", "error")
+        return redirect(url_for("admin.dashboard"))
+
+    # Filtre parametreleri
+    page = request.args.get("page", 1, type=int) or 1
+    if page < 1:
+        page = 1
+
+    per_page = 50
+
+    action = (request.args.get("action") or "").strip()
+    entity_type = (request.args.get("entity_type") or "").strip()
+    status = (request.args.get("status") or "").strip()
+    site_id = request.args.get("site_id", type=int)
+    user_id = request.args.get("user_id", type=int)
+    q = (request.args.get("q") or "").strip()  # description / ip / entity_id araması
+
+    try:
+        query = AuditLog.query
+
+        if action:
+            query = query.filter(AuditLog.action == action)
+        if entity_type:
+            query = query.filter(AuditLog.entity_type == entity_type)
+        if status:
+            query = query.filter(AuditLog.status == status)
+        if site_id:
+            query = query.filter(AuditLog.site_id == site_id)
+        if user_id:
+            query = query.filter(AuditLog.user_id == user_id)
+
+        if q:
+            # Basit arama: description/ip/entity_id
+            like = f"%{q}%"
+            # entity_id integer olduğu için cast etmek yerine stringle karşılaştırma yaklaşımı:
+            # SQLite uyumu için func.cast kullanılabilir; basit tutuyoruz:
+            query = query.filter(
+                (AuditLog.description.ilike(like)) |
+                (AuditLog.ip_address.ilike(like)) |
+                (AuditLog.entity_type.ilike(like))
+            )
+
+        total = query.count()
+        logs = (
+            query
+            .order_by(AuditLog.created_at.desc())
+            .offset((page - 1) * per_page)
+            .limit(per_page)
+            .all()
+        )
+
+        pages = (total + per_page - 1) // per_page if total > 0 else 1
+
+        # Dropdown seçenekleri
+        distinct_pairs = db.session.query(AuditLog.entity_type, AuditLog.action).distinct().all()
+        all_entity_types = sorted({et for et, act in distinct_pairs if et})
+        all_actions = sorted({act for et, act in distinct_pairs if act})
+
+        all_sites = Site.query.order_by(Site.name.asc()).all()
+        all_users = User.query.order_by(User.name.asc()).all()
+
+        return render_template(
+            "admin/audit_logs.html",
+            logs=logs,
+            page=page,
+            pages=pages,
+            total=total,
+            filters={
+                "action": action,
+                "entity_type": entity_type,
+                "status": status,
+                "site_id": site_id,
+                "user_id": user_id,
+                "q": q,
+            },
+            all_actions=all_actions,
+            all_entity_types=all_entity_types,
+            all_sites=all_sites,
+            all_users=all_users,
+        )
+
+    except SQLAlchemyError as exc:
+        current_app.logger.exception("Audit log listesi alınamadı: %s", exc)
+        flash("Audit log listesi alınırken hata oluştu.", "error")
+        return redirect(url_for("admin.dashboard"))
+
+@admin_bp.route("/audit-logs/<int:log_id>", methods=["GET"])
+@admin_required
+def audit_log_detail(log_id: int):
+    """Audit log detay ekranı (sadece super_admin)."""
+
+    if not _require_super_admin():
+        flash("Bu sayfayı sadece Süper Admin görüntüleyebilir.", "error")
+        return redirect(url_for("admin.dashboard"))
+
+    try:
+        log = AuditLog.query.get(log_id)
+        if not log:
+            flash("Audit kaydı bulunamadı.", "error")
+            return redirect(url_for("admin.audit_logs"))
+
+        # JSON alanlarını template tarafında rahat göstermek için parse et
+        old_data = None
+        new_data = None
+        try:
+            old_data = json.loads(log.old_values) if log.old_values else None
+        except Exception:
+            old_data = {"_raw": log.old_values}
+
+        try:
+            new_data = json.loads(log.new_values) if log.new_values else None
+        except Exception:
+            new_data = {"_raw": log.new_values}
+
+        # İlgili kullanıcı / site isimlerini göstermek için (relationship varsa zaten geliyor)
+        return render_template(
+            "admin/audit_log_detail.html",
+            log=log,
+            old_data=old_data,
+            new_data=new_data,
+        )
+
+    except SQLAlchemyError as exc:
+        current_app.logger.exception("Audit log detayı alınamadı: %s", exc)
+        flash("Audit log detayı alınırken hata oluştu.", "error")
+        return redirect(url_for("admin.audit_logs"))
 
 
 def super_admin_required(view_func):
@@ -1441,37 +1588,129 @@ def manage_bills():
 
 
 
-# ==================================== borç silme ========================
+# ==================================== borç silme için yardımcı========================
+def _bill_audit_dict(bill: Bill) -> dict:
+    """Borç (Bill) kaydını audit log için JSON-dostu sözlüğe çevir."""
+    if not bill:
+        return {}
+
+    return {
+        "id": getattr(bill, "id", None),
+        "site_id": getattr(bill, "site_id", None),
+        "apartment_id": getattr(bill, "apartment_id", None),
+        "type": getattr(bill, "type", None),
+        "amount": str(getattr(bill, "amount", "") or ""),
+        "due_date": (
+            getattr(bill, "due_date", None).strftime("%Y-%m-%d")
+            if getattr(bill, "due_date", None)
+            else None
+        ),
+        "status": getattr(bill, "status", None),
+        "description": getattr(bill, "description", None) if hasattr(bill, "description") else None,
+        "created_at": (
+            getattr(bill, "created_at", None).strftime("%Y-%m-%d %H:%M:%S")
+            if getattr(bill, "created_at", None)
+            else None
+        ),
+    }
+
 # ==================================== borç silme ========================
 @admin_bp.route("/bills/<int:bill_id>/delete", methods=["POST"])
 @admin_required
 def delete_bill(bill_id: int):
-    """Seçilen borç kaydını siler."""
+    """Tek bir borç kaydını silmek için (Audit Log dahil)."""
+
     # --- Aktif site kontrolü ---
     admin_user = _get_current_admin()
     site_id = session.get("active_site_id") or (admin_user.site_id if admin_user else None)
     if not site_id:
-        flash("Bu işlemi yapabilmek için bir siteye atanmış olmanız gerekiyor.", "error")
-        return redirect(url_for("admin.manage_bills"))
+        return jsonify({"ok": False, "error": "Herhangi bir siteye atanmış değilsiniz."}), 403
 
     try:
         bill = Bill.query.get(bill_id)
         if not bill:
-            flash("Silinecek borç kaydı bulunamadı.", "error")
-        else:
-            # 🔴 Sadece kendi sitesine ait borcu silebilsin
-            if bill.site_id != site_id:
-                flash("Bu borç kaydı, yetkili olduğunuz siteye ait değil.", "error")
-            else:
-                db.session.delete(bill)
-                db.session.commit()
-                flash("Borç kaydı silindi.", "success")
+            return jsonify({"ok": False, "error": "Borç kaydı bulunamadı."}), 404
+
+        # 🔴 Başka sitenin borcuysa iptal
+        if bill.site_id != site_id:
+            return jsonify({"ok": False, "error": "Bu borç için yetkiniz yok."}), 403
+
+        # ✅ Audit için eski değer snapshot (silmeden önce)
+        old_snapshot = _bill_audit_dict(bill)
+
+        # Bu borca bağlı ödeme var mı? (varsa silmeyi engelle)
+        payments_count = (
+            db.session.query(func.count(Payment.id))
+            .filter(Payment.bill_id == bill.id)
+            .scalar()
+        ) or 0
+
+        if payments_count > 0:
+            # ✅ Audit Log (FAILURE - DELETE Bill)
+            try:
+                log_action(
+                    action="DELETE",
+                    entity_type="Bill",
+                    entity_id=bill_id,
+                    old_values=old_snapshot,
+                    new_values={"blocked_reason": "Bu borca bağlı ödeme var", "payments_count": int(payments_count)},
+                    description="Borç silme engellendi (bağlı ödeme bulundu).",
+                    site_id=site_id,
+                    status="failure",
+                    error_message=f"Bill({bill_id}) için {payments_count} adet ödeme var. Silme engellendi.",
+                )
+            except Exception:
+                current_app.logger.exception("Audit log yazılamadı (FAILURE DELETE Bill - payments exist)")
+
+            return jsonify({
+                "ok": False,
+                "error": "Bu borca bağlı ödeme(ler) var. Önce ödemeleri silmeden borç silinemez."
+            }), 400
+
+        # Sil
+        db.session.delete(bill)
+        db.session.commit()
+
+        # ✅ Audit Log (DELETE Bill)
+        try:
+            log_action(
+                action="DELETE",
+                entity_type="Bill",
+                entity_id=bill_id,
+                old_values=old_snapshot,
+                new_values=None,
+                description=f"Borç silindi (id={bill_id})",
+                site_id=site_id,
+                status="success",
+            )
+        except Exception:
+            current_app.logger.exception("Audit log yazılamadı (DELETE Bill)")
+
+        return jsonify({"ok": True})
+
     except SQLAlchemyError as exc:
         db.session.rollback()
         current_app.logger.exception("Borç kaydı silinemedi: %s", exc)
-        flash("Borç silinirken bir hata oluştu.", "error")
 
-    return redirect(url_for("admin.manage_bills"))
+        # ✅ Audit Log (FAILURE - DELETE Bill)
+        try:
+            # Bill bulunabildiyse snapshot vardı; yoksa None kalır.
+            log_action(
+                action="DELETE",
+                entity_type="Bill",
+                entity_id=bill_id,
+                old_values=old_snapshot if "old_snapshot" in locals() else None,
+                new_values=None,
+                description="Borç silme başarısız",
+                site_id=site_id,
+                status="failure",
+                error_message=str(exc),
+            )
+        except Exception:
+            current_app.logger.exception("Audit log yazılamadı (FAILURE DELETE Bill)")
+
+        return jsonify({"ok": False, "error": "Borç silinirken bir hata oluştu."}), 500
+
 
 
 @admin_bp.route("/bills/<int:bill_id>/update", methods=["POST"])
@@ -1895,11 +2134,54 @@ def manage_payments():
                             bill.status = "open"
 
                 db.session.commit()
+
+                # ✅ Audit Log (CREATE Payment)
+                try:
+                    log_action(
+                        action="CREATE",
+                        entity_type="Payment",
+                        entity_id=payment.id,
+                        old_values=None,
+                        new_values=_payment_audit_dict(payment),
+                        description=f"Ödeme oluşturuldu (tutar={payment.amount}, daire_id={payment.apartment_id}, bill_id={payment.bill_id})",
+                        site_id=site_id,
+                        status="success",
+                    )
+                except Exception:
+                    current_app.logger.exception("Audit log yazılamadı (CREATE Payment)")
+
                 flash("Ödeme kaydı oluşturuldu.", "success")
 
             except (ValueError, SQLAlchemyError) as exc:
                 db.session.rollback()
                 current_app.logger.exception("Ödeme kaydı eklenemedi: %s", exc)
+
+                # ✅ Audit Log (FAILURE - CREATE Payment)
+                try:
+                    attempted = {
+                        "site_id": site_id,
+                        "apartment_id": apartment_id,
+                        "bill_id": bill_id,
+                        "user_id": user_id,
+                        "amount": amount,
+                        "payment_date": payment_date_str,
+                        "method": method,
+                        "bill_type": bill_type,
+                    }
+                    log_action(
+                        action="CREATE",
+                        entity_type="Payment",
+                        entity_id=None,
+                        old_values=None,
+                        new_values=attempted,
+                        description="Ödeme oluşturma başarısız",
+                        site_id=site_id,
+                        status="failure",
+                        error_message=str(exc),
+                    )
+                except Exception:
+                    current_app.logger.exception("Audit log yazılamadı (FAILURE CREATE Payment)")
+
                 flash("Ödeme kaydedilirken bir hata oluştu.", "error")
 
     apartments = []
@@ -1981,6 +2263,9 @@ def update_payment(payment_id: int):
         if payment.site_id != site_id:
             return jsonify({"ok": False, "error": "Bu ödeme için yetkiniz yok."}), 403
 
+        # ✅ Audit için eski değer snapshot
+        old_snapshot = _payment_audit_dict(payment)
+
         amount_str = (request.form.get("amount") or "").strip()
         method = (request.form.get("method") or "").strip() or None
         date_str = (request.form.get("payment_date") or "").strip()
@@ -1993,22 +2278,15 @@ def update_payment(payment_id: int):
         except (ValueError, ArithmeticError):
             return jsonify({"ok": False, "error": "Tutar sayısal olmalıdır."}), 400
 
+        payment.method = method
+
         if date_str:
             try:
                 payment.payment_date = _parse_date_flex(date_str)
             except ValueError:
-                return jsonify(
-                    {
-                        "ok": False,
-                        "error": "Tarih formatı anlaşılamadı. Örnek: 04.01.2026",
-                    }
-                ), 400
-        else:
-            payment.payment_date = None
+                return jsonify({"ok": False, "error": "Tarih anlaşılamadı. Örn: 04.01.2026"}), 400
 
-        payment.method = method
-
-        # İlgili borcun durumunu güncelle
+        # Faturaya bağlıysa status recalculation
         if payment.bill_id:
             bill = Bill.query.get(payment.bill_id)
             if bill and bill.site_id == site_id:
@@ -2016,29 +2294,60 @@ def update_payment(payment_id: int):
 
         db.session.commit()
 
-        # Formatlanmış stringler (frontend'e geri dönecek)
-        amount_display = f"₺ {payment.amount:.2f}"
-        date_display = (
-            payment.payment_date.strftime("%d.%m.%Y")
-            if payment.payment_date
-            else ""
-        )
+        # ✅ Audit Log (UPDATE Payment)
+        try:
+            new_snapshot = _payment_audit_dict(payment)
+            log_action(
+                action="UPDATE",
+                entity_type="Payment",
+                entity_id=payment.id,
+                old_values=old_snapshot,
+                new_values=new_snapshot,
+                description=f"Ödeme güncellendi (id={payment.id})",
+                site_id=site_id,
+                status="success",
+            )
+        except Exception:
+            current_app.logger.exception("Audit log yazılamadı (UPDATE Payment)")
 
-        return jsonify(
-            {
-                "ok": True,
-                "amount_display": amount_display,
-                "date_display": date_display,
-                "method": payment.method or "",
-            }
-        )
+        # Formatlanmış stringler
+        return jsonify({
+            "ok": True,
+            "amount": f"{payment.amount:.2f}",
+            "payment_date": payment.payment_date.strftime("%d.%m.%Y") if payment.payment_date else "",
+            "method": payment.method or "",
+        })
 
     except SQLAlchemyError as exc:
         db.session.rollback()
         current_app.logger.exception("Ödeme kaydı güncellenemedi: %s", exc)
+
+        # ✅ Audit Log (FAILURE - UPDATE Payment)
+        try:
+            attempted = {
+                "payment_id": payment_id,
+                "amount": (request.form.get("amount") or "").strip(),
+                "method": (request.form.get("method") or "").strip() or None,
+                "payment_date": (request.form.get("payment_date") or "").strip(),
+            }
+            log_action(
+                action="UPDATE",
+                entity_type="Payment",
+                entity_id=payment_id,
+                old_values=old_snapshot if "old_snapshot" in locals() else None,
+                new_values=attempted,
+                description="Ödeme güncelleme başarısız",
+                site_id=site_id,
+                status="failure",
+                error_message=str(exc),
+            )
+        except Exception:
+            current_app.logger.exception("Audit log yazılamadı (FAILURE UPDATE Payment)")
+
         return jsonify(
             {"ok": False, "error": "Ödeme güncellenirken bir hata oluştu."}
         ), 500
+
 
 @admin_bp.route("/payments/<int:payment_id>/delete", methods=["POST"])
 @admin_required
@@ -2056,6 +2365,9 @@ def delete_payment(payment_id: int):
         if not payment:
             return jsonify({"ok": False, "error": "Ödeme kaydı bulunamadı."}), 404
 
+        # ✅ Audit için eski değer snapshot (silmeden önce)
+        old_snapshot = _payment_audit_dict(payment)
+
         # 🔴 Başka sitenin ödemesi ise iptal
         if payment.site_id != site_id:
             return jsonify({"ok": False, "error": "Bu ödeme için yetkiniz yok."}), 403
@@ -2070,15 +2382,74 @@ def delete_payment(payment_id: int):
                 _recalc_bill_status(bill)
 
         db.session.commit()
+
+        # ✅ Audit Log (DELETE Payment)
+        try:
+            log_action(
+                action="DELETE",
+                entity_type="Payment",
+                entity_id=payment_id,
+                old_values=old_snapshot,
+                new_values=None,
+                description=f"Ödeme silindi (id={payment_id})",
+                site_id=site_id,
+                status="success",
+            )
+        except Exception:
+                current_app.logger.exception("Audit log yazılamadı (DELETE Payment)")
+
         return jsonify({"ok": True})
 
     except SQLAlchemyError as exc:
         db.session.rollback()
         current_app.logger.exception("Ödeme kaydı silinemedi: %s", exc)
+
+        # ✅ Audit Log (FAILURE - DELETE Payment)
+        try:
+            log_action(
+                action="DELETE",
+                entity_type="Payment",
+                entity_id=payment_id,
+                old_values=old_snapshot if "old_snapshot" in locals() else None,
+                new_values=None,
+                description="Ödeme silme başarısız",
+                site_id=site_id,
+                status="failure",
+                error_message=str(exc),
+            )
+        except Exception:
+            current_app.logger.exception("Audit log yazılamadı (FAILURE DELETE Payment)")
+
         return jsonify(
             {"ok": False, "error": "Ödeme silinirken bir hata oluştu."}
         ), 500
 
+
+def _payment_audit_dict(payment: Payment) -> dict:
+    """Ödeme kaydını audit log için JSON-dostu sözlüğe çevir."""
+    if not payment:
+        return {}
+
+    return {
+        "id": getattr(payment, "id", None),
+        "site_id": getattr(payment, "site_id", None),
+        "apartment_id": getattr(payment, "apartment_id", None),
+        "user_id": getattr(payment, "user_id", None),
+        "bill_id": getattr(payment, "bill_id", None),
+        "bill_type": getattr(payment, "bill_type", None),
+        "amount": str(getattr(payment, "amount", "") or ""),
+        "method": getattr(payment, "method", None),
+        "payment_date": (
+            getattr(payment, "payment_date", None).strftime("%Y-%m-%d")
+            if getattr(payment, "payment_date", None)
+            else None
+        ),
+        "created_at": (
+            getattr(payment, "created_at", None).strftime("%Y-%m-%d %H:%M:%S")
+            if getattr(payment, "created_at", None)
+            else None
+        ),
+    }
 
 # ============== PDF Makbuz indir ===============================
 @admin_bp.route("/payments/<int:payment_id>/receipt", methods=["GET"])

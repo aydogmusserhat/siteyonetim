@@ -241,7 +241,7 @@ body.login-body {
 
 /* Topbar */
 .topbar {
-  height: 56px;
+  height: 70px;
   display: flex;
   align-items: center;
   margin-left: var(--sidebar-width);

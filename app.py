@@ -15,6 +15,8 @@ import webbrowser
 import threading
 
 from waitress import serve  # 🔹 Waitress ile çalıştırmak için eklendi
+
+
 def create_app(config_class=Config) -> Flask:
     """Flask uygulamasını oluşturan factory fonksiyon."""
     app = Flask(__name__, instance_relative_config=True)
@@ -39,6 +41,12 @@ def create_app(config_class=Config) -> Flask:
     configure_logging(app)
 
     # Blueprint kayıtları
+    from routes.auth_routes import auth_bp
+    from routes.admin_routes import admin_bp
+    from routes.resident_routes import resident_bp
+
+
+    # ✅ Şimdi blueprint’leri register et (sıra fark etmez ama audit önce olmalı)
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(resident_bp)
@@ -80,9 +88,6 @@ def create_app(config_class=Config) -> Flask:
         elif role == "resident":
             return redirect(url_for("resident.dashboard"))
 
-
-
-    # Uygulama context'inde tabloları oluştur ve ilk admini hazırla
     # Uygulama context'inde tabloları oluştur ve ilk admini hazırla
     with app.app_context():
         from sqlalchemy.exc import SQLAlchemyError
@@ -151,16 +156,11 @@ app = create_app()
 
 if __name__ == "__main__":
     PORTS = 5005
+
     def open_browser():
         webbrowser.open(f"http://127.0.0.1:{PORTS}")
 
     try:
-        # 🔴 Sadece reloader'ın "asıl" process'inde tarayıcı aç
-        # if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
-        #    threading.Timer(1, open_browser).start()
-
-        # app.run(debug=True)
-        # 👇 Tarayıcıyı doğrudan (veya 1 sn gecikmeli) açalım
         threading.Timer(1, open_browser).start()
 
         # Waitress ile sunucuyu başlat

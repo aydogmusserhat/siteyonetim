@@ -36,6 +36,7 @@
     'btn_delete_site': 'Siteyi Sil',
     'delete_rule': 'Silmek için önce adminleri kaldırın',
 
+    'btn_audit_logs': 'Denetim Kayıtları',
     'dash': '-'
   },
 
@@ -68,6 +69,7 @@
     'btn_delete_site': 'Delete Site',
     'delete_rule': 'Remove admins first to delete',
 
+    'btn_audit_logs': 'Audit Logs',
     'dash': '-'
   },
 
@@ -100,6 +102,7 @@
     'btn_delete_site': 'Obriši sajt',
     'delete_rule': 'Prvo uklonite admine da biste obrisali',
 
+    'btn_audit_logs': 'Audit zapisi',
     'dash': '-'
   },
 
@@ -132,6 +135,7 @@
     'btn_delete_site': 'Удалить сайт',
     'delete_rule': 'Чтобы удалить, сначала удалите админов',
 
+    'btn_audit_logs': 'Журнал аудита',
     'dash': '-'
   }
 } %}
@@ -239,6 +243,18 @@ th{
   width:100%;
   overflow-x:auto;
 }
+
+/* Başlık satırı: sağa buton */
+.card-head-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.card-head-row h2{
+  margin:0;
+}
 </style>
 
 <div class="dashboard-grid">
@@ -301,9 +317,18 @@ th{
   <section>
 
     <div class="card">
-      <h2 style="font-size:16px;">{{ tp('table_title') }}</h2>
+      <div class="card-head-row">
+        <h2 style="font-size:16px;">{{ tp('table_title') }}</h2>
 
-      <div class="table-wrap">
+        <!-- ✅ Audit Log butonu -->
+        <a href="{{ url_for('admin.audit_logs') }}"
+           class="action-btn btn-blue"
+           style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">
+          {{ tp('btn_audit_logs') }}
+        </a>
+      </div>
+
+      <div class="table-wrap" style="margin-top:10px;">
         <table class="sites-table" style="width:100%; border-collapse:collapse;">
           <thead>
             <tr style="background:#f3f4f6;">
