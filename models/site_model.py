@@ -31,3 +31,10 @@ class Site(db.Model):
 
     def __repr__(self) -> str:
         return f"<Site id={self.id} name={self.name!r}>"
+    
+from sqlalchemy import Numeric
+
+monthly_dues_amount = db.Column(Numeric(10, 2), nullable=True)  # ✅ Site bazlı aidat
+
+
+

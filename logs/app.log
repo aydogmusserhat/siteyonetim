@@ -6392,3 +6392,8 @@ sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) NOT NULL constraint fail
 2026-01-08 09:46:54,910 [INFO] app: Makbuz dili (payment_receipt) = en
 2026-01-08 21:04:56,980 [INFO] app: Denetim: CREATE Payment (ID: 4) - Kullanıcı: 2 - Site: 2
 2026-01-08 21:06:03,890 [INFO] app: Denetim: DELETE Payment (ID: 3) - Kullanıcı: 2 - Site: 2
+2026-01-08 23:19:15,340 [INFO] app: Denetim: DELETE Bill (ID: 2) - Kullanıcı: 2 - Site: 2
+2026-01-08 23:19:20,966 [INFO] app: Denetim: DELETE Bill (ID: 3) - Kullanıcı: 2 - Site: 2
+2026-01-08 23:19:28,777 [INFO] app: Denetim: DELETE Bill (ID: 4) - Kullanıcı: 2 - Site: 2
+2026-01-08 23:20:23,018 [INFO] app: Denetim: CREATE Payment (ID: 5) - Kullanıcı: 2 - Site: 2
+2026-01-08 23:21:13,723 [INFO] app: Makbuz dili (payment_receipt) = tr

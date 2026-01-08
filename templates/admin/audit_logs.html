@@ -6,7 +6,17 @@
 {% block content %}
 
 <style>
-  .audit-wrap { display:flex; flex-direction:column; gap:14px; max-width:1900px; margin:0 auto; }
+  .audit-wrap { 
+  display:flex; 
+  flex-direction:column; 
+  gap:14px; 
+  width:100%;
+  max-width:100%;
+  margin:0;
+  padding:0 16px; /* desktop kenar boşluğu */
+  box-sizing:border-box;
+}
+
 
   /* Header */
   .meta-row {

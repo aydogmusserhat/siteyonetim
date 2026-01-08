@@ -107,6 +107,7 @@
     'menu_apartments': 'Daireler',
     'menu_users': 'Kullanıcılar',
     'menu_bills': 'Borç / Aidatlar',
+    'menu_dues_summary': 'Aidat Durumu',
     'menu_payments': 'Ödemeler',
     'menu_announcements': 'Duyurular',
     'menu_tickets': 'Talepler',
@@ -142,6 +143,7 @@
     'menu_apartments': 'Apartments',
     'menu_users': 'Users',
     'menu_bills': 'Dues / Bills',
+    'menu_dues_summary': 'Dues Summary',
     'menu_payments': 'Payments',
     'menu_announcements': 'Announcements',
     'menu_tickets': 'Requests',
@@ -178,6 +180,7 @@
     'menu_apartments': 'Квартиры',
     'menu_users': 'Пользователи',
     'menu_bills': 'Долги / Взносы',
+    'menu_dues_summary': 'Сводка взносов',
     'menu_payments': 'Платежи',
     'menu_announcements': 'Объявления',
     'menu_tickets': 'Заявки',
@@ -217,6 +220,7 @@
     'menu_apartments': 'Stanovi',
     'menu_users': 'Korisnici',
     'menu_bills': 'Dugovanja / Članarine',
+    'menu_dues_summary': 'Pregled članarina',
     'menu_payments': 'Uplate',
     'menu_announcements': 'Obavještenja',
     'menu_tickets': 'Zahtjevi',
@@ -318,7 +322,7 @@
       </div>
 
       <div class="sidebar__user-role">
-        {% if user_role == "admin" %}
+        {% if user_role in ["admin", "super_admin"] %}
           {{ t('role_admin_of') }} {{ active_site_name or fallback_site_name }}
         {% elif user_role == "resident" %}
           {{ t('role_resident_of') }} {{ active_site_name or fallback_site_name }}
@@ -338,7 +342,8 @@
     <nav class="sidebar__nav">
       {% set endpoint = request.endpoint or "" %}
 
-      {% if user_role == "admin" %}
+      {# ADMIN + SUPER_ADMIN (aktif site seçiliyse) admin menüsünü görsün #}
+      {% if user_role in ["admin", "super_admin"] %}
 
         <a href="{{ url_for('admin.dashboard', lang=LANG) }}"
            class="sidebar__link {% if endpoint == 'admin.dashboard' %}sidebar__link--active{% endif %}">
@@ -359,6 +364,14 @@
            class="sidebar__link {% if endpoint == 'admin.manage_bills' or endpoint == 'admin.dues_summary' %}sidebar__link--active{% endif %}">
           💳 {{ t('menu_bills') }}
         </a>
+
+        {# ✅ Aidat Durumu (dues_summary) - admin için her zaman, super_admin için aktif site seçiliyse #}
+        {% if user_role == "admin" or (user_role == "super_admin" and active_site_name) %}
+          <a href="{{ url_for('admin.dues_summary', lang=LANG) }}"
+             class="sidebar__link {% if endpoint == 'admin.dues_summary' %}sidebar__link--active{% endif %}">
+            📊 {{ t('menu_dues_summary') }}
+          </a>
+        {% endif %}
 
         <a href="{{ url_for('admin.manage_payments', lang=LANG) }}"
            class="sidebar__link {% if endpoint == 'admin.manage_payments' %}sidebar__link--active{% endif %}">
@@ -434,7 +447,7 @@
           {% block topbar_title %}{{ t('panel_title') }}{% endblock %}
         </div>
         <div class="topbar__subtitle">
-          {% if user_role == "admin" %}
+          {% if user_role == "admin" or (user_role == "super_admin" and active_site_name) %}
             {{ t('admin_view') }}
           {% elif user_role == "resident" %}
             {{ t('resident_view') }}

@@ -34,6 +34,7 @@ from models.announcement_model import Announcement
 from models.ticket_model import Ticket
 from models.site_model import Site  # 🔸 site modeli
 from audit_logging import log_action
+from typing import Optional
 
 
 import json
@@ -254,39 +255,28 @@ def _get_current_admin():
 # ======================
 
 
-def get_default_monthly_dues_amount() -> Decimal:
+def get_default_monthly_dues_amount(site_id: Optional[int] = None) -> Decimal:
     """
-    Varsayılan aylık aidat tutarını ayarlar tablosundan (SystemSetting)
-    okur. Herhangi bir hata ya da kayıt bulunamazsa 500.00 TL döner.
-    Böylece tek bir doğruluk kaynağı kullanılmış olur.
+    Site bazlı aylık aidat tutarını Site tablosundan okur.
+    site_id yoksa 500.00 döner.
     """
     fallback = Decimal("500.00")
+
+    if not site_id:
+        return fallback
+
     try:
-        settings = SystemSetting.get_singleton()
-        if settings and settings.default_monthly_dues_amount is not None:
-            return Decimal(settings.default_monthly_dues_amount)
+        site = Site.query.get(site_id)
+        val = getattr(site, "monthly_dues_amount", None) if site else None
+        if val is not None:
+            return Decimal(str(val))
+
     except SQLAlchemyError as exc:
-        current_app.logger.exception("Varsayılan aidat tutarı okunamadı: %s", exc)
+        current_app.logger.exception("Site aidat tutarı okunamadı (site_id=%s): %s", site_id, exc)
 
     return fallback
 
 
-def get_site_display_name() -> str:
-    """
-    Sistem ayarlarından (SystemSetting) site / apartman adını okur.
-    Bulamazsa güvenli bir varsayılan değer döner.
-    """
-    default_name = "Site / Apartman"
-    try:
-        settings = SystemSetting.get_singleton()
-        if settings and getattr(settings, "site_name", None):
-            name = (settings.site_name or "").strip()
-            if name:
-                return name
-    except SQLAlchemyError as exc:
-        current_app.logger.exception("Site adı okunamadı: %s", exc)
-
-    return default_name
 
 
 @admin_bp.app_context_processor
@@ -578,23 +568,6 @@ def _get_current_admin():
 #  SETTINGS / SITE NAME
 # ======================
 
-def get_default_monthly_dues_amount() -> Decimal:
-    """
-    Varsayılan aylık aidat tutarını ayarlar tablosundan (SystemSetting)
-    okur. Herhangi bir hata ya da kayıt bulunamazsa 500.00 TL döner.
-    Böylece tek bir doğruluk kaynağı kullanılmış olur.
-    """
-    fallback = Decimal("500.00")
-    try:
-        settings = SystemSetting.get_singleton()
-        if settings and settings.default_monthly_dues_amount is not None:
-            return Decimal(settings.default_monthly_dues_amount)
-    except SQLAlchemyError as exc:
-        current_app.logger.exception("Varsayılan aidat tutarı okunamadı: %s", exc)
-
-    return fallback
-
-
 def get_site_display_name() -> str:
     """
     Sistem ayarlarından (SystemSetting) site / apartman adını okur.
@@ -611,7 +584,6 @@ def get_site_display_name() -> str:
         current_app.logger.exception("Site adı okunamadı: %s", exc)
 
     return default_name
-
 
 @admin_bp.app_context_processor
 def inject_site_name():
@@ -1776,13 +1748,24 @@ def update_bill(bill_id: int):
 
 
 # ===== AİDAT DURUMU (YILLIK ÖZET TABLOSU + OTOMATİK AYLIK BORÇ) =====
-
 @admin_bp.route("/dues-summary", methods=["GET"])
 @admin_required
 def dues_summary():
     """
     Her DAİRE için, seçilen yılda Ocak–Aralık aidat durumlarını özetleyen tablo.
+
+    Not:
+    - Bu fonksiyon "otomatik aidat oluşturma" işini scheduler gibi değil,
+      bu sayfa açıldığında (lazy) yapar.
+    - Çoklu site güvenliği için tüm sorgular site_id ile filtrelenmiştir.
     """
+    # --- Aktif site kontrolü ---
+    admin_user = _get_current_admin()
+    site_id = session.get("active_site_id") or (admin_user.site_id if admin_user else None)
+    if not site_id:
+        flash("Bu sayfayı kullanabilmek için bir siteye atanmış olmanız gerekiyor.", "error")
+        return redirect(url_for("index"))
+
     now = datetime.utcnow()
     current_year = now.year
     current_month = now.month
@@ -1807,11 +1790,12 @@ def dues_summary():
     ]
     month_labels = dict(months)
 
-    # 1) Tüm daireleri çek
+    # 1) Aktif siteye ait daireleri çek
     apartments = []
     try:
         apartments = (
             Apartment.query
+            .filter(Apartment.site_id == site_id)  # ✅ SİTE FİLTRESİ
             .order_by(
                 Apartment.block.asc(),
                 Apartment.floor.asc(),
@@ -1824,7 +1808,9 @@ def dues_summary():
         flash("Daire listesi alınırken bir hata oluştu.", "error")
         apartments = []
 
-    # 2) İçinde bulunulan yıl ve ay için otomatik aidat oluştur
+    # 2) İçinde bulunulan yıl ve ay için otomatik aidat oluştur (lazy)
+    #    - sadece aidat kontrolü
+    #    - site_id yaz
     if year == current_year and apartments:
         try:
             active_apartment_ids = {apt.id for apt in apartments if apt.id is not None}
@@ -1835,8 +1821,10 @@ def dues_summary():
             else:
                 month_end = date(year, current_month + 1, 1)
 
-            existing_bills = (
+            existing_aidat_bills = (
                 Bill.query.filter(
+                    Bill.site_id == site_id,                       # ✅ SİTE FİLTRESİ
+                    Bill.type == "aidat",                           # ✅ SADECE AİDAT
                     Bill.apartment_id.in_(active_apartment_ids),
                     Bill.due_date >= month_start,
                     Bill.due_date < month_end,
@@ -1844,19 +1832,21 @@ def dues_summary():
                 .all()
             )
 
-            apartments_with_bill = {
-                b.apartment_id for b in existing_bills if b.apartment_id is not None
+            apartments_with_aidat = {
+                b.apartment_id for b in existing_aidat_bills if b.apartment_id is not None
             }
 
             for apt_id in active_apartment_ids:
-                if apt_id in apartments_with_bill:
+                if apt_id in apartments_with_aidat:
                     continue
 
                 desc = f"{year} {month_labels.get(current_month, str(current_month))} aidatı"
+
                 auto_bill = Bill(
+                    site_id=site_id,  # ✅ KRİTİK: BU YOKSA ÇOKLU SİTEDE KAYIT KAYBOLUR
                     apartment_id=apt_id,
                     description=desc,
-                    amount=get_default_monthly_dues_amount(),
+                    amount=get_default_monthly_dues_amount(site_id),
                     status="open",
                     type="aidat",
                     due_date=month_start,
@@ -1871,7 +1861,7 @@ def dues_summary():
             current_app.logger.exception("Otomatik aylık aidat oluşturulamadı: %s", exc)
             flash("Otomatik aidat oluşturulurken bir hata oluştu.", "error")
 
-    # 3) Seçilen yıl için tüm Bill kayıtlarını çek
+    # 3) Seçilen yıl için tüm AİDAT Bill kayıtlarını çek (site bazlı)
     start_date = date(year, 1, 1)
     end_date = date(year + 1, 1, 1)
 
@@ -1884,6 +1874,8 @@ def dues_summary():
         bills = (
             Bill.query
             .filter(
+                Bill.site_id == site_id,          # ✅ SİTE FİLTRESİ
+                Bill.type == "aidat",             # ✅ SADECE AİDAT
                 Bill.due_date >= start_date,
                 Bill.due_date < end_date,
             )
@@ -1898,11 +1890,14 @@ def dues_summary():
             bill_totals[key] += Decimal(b.amount or 0)
             bill_key_by_id[b.id] = key
 
-        # Bu Bill'lere bağlı tüm ödemeleri çek
+        # Bu Bill'lere bağlı tüm ödemeleri çek (site bazlı)
         if bill_key_by_id:
             payments = (
                 Payment.query
-                .filter(Payment.bill_id.in_(bill_key_by_id.keys()))
+                .filter(
+                    Payment.site_id == site_id,   # ✅ SİTE FİLTRESİ
+                    Payment.bill_id.in_(bill_key_by_id.keys())
+                )
                 .all()
             )
         else:
@@ -1938,22 +1933,28 @@ def dues_summary():
         status_map = {}
         bill_totals = {}
 
-    # 4) Dairelere atanmış ilk aktif sakinleri tek sorguda çek
+    # 4) Dairelere atanmış ilk aktif sakinleri tek sorguda çek (SADECE BU SİTENİN DAİRELERİ)
     resident_by_apartment = {}
     try:
-        residents = (
-            User.query
-            .filter(
-                User.role == "resident",
-                User.is_active == True,  # noqa: E712
-                User.apartment_id.isnot(None),
+        apt_ids = [apt.id for apt in apartments if apt.id is not None]
+        if apt_ids:
+            residents = (
+                User.query
+                .filter(
+                    User.role == "resident",
+                    User.is_active == True,  # noqa: E712
+                    User.apartment_id.in_(apt_ids),  # ✅ SADECE BU SİTENİN DAİRELERİ
+                )
+                .order_by(User.name.asc())
+                .all()
             )
-            .order_by(User.name.asc())
-            .all()
-        )
+        else:
+            residents = []
+
         for u in residents:
             if u.apartment_id not in resident_by_apartment:
                 resident_by_apartment[u.apartment_id] = u
+
     except SQLAlchemyError as exc:
         current_app.logger.exception("Sakin listesi alınamadı: %s", exc)
         flash("Sakin listesi alınırken bir hata oluştu.", "error")
@@ -1986,6 +1987,7 @@ def dues_summary():
         months=months,
         rows=rows,
     )
+
 
 
 # ========================= Borç status’ünü yeniden hesaplayan helper =========================
@@ -2993,43 +2995,83 @@ class _SettingsDemo:
 @admin_bp.route("/settings", methods=["GET", "POST"])
 @admin_required
 def settings():
-    """Sistem ayarları (site adı, varsayılan aidat tutarı vb.)."""
+    """
+    Site bazlı ayarlar:
+    - Site adı (Site.name)
+    - Aylık aidat tutarı (Site.monthly_dues_amount)
+    Diğer yönetici/iletişim alanları şimdilik SystemSetting'te kalabilir,
+    ama aidat mutlaka site bazlıdır.
+    """
+    admin_user = _get_current_admin()
+    site_id = session.get("active_site_id") or (admin_user.site_id if admin_user else None)
+    if not site_id:
+        flash("Ayarlar için bir site seçmelisiniz.", "error")
+        return redirect(url_for("admin.dashboard"))
 
+    # Site kaydı
+    site = Site.query.get(site_id)
+    if not site:
+        flash("Site bulunamadı.", "error")
+        return redirect(url_for("admin.dashboard"))
+
+    # Diğer (global) ayarlar sende kullanılıyorsa koruyalım:
     try:
         settings_obj = SystemSetting.get_singleton()
     except SQLAlchemyError as exc:
         current_app.logger.exception("Ayarlar alınamadı: %s", exc)
-        flash("Ayarlar okunurken bir hata oluştu.", "error")
         settings_obj = None
 
     if request.method == "POST":
-        default_dues = (request.form.get("default_monthly_dues_amount") or "").strip()
         site_name = (request.form.get("site_name") or "").strip()
+        monthly_dues_amount = (request.form.get("default_monthly_dues_amount") or "").strip()
+
+        # (Opsiyonel) global alanlar
+        address = (request.form.get("address") or "").strip()
+        manager_name = (request.form.get("manager_name") or "").strip()
+        manager_phone = (request.form.get("manager_phone") or "").strip()
+        manager_email = (request.form.get("manager_email") or "").strip()
 
         try:
-            # Eğer hiç kayıt yoksa oluştur
-            if settings_obj is None:
-                settings_obj = SystemSetting.get_singleton()
-                if settings_obj is None:
-                    settings_obj = SystemSetting()
-                    db.session.add(settings_obj)
+            # ✅ Site adı site tablosuna
+            if site_name:
+                site.name = site_name
 
-            # Varsayılan aidat
-            if default_dues:
-                settings_obj.default_monthly_dues_amount = Decimal(
-                    default_dues.replace(",", ".")
-                )
+            # ✅ Site aidat tutarı site tablosuna
+            if monthly_dues_amount != "":
+                # virgül yazılırsa düzelt
+                val = Decimal(monthly_dues_amount.replace(",", "."))
+                if val < 0:
+                    raise ValueError("Aidat tutarı negatif olamaz.")
+                if hasattr(site, "monthly_dues_amount"):
+                    site.monthly_dues_amount = val
+                else:
+                    # Site modelinde alan yoksa kırılmasın
+                    # (İstersen burada flash da atabilirsin)
+                    pass
 
-            # Site / apartman adı
-            settings_obj.site_name = site_name or None
-            # ▶ Session'a da yaz ki tüm sayfalarda anında güncellensin
-            session["site_name"] = settings_obj.site_name or "Site / Apartman"
+
+            # Global alanlar (kullanıyorsan)
+            if settings_obj:
+                settings_obj.address = address or None
+                settings_obj.manager_name = manager_name or None
+                settings_obj.manager_phone = manager_phone or None
+                settings_obj.manager_email = manager_email or None
+
             db.session.commit()
-            flash("Ayarlar başarıyla kaydedildi.", "success")
 
+            # ✅ Session isim güncellemesi (sidebar/topbar anında güncellensin)
+            session["active_site_name"] = site.name
+            session["site_name"] = site.name
+
+            flash("Site ayarları kaydedildi.", "success")
         except (ValueError, SQLAlchemyError) as exc:
             db.session.rollback()
-            current_app.logger.exception("Ayarlar kaydedilemedi: %s", exc)
+            current_app.logger.exception("Site ayarları kaydedilemedi: %s", exc)
             flash("Ayarlar kaydedilirken bir hata oluştu.", "error")
 
-    return render_template("admin/ayarlar.html", settings=settings_obj)
+    return render_template(
+        "admin/ayarlar.html",
+        settings=settings_obj,
+        site=site,
+    )
+

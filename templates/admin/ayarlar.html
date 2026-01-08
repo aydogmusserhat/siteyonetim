@@ -174,7 +174,7 @@
         min="0"
         id="default_monthly_dues_amount"
         name="default_monthly_dues_amount"
-        value="{{ '%.2f'|format(settings.default_monthly_dues_amount or 0) }}"
+        value="{{ '%.2f'|format(site.monthly_dues_amount or 0) }}"
         style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
       <p style="font-size:12px; color:#6b7280; margin-top:4px;">
         {{ tp('default_dues_hint') }}
