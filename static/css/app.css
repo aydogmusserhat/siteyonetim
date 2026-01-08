@@ -830,3 +830,88 @@ select {
     padding: 0 12px;
   }
 }
+/* ==========================
+   TOPBAR - MOBİLDE YAZI SIĞDIRMA
+   ========================== */
+
+/* Topbar'ın tek satıra sıkışmasını engelle */
+.topbar{
+  flex-wrap: wrap;            /* ✅ alta geçebilsin */
+  height: auto;               /* ✅ 70px sabit yüksekliği kır */
+  min-height: 64px;
+  gap: 10px;
+}
+
+/* Başlık bloğu genişlesin, taşmasın */
+.topbar__title{
+  line-height: 1.15;
+  word-break: break-word;
+}
+.topbar__subtitle{
+  line-height: 1.15;
+}
+
+/* Sağ blok taşmasın, gerekiyorsa alt satıra insin */
+.topbar__user{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;            /* ✅ dil + kullanıcı alt satıra düşebilir */
+  text-align: right;
+}
+
+/* Uzun isimler kısalsın (… ile) */
+.topbar__user-name,
+.topbar__user-role{
+  max-width: 45vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Dil butonu da taşmasın */
+.lang-btn{
+  max-width: 55vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Mobilde: sağ blok alta insin ve yazılar net küçülsün */
+@media (max-width: 520px){
+  .topbar{
+    padding: 10px 12px;
+  }
+
+  /* Menü butonu + başlık aynı satır, sağ blok ikinci satıra */
+  .topbar__user{
+    width: 100%;
+    justify-content: flex-start; /* ✅ alta inince sola */
+    text-align: left;
+    gap: 8px;
+  }
+
+  .topbar__title{
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .topbar__subtitle{
+    font-size: 11px;
+  }
+
+  .topbar__user-name{
+    font-size: 12px;
+    font-weight: 600;
+    max-width: 80vw;
+  }
+  .topbar__user-role{
+    font-size: 11px;
+    max-width: 80vw;
+  }
+
+  .lang-btn{
+    font-size: 11px;
+    padding: 6px 8px;
+    max-width: 80vw;
+  }
+}
