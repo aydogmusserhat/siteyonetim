@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {# ============================================================
-   SİSTEM AYARLARI - 3 DİL (TR / EN / ME) UYUMLU
+   SİSTEM AYARLARI - 4 DİL (TR / EN / ME / RU) UYUMLU
    ============================================================ #}
 
 {% set LANG = session.get('lang','tr') %}
@@ -65,6 +65,26 @@
     'global_hint': 'Nakon čuvanja, ovi podaci i iznos članarine koristiće se kroz cijeli sistem.',
 
     'save': 'Sačuvaj'
+  },
+
+  'ru': {
+    'page_title': 'Системные настройки',
+    'topbar_title': 'Системные настройки',
+
+    'card_title': 'Информация о сайте / доме',
+
+    'site_name_label': 'Название сайта / дома',
+    'address_label': 'Адрес',
+    'manager_name_label': 'Имя управляющего',
+    'phone_label': 'Телефон',
+    'email_label': 'Эл. почта',
+
+    'default_dues_label': 'Сумма ежемесячного взноса по умолчанию (₺)',
+    'default_dues_hint': 'Эта сумма будет использоваться при автоматическом создании ежемесячных начислений для всех квартир в начале каждого месяца.',
+
+    'global_hint': 'После сохранения эти данные и сумма взноса будут использоваться по всей системе.',
+
+    'save': 'Сохранить'
   }
 } %}
 

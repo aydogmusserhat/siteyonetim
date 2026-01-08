@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {# ============================================================
-   AİDAT DURUMU - 3 DİL (TR / EN / ME) UYUMLU
+   AİDAT DURUMU - 4 DİL (TR / EN / ME / RU) UYUMLU
    ============================================================ #}
 
 {% set LANG = session.get('lang','tr') %}
@@ -98,6 +98,37 @@
     'legend_not_defined': 'Članarina nije definisana',
 
     'no_data': 'Nema stanova ili evidencija članarine za prikaz.'
+  },
+
+  'ru': {
+    'page_title': 'Статус взносов',
+    'topbar_title': 'Годовой статус взносов',
+
+    'table_title': 'Таблица взносов по квартирам',
+    'table_desc': 'Каждая строка представляет квартиру, а столбцы — месяцы с января по декабрь. Если к квартире прикреплён жилец, его данные отображаются слева.',
+
+    'year': 'Год',
+    'show': 'Показать',
+
+    'col_apartment': 'Квартира',
+    'col_resident': 'Жилец',
+
+    'owner': 'Владелец',
+    'undefined_apartment': '(Квартира не определена)',
+
+    'no_assigned_resident': 'Жилец не назначен',
+
+    'paid': 'Оплачено',
+    'partial': 'Частично',
+    'unpaid': 'Не оплачено',
+    'not_defined': '-',
+
+    'legend_paid': 'Оплачено',
+    'legend_partial': 'Частично',
+    'legend_unpaid': 'Не оплачено',
+    'legend_not_defined': 'Взнос не определён',
+
+    'no_data': 'Нет квартир или записей о взносах для отображения.'
   }
 } %}
 
@@ -109,7 +140,8 @@
 {% set MONTHS = {
   'tr': {1:"Ocak",2:"Şubat",3:"Mart",4:"Nisan",5:"Mayıs",6:"Haziran",7:"Temmuz",8:"Ağustos",9:"Eylül",10:"Ekim",11:"Kasım",12:"Aralık"},
   'en': {1:"January",2:"February",3:"March",4:"April",5:"May",6:"June",7:"July",8:"August",9:"September",10:"October",11:"November",12:"December"},
-  'me': {1:"Januar",2:"Februar",3:"Mart",4:"April",5:"Maj",6:"Jun",7:"Jul",8:"Avgust",9:"Septembar",10:"Oktobar",11:"Novembar",12:"Decembar"}
+  'me': {1:"Januar",2:"Februar",3:"Mart",4:"April",5:"Maj",6:"Jun",7:"Jul",8:"Avgust",9:"Septembar",10:"Oktobar",11:"Novembar",12:"Decembar"},
+  'ru': {1:"Январь",2:"Февраль",3:"Март",4:"Апрель",5:"Май",6:"Июнь",7:"Июль",8:"Август",9:"Сентябрь",10:"Октябрь",11:"Ноябрь",12:"Декабрь"}
 } %}
 
 {% block title %}{{ tp('page_title') }}{% endblock %}

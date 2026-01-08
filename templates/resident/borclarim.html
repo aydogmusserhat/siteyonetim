@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {# ============================================================
-   BORÇLARIM (RESIDENT) - 3 DİL (TR / EN / ME) UYUMLU
+   BORÇLARIM (RESIDENT) - 4 DİL (TR / EN / ME / RU) UYUMLU
    ============================================================ #}
 
 {% set LANG = session.get('lang','tr') %}
@@ -119,6 +119,44 @@
 
     'empty': 'Nema evidentiranih dugovanja.',
     'dash': '-'
+  },
+
+  'ru': {
+    'page_title': 'Мои задолженности',
+    'topbar_title': 'Мои задолженности',
+
+    'summary_remaining_title': 'Остаток общего долга',
+    'summary_remaining_sub': 'Все счета − оплаченные суммы',
+
+    'summary_paid_title': 'Всего оплачено',
+    'summary_paid_sub': 'Платежи, внесённые в систему',
+
+    'summary_total_title': 'Общая сумма счетов / взносов',
+    'summary_total_sub': 'Сумма всех начислений',
+
+    'summary_count_title': 'Количество счетов / взносов',
+    'summary_count_sub_prefix_open': 'Открыто',
+    'summary_count_sub_prefix_partial': 'Частично',
+    'summary_count_sub_prefix_paid': 'Оплачено',
+
+    'list_title': 'Список моих долгов',
+    'apt_label': 'Квартира',
+
+    'th_type': 'Тип',
+    'th_desc': 'Описание',
+    'th_created': 'Создано',
+    'th_due': 'Срок',
+    'th_amount': 'Сумма',
+    'th_status': 'Статус',
+
+    'type_general': 'Общее',
+
+    'status_open': 'Открыто',
+    'status_partial': 'Частично',
+    'status_paid': 'Оплачено',
+
+    'empty': 'Задолженности не найдены.',
+    'dash': '-'
   }
 } %}
 
@@ -179,13 +217,8 @@
     color: #9ca3af;
   }
 
-  .amount-negative {
-    color: #b91c1c;
-  }
-
-  .amount-positive {
-    color: #16a34a;
-  }
+  .amount-negative { color: #b91c1c; }
+  .amount-positive { color: #16a34a; }
 
   .borc-section {
     background: #ffffff;
@@ -235,9 +268,7 @@
     color: #6b7280;
   }
 
-  .borc-table tr:last-child td {
-    border-bottom: none;
-  }
+  .borc-table tr:last-child td { border-bottom: none; }
 
   .status-pill {
     display: inline-flex;
@@ -248,20 +279,9 @@
     font-weight: 500;
   }
 
-  .status-open {
-    background: #fef2f2;
-    color: #b91c1c;
-  }
-
-  .status-partial {
-    background: #fffbeb;
-    color: #92400e;
-  }
-
-  .status-paid {
-    background: #ecfdf3;
-    color: #166534;
-  }
+  .status-open { background: #fef2f2; color: #b91c1c; }
+  .status-partial { background: #fffbeb; color: #92400e; }
+  .status-paid { background: #ecfdf3; color: #166534; }
 
   .pill-small {
     display: inline-flex;
@@ -273,24 +293,14 @@
   }
 
   @media (max-width: 1024px) {
-    .borclar-summary-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
+    .borclar-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
 
   @media (max-width: 640px) {
-    .borclar-summary-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .borc-section {
-      padding: 12px 12px;
-    }
-
+    .borclar-summary-grid { grid-template-columns: 1fr; }
+    .borc-section { padding: 12px 12px; }
     .borc-table th,
-    .borc-table td {
-      padding: 6px 2px;
-    }
+    .borc-table td { padding: 6px 2px; }
   }
 </style>
 

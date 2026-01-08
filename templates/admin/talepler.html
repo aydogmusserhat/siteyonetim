@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {# ============================================================
-   TALEPLER (ADMIN) - 3 DİL (TR / EN / ME) UYUMLU
+   TALEPLER (ADMIN) - 4 DİL (TR / EN / ME / RU) UYUMLU
    ============================================================ #}
 
 {% set LANG = session.get('lang','tr') %}
@@ -122,6 +122,45 @@
     'btn_save': 'Sačuvaj',
 
     'empty': 'Nema evidentiranih zahtjeva.'
+  },
+
+  'ru': {
+    'page_title': 'Заявки',
+    'topbar_title': 'Заявки жильцов',
+    'card_title': 'Заявки жильцов',
+
+    'filter_label': 'Фильтр по статусу:',
+    'filter_all': 'Все',
+    'filter_open': 'Открыто',
+    'filter_in_progress': 'В процессе',
+    'filter_closed': 'Закрыто',
+
+    'col_date': 'Дата',
+    'col_apartment': 'Квартира',
+    'col_resident': 'Жилец',
+    'col_title': 'Заголовок',
+    'col_status': 'Статус',
+    'col_priority': 'Приоритет',
+    'col_action': 'Действие',
+
+    'apt_unspecified': 'Не указано',
+    'dash': '-',
+
+    'status_closed': 'Закрыто',
+    'status_in_progress': 'В процессе',
+    'status_open': 'Открыто',
+
+    'priority_high': 'Высокий',
+    'priority_low': 'Низкий',
+    'priority_normal': 'Обычный',
+
+    'select_open': 'Открыто',
+    'select_in_progress': 'В процессе',
+    'select_closed': 'Закрыто',
+
+    'btn_save': 'Сохранить',
+
+    'empty': 'Заявок не найдено.'
   }
 } %}
 

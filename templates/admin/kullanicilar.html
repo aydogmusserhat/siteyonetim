@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {# ============================================================
-   KULLANICI YÖNETİMİ - 3 DİL (TR / EN / ME) UYUMLU
+   KULLANICI YÖNETİMİ - 4 DİL (TR / EN / ME / RU) UYUMLU
    ============================================================ #}
 
 {% set LANG = session.get('lang','tr') %}
@@ -119,7 +119,7 @@
     'ph_phone': '+90 5xx xxx xx xx',
 
     'label_role': 'Uloga',
-    'role_resident': 'Stanар',
+    'role_resident': 'Stanar',
 
     'label_apartment': 'Povezani stan (opciono)',
     'apartment_none': 'Nije izabrano',
@@ -138,7 +138,7 @@
     'col_status': 'Status',
 
     'badge_admin': 'Upravnik',
-    'badge_resident': 'Stanар',
+    'badge_resident': 'Stanar',
 
     'apartment_unlinked': 'Nije povezano',
 
@@ -149,6 +149,54 @@
     'btn_activate': 'Aktiviraj',
 
     'empty': 'Još nema registrovanih korisnika u sistemu (osim admina).'
+  },
+
+  'ru': {
+    'page_title': 'Управление пользователями',
+    'topbar_title': 'Управление пользователями',
+
+    'new_user': 'Добавить нового пользователя',
+
+    'label_name': 'Имя и фамилия',
+    'ph_name': 'Напр.: Иван Иванов',
+
+    'label_email': 'Эл. почта',
+    'ph_email': 'primer@site.com',
+
+    'label_phone': 'Телефон (необязательно)',
+    'ph_phone': '+90 5xx xxx xx xx',
+
+    'label_role': 'Роль',
+    'role_resident': 'Жилец',
+
+    'label_apartment': 'Привязать квартиру (необязательно)',
+    'apartment_none': 'Не выбрано',
+
+    'label_password': 'Пароль',
+    'ph_password': 'Минимум 6 символов',
+
+    'btn_create': 'Создать пользователя',
+
+    'list_title': 'Зарегистрированные пользователи',
+
+    'col_name': 'Имя и фамилия',
+    'col_email': 'Эл. почта',
+    'col_role': 'Роль',
+    'col_apartment': 'Квартира',
+    'col_status': 'Статус',
+
+    'badge_admin': 'Администратор',
+    'badge_resident': 'Жилец',
+
+    'apartment_unlinked': 'Не привязано',
+
+    'active': 'Активен',
+    'passive': 'Неактивен',
+
+    'btn_deactivate': 'Деактивировать',
+    'btn_activate': 'Активировать',
+
+    'empty': 'Пока нет зарегистрированных пользователей в системе (кроме администратора).'
   }
 } %}
 

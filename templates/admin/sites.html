@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {# ============================================================
-   SİTE YÖNETİMİ (SUPER ADMIN) - 3 DİL (TR / EN / ME) UYUMLU
+   SİTE YÖNETİMİ (SUPER ADMIN) - 4 DİL (TR / EN / ME / RU) UYUMLU
    ============================================================ #}
 
 {% set LANG = session.get('lang','tr') %}
@@ -99,6 +99,38 @@
     'btn_switch_site': 'Prebaci na ovaj sajt',
     'btn_delete_site': 'Obriši sajt',
     'delete_rule': 'Prvo uklonite admine da biste obrisali',
+
+    'dash': '-'
+  },
+
+  'ru': {
+    'page_title': 'Управление сайтами',
+    'topbar_title': 'Управление сайтами (Супер-админ)',
+
+    'new_site_title': 'Создать новый сайт',
+    'site_name_ph': 'Название сайта',
+    'site_desc_ph': 'Адрес / описание',
+    'btn_save_site': 'Сохранить сайт',
+
+    'new_admin_title': 'Создать нового администратора',
+    'admin_name_ph': 'Имя и фамилия',
+    'admin_email_ph': 'E-mail',
+    'admin_pass_ph': 'Пароль',
+    'select_site': 'Выберите сайт',
+    'btn_create_admin': 'Создать администратора',
+
+    'table_title': 'Созданные сайты и администраторы',
+    'col_site_name': 'Сайт',
+    'col_desc': 'Описание',
+    'col_admins': 'Администраторы',
+    'col_actions': 'Действия',
+
+    'admin_not_assigned': 'Администратор не назначен',
+    'btn_delete_admin': 'Удалить администратора',
+
+    'btn_switch_site': 'Перейти на этот сайт',
+    'btn_delete_site': 'Удалить сайт',
+    'delete_rule': 'Чтобы удалить, сначала удалите админов',
 
     'dash': '-'
   }

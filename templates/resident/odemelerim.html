@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {# ============================================================
-   ÖDEMELERİM - 3 DİL (TR / EN / ME)
+   ÖDEMELERİM - 4 DİL (TR / EN / ME / RU)
    ============================================================ #}
 
 {% set LANG = session.get('lang','tr') %}
@@ -56,6 +56,23 @@
     'dash': '-',
     'unmatched': 'Nije povezano',
     'empty': 'Još nemate evidentiranih uplata.'
+  },
+
+  'ru': {
+    'page_title': 'Мои платежи',
+    'topbar_title': 'История платежей',
+
+    'h_title': 'История ваших платежей',
+    'apartment_label': 'Ваша квартира',
+
+    'th_amount': 'Сумма',
+    'th_date': 'Дата',
+    'th_method': 'Способ',
+    'th_related_bill': 'Связанный долг',
+
+    'dash': '-',
+    'unmatched': 'Не привязано',
+    'empty': 'У вас пока нет записей о платежах.'
   }
 } %}
 

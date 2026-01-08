@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {# ============================================================
-   PROFİLİM - 3 DİL (TR / EN / ME)
+   PROFİLİM - 4 DİL (TR / EN / ME / RU)
    ============================================================ #}
 
 {% set LANG = session.get('lang','tr') %}
@@ -77,6 +77,31 @@
     'new_pw2_ph': 'Mora biti ista kao nova lozinka',
 
     'btn_save': 'Ažuriraj profil',
+
+    'phone_ph': '+90 5xx xxx xx xx',
+    'email_disabled_bg_hint': '',
+  },
+
+  'ru': {
+    'page_title': 'Мой профиль',
+    'topbar_title': 'Мой профиль',
+
+    'card_title': 'Данные вашего профиля',
+    'apartment_label': 'Ваша квартира',
+
+    'name_label': 'Имя и фамилия',
+    'email_label': 'Эл. почта',
+    'email_help': 'Если вы хотите изменить адрес электронной почты, пожалуйста, свяжитесь с администратором.',
+    'phone_label': 'Телефон',
+
+    'pw_section_title': 'Обновить пароль (необязательно)',
+    'pw_section_help': 'Если вы не хотите менять пароль, оставьте эти поля пустыми.',
+    'new_pw_label': 'Новый пароль',
+    'new_pw_ph': 'Минимум 6 символов',
+    'new_pw2_label': 'Новый пароль (повтор)',
+    'new_pw2_ph': 'Должен совпадать с новым паролем',
+
+    'btn_save': 'Обновить профиль',
 
     'phone_ph': '+90 5xx xxx xx xx',
     'email_disabled_bg_hint': '',

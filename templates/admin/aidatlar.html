@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {# ============================================================
-   AİDATLAR / BORÇLAR - 3 DİL (TR / EN / ME) UYUMLU
+   AİDATLAR / BORÇLAR - 4 DİL (TR / EN / ME / RU) UYUMLU
    ============================================================ #}
 
 {% set LANG = session.get('lang','tr') %}
@@ -206,6 +206,73 @@
     'paid_col': 'Plaćeno',
     'remaining_col': 'Preostalo',
     'no_summary': 'Još nema dugovanja za sažetak.'
+  },
+
+  'ru': {
+    'page_title': 'Взносы / Долги',
+    'topbar_title': 'Взносы / Долги',
+
+    'new_record_title': 'Новая запись долга / взноса',
+    'apartment': 'Квартира',
+    'choose_apartment': 'Выберите квартиру...',
+    'for_all': 'Создать этот долг для всех квартир',
+    'for_all_hint': 'Если отмечено, выбор квартиры выше игнорируется, и один и тот же долг добавляется всем квартирам.',
+
+    'description': 'Описание',
+    'description_ph': 'Напр.: Взнос за январь 2026',
+
+    'amount': 'Сумма (₺)',
+    'amount_ph': 'Напр.: 750',
+
+    'due_date': 'Срок оплаты',
+
+    'type_optional': 'Тип (необязательно)',
+    'not_selected': 'Не выбрано',
+
+    'type_aidat': 'Взнос',
+    'type_elektrik': 'Электричество',
+    'type_su': 'Вода',
+    'type_dogalgaz': 'Природный газ',
+    'type_ekstra': 'Доп. расход',
+
+    'create_bill': 'Создать запись долга',
+
+    'existing_title': 'Существующие записи долгов / взносов',
+    'filter_status': 'Статус',
+    'filter_type': 'Тип',
+    'filter': 'Фильтр',
+
+    'all': 'Все',
+    'status_open': 'Открыто',
+    'status_partial': 'Частично',
+    'status_paid': 'Оплачено',
+
+    'col_apartment': 'Квартира',
+    'col_description': 'Описание',
+    'col_type': 'Тип',
+    'col_amount': 'Сумма',
+    'col_due': 'Срок',
+    'col_status': 'Статус',
+
+    'not_specified': 'Не указано',
+    'none': 'Нет',
+
+    'total': 'Всего',
+    'record': 'записей',
+    'page': 'Страница',
+    'first': 'Первая',
+    'prev': 'Предыдущая',
+    'next': 'Следующая',
+    'last': 'Последняя',
+
+    'no_bills': 'Пока нет записей долгов/взносов. Вы можете добавить первую запись через форму слева.',
+
+    'apartment_summary_title': 'Сводка общего долга по квартирам',
+    'debt_types': 'Типы долгов',
+    'total_col': 'Итого',
+    'paid_col': 'Оплачено',
+    'remaining_col': 'Остаток',
+    'no_summary': 'Пока нет долгов для сводки.'
   }
 } %}
 
@@ -217,7 +284,8 @@
 {% set TYPE_LABEL = {
   'tr': {'aidat':'Aidat','elektrik':'Elektrik','su':'Su','dogalgaz':'Doğalgaz','ekstra':'Ekstra Gider'},
   'en': {'aidat':'Dues','elektrik':'Electricity','su':'Water','dogalgaz':'Natural Gas','ekstra':'Extra Expense'},
-  'me': {'aidat':'Članarina','elektrik':'Struja','su':'Voda','dogalgaz':'Gas','ekstra':'Dodatni trošak'}
+  'me': {'aidat':'Članarina','elektrik':'Struja','su':'Voda','dogalgaz':'Gas','ekstra':'Dodatni trošak'},
+  'ru': {'aidat':'Взнос','elektrik':'Электричество','su':'Вода','dogalgaz':'Природный газ','ekstra':'Доп. расход'}
 } %}
 
 {% block title %}{{ tp('page_title') }}{% endblock %}
@@ -586,7 +654,6 @@
       {% endif %}
     </div>
 
-
   </section>
 
 </div>
@@ -612,6 +679,7 @@
     sync();
   })();
 </script>
+
 <script>
   // Satırı "view" moddan "edit" moda al
   function enterEditMode(rowId) {

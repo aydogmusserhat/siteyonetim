@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {# ============================================================
-   TALEPLERİM - 3 DİL (TR / EN / ME)
+   TALEPLERİM - 4 DİL (TR / EN / ME / RU)
    ============================================================ #}
 
 {% set LANG = session.get('lang','tr') %}
@@ -91,6 +91,35 @@
     'status_closed': 'Zatvoreno',
 
     'empty': 'Još niste kreirali nijedan zahtjev.',
+    'dash': '-'
+  },
+
+  'ru': {
+    'page_title': 'Мои заявки',
+    'topbar_title': 'Мои заявки / Неисправности',
+
+    'new_title': 'Создать новую заявку',
+    'title_label': 'Заголовок',
+    'title_ph': 'Напр.: Не работает лифт',
+    'desc_label': 'Описание',
+    'desc_ph': 'Опишите проблему как можно подробнее...',
+    'priority_label': 'Приоритет',
+    'priority_normal': 'Обычный',
+    'priority_high': 'Высокий',
+    'priority_low': 'Низкий',
+    'btn_create': 'Создать заявку',
+
+    'list_title': 'Мои текущие заявки',
+    'col_title': 'Заголовок',
+    'col_status': 'Статус',
+    'col_priority': 'Приоритет',
+    'col_date': 'Дата',
+
+    'status_open': 'Открыто',
+    'status_in_progress': 'В работе',
+    'status_closed': 'Закрыто',
+
+    'empty': 'Вы ещё не создали ни одной заявки.',
     'dash': '-'
   }
 } %}

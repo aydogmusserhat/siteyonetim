@@ -4,9 +4,11 @@
   <meta charset="utf-8">
   <title>
     {% block title %}
-      {{ 'Apartman Yönetim Paneli' if session.get('lang','tr')=='tr'
-         else ('Apartment Management Panel' if session.get('lang')=='en'
-         else 'Panel upravljanja zgradom') }}
+    {{ 'Apartman Yönetim Paneli' if session.get('lang','tr')=='tr'
+      else ('Apartment Management Panel' if session.get('lang')=='en'
+      else ('Панель управления домом' if session.get('lang')=='ru'
+      else 'Panel upravljanja zgradom')) }}
+
     {% endblock %}
   </title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -165,6 +167,46 @@
 
     'role_super_admin': 'System Super Admin',
     'all_sites_global': 'All Sites (Global)'
+  },
+  'ru': {
+    'panel_title': 'Панель управления',
+    'admin_view': 'Режим администратора',
+    'resident_view': 'Режим жильца',
+    'system_view': 'Система управления домом / комплексом',
+
+    'menu_admin_dashboard': 'Панель',
+    'menu_apartments': 'Квартиры',
+    'menu_users': 'Пользователи',
+    'menu_bills': 'Долги / Взносы',
+    'menu_payments': 'Платежи',
+    'menu_announcements': 'Объявления',
+    'menu_tickets': 'Заявки',
+    'menu_settings': 'Настройки',
+    'menu_site_mgmt': 'Управление сайтами',
+
+    'menu_resident_dashboard': 'Главная',
+    'menu_my_debts': 'Мои долги',
+    'menu_my_payments': 'Мои платежи',
+    'menu_my_tickets': 'Мои заявки',
+    'menu_profile': 'Мой профиль',
+
+    'logout': 'Выйти',
+    'logged_in': 'Вход выполнен',
+
+    'role_admin': 'Администратор',
+    'role_resident': 'Жилец',
+    'role_admin_of': 'Администратор • ',
+    'role_resident_of': 'Жилец • ',
+
+    'open_close_menu': 'Открыть/закрыть меню',
+    'close_menu': 'Закрыть меню',
+    'language': 'Язык',
+
+    'default_brand_name': 'QR Управление',
+    'default_site_name': 'Дом / Комплекс',
+
+    'role_super_admin': 'Супер-администратор системы',
+    'all_sites_global': 'Все сайты (Глобально)'
   },
   'me': {
     'panel_title': 'Upravljački panel',
@@ -430,6 +472,13 @@
               </span>
               <span class="lang-code">ME</span>
             </a>
+            <a class="lang-item" role="menuitem" href="/set-lang/ru?next={{ nxt|urlencode }}">
+              <span style="display:flex; align-items:center; gap:10px;">
+                <span class="lang-flag">RU</span> Русский
+              </span>
+              <span class="lang-code">RU</span>
+            </a>
+
           </div>
         </div>
 

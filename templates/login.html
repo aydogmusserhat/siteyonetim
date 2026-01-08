@@ -7,6 +7,8 @@
       Login - Apartment Management
     {% elif session.get('lang') == 'me' %}
       Prijava - Upravljanje Zgradom
+    {% elif session.get('lang') == 'ru' %}
+      Вход – Управление домом
     {% else %}
       Giriş Yap - Apartman Yönetimi
     {% endif %}
@@ -37,6 +39,11 @@
               {% if session.get('lang') == 'me' %}background:#2563eb; color:white;{% else %}background:#f3f4f6; color:#111827;{% endif %}">
       ME
     </a>
+    <a href="{{ url_for('set_lang', lang='ru', next=request.path) }}"
+       style="font-size:12px; text-decoration:none; padding:4px 8px; border-radius:999px;
+              {% if session.get('lang') == 'ru' %}background:#2563eb; color:white;{% else %}background:#f3f4f6; color:#111827;{% endif %}">
+      RU
+    </a>
   </div>
 
   <div class="login-card">
@@ -48,6 +55,8 @@
           Apartment Management
         {% elif session.get('lang') == 'me' %}
           Upravljanje Zgradom
+        {% elif session.get('lang') == 'ru' %}
+          Управление домом
         {% else %}
           Apartman Yönetimi
         {% endif %}
@@ -58,6 +67,8 @@
           Please sign in to your account.
         {% elif session.get('lang') == 'me' %}
           Molimo prijavite se na svoj nalog.
+        {% elif session.get('lang') == 'ru' %}
+          Пожалуйста, войдите в свою учетную запись.
         {% else %}
           Lütfen hesabınıza giriş yapın.
         {% endif %}
@@ -86,6 +97,8 @@
             Email
           {% elif session.get('lang') == 'me' %}
             E-pošta
+          {% elif session.get('lang') == 'ru' %}
+            Электронная почта
           {% else %}
             E-posta
           {% endif %}
@@ -96,7 +109,7 @@
           id="email"
           name="email"
           required
-          placeholder="{% if session.get('lang') == 'en' %}example@site.com{% elif session.get('lang') == 'me' %}primjer@sajt.com{% else %}ornek@site.com{% endif %}"
+          placeholder="{% if session.get('lang') == 'en' %}example@site.com{% elif session.get('lang') == 'me' %}primjer@sajt.com{% elif session.get('lang') == 'ru' %}primer@site.ru{% else %}ornek@site.com{% endif %}"
           value="{{ email or '' }}"
         >
       </div>
@@ -107,6 +120,8 @@
             Password
           {% elif session.get('lang') == 'me' %}
             Lozinka
+          {% elif session.get('lang') == 'ru' %}
+            Пароль
           {% else %}
             Şifre
           {% endif %}
@@ -117,7 +132,7 @@
           id="password"
           name="password"
           required
-          placeholder="{% if session.get('lang') == 'en' %}Enter your password{% elif session.get('lang') == 'me' %}Unesite lozinku{% else %}Şifrenizi girin{% endif %}"
+          placeholder="{% if session.get('lang') == 'en' %}Enter your password{% elif session.get('lang') == 'me' %}Unesite lozinku{% elif session.get('lang') == 'ru' %}Введите пароль{% else %}Şifrenizi girin{% endif %}"
         >
       </div>
 
@@ -126,6 +141,8 @@
           Sign In
         {% elif session.get('lang') == 'me' %}
           Prijavi se
+        {% elif session.get('lang') == 'ru' %}
+          Войти
         {% else %}
           Giriş Yap
         {% endif %}

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {# ============================================================
-   DUYURULAR - 3 DİL (TR / EN / ME) UYUMLU
+   DUYURULAR - 4 DİL (TR / EN / ME / RU) UYUMLU
    ============================================================ #}
 
 {% set LANG = session.get('lang','tr') %}
@@ -98,6 +98,37 @@
     'system': 'Sistem',
 
     'empty': 'Još nema objavljenih obavještenja.'
+  },
+
+  'ru': {
+    'page_title': 'Объявления',
+    'topbar_title': 'Управление объявлениями',
+
+    'new_card_title': 'Опубликовать новое объявление',
+    'label_title': 'Заголовок',
+    'ph_title': 'Напр.: Техническое обслуживание лифта',
+
+    'label_content': 'Текст',
+    'ph_content': 'Введите текст объявления здесь...',
+
+    'label_target': 'Аудитория',
+    'target_all': 'Все жильцы',
+    'target_admins': 'Только администраторы',
+
+    'btn_publish': 'Опубликовать объявление',
+
+    'list_title': 'Опубликованные объявления',
+
+    'target_prefix': 'Кому:',
+    'target_admins_short': 'Администраторы',
+    'target_all_short': 'Все жильцы',
+
+    'expired': '(Срок истёк)',
+
+    'publisher_prefix': 'Опубликовал(а):',
+    'system': 'Система',
+
+    'empty': 'Пока нет опубликованных объявлений.'
   }
 } %}
 

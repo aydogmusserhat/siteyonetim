@@ -114,7 +114,7 @@ def create_app(config_class=Config) -> Flask:
     @app.get("/set-lang/<lang>")
     def set_lang(lang):
         # izin verilen diller
-        if lang not in ("tr", "en", "me"):
+        if lang not in ("tr", "en", "me", "ru"):
             lang = "tr"
 
         session["lang"] = lang

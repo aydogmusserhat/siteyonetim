@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {# ============================================================
-   DAİRELER - 3 DİL (TR / EN / ME) UYUMLU
+   DAİRELER - 4 DİL (TR / EN / ME / RU) UYUMLU
    ============================================================ #}
 
 {% set LANG = session.get('lang','tr') %}
@@ -161,6 +161,58 @@
     'dash': '-',
 
     'no_apartments': 'Još nema definisanih stanova.'
+  },
+
+  'ru': {
+    'page_title': 'Квартиры',
+    'topbar_title': 'Управление квартирами',
+
+    'new_title': 'Добавить новую квартиру',
+    'new_desc': 'Блок, этаж и номер квартиры обязательны. Остальные поля необязательны.',
+
+    'btn_new_add': 'Добавить квартиру',
+    'btn_new_hide': 'Скрыть форму добавления',
+
+    'block': 'Блок',
+    'floor': 'Этаж',
+    'number': '№ квартиры',
+    'area_m2': 'Площадь (м²)',
+    'owner_name': 'Имя владельца',
+    'owner_phone': 'Телефон владельца',
+    'notes': 'Примечание / Описание',
+
+    'ph_block': 'напр.: A',
+    'ph_floor': 'напр.: 3',
+    'ph_number': 'напр.: 7',
+    'ph_area_m2': 'напр.: 120',
+    'ph_owner_name': 'Имя и фамилия',
+    'ph_owner_phone': '+90 5xx xxx xx xx',
+    'ph_notes': 'напр.: сведения о жильце, особые примечания...',
+
+    'save_apartment': 'Сохранить квартиру',
+
+    'list_title': 'Список квартир',
+
+    'col_block': 'Блок',
+    'col_floor': 'Этаж',
+    'col_no': '№',
+    'col_m2': 'м²',
+    'col_owner': 'Владелец',
+    'col_phone': 'Телефон',
+    'col_note': 'Примечание',
+    'col_actions': 'Действия',
+
+    'edit': 'Редактировать',
+    'save': 'Сохранить',
+    'cancel': 'Отмена',
+    'delete': 'Удалить',
+
+    'confirm_delete': 'Вы уверены, что хотите удалить эту квартиру?',
+
+    'not_specified': 'Не указано',
+    'dash': '-',
+
+    'no_apartments': 'Квартиры ещё не добавлены.'
   }
 } %}
 
@@ -404,6 +456,12 @@ document.addEventListener("DOMContentLoaded", function () {
       btn_new_add: "Dodaj novi stan",
       btn_new_hide: "Sakrij formu za novi stan",
       not_specified: "Nije navedeno",
+      dash: "-"
+    },
+    ru: {
+      btn_new_add: "Добавить квартиру",
+      btn_new_hide: "Скрыть форму добавления",
+      not_specified: "Не указано",
       dash: "-"
     }
   };

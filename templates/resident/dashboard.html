@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {# ============================================================
-   SAKİN ANA PANEL - 3 DİL (TR / EN / ME) UYUMLU
+   SAKİN ANA PANEL - 4 DİL (TR / EN / ME / RU) UYUMLU
    ============================================================ #}
 
 {% set LANG = session.get('lang','tr') %}
@@ -182,6 +182,65 @@
 
     'type_general': 'Opšte',
     'dash': '-'
+  },
+
+  'ru': {
+    'page_title': 'Панель жильца',
+    'topbar_title': 'Главная панель жильца',
+
+    'card_remaining_title': 'Остаток общего долга',
+    'card_remaining_sub': 'Все счета − оплаченные суммы',
+
+    'card_paid_title': 'Всего оплачено',
+    'card_paid_sub': 'Все платежи, внесённые в систему',
+
+    'card_gross_title': 'Общий долг (брутто)',
+    'card_gross_sub': 'Сумма всех начислений (счета / взносы)',
+
+    'card_count_title': 'Количество счетов / взносов',
+    'card_count_sub_open': 'Открыто',
+    'card_count_sub_partial': 'Частично',
+    'card_count_sub_paid': 'Оплачено',
+
+    'last_bills_title': 'Последние счета / взносы',
+    'last_bills_total': 'Итого',
+
+    'th_type': 'Тип',
+    'th_desc': 'Описание',
+    'th_due': 'Срок',
+    'th_amount': 'Сумма',
+    'th_status': 'Статус',
+
+    'view_all_debts': 'Посмотреть все долги →',
+    'empty_bills': 'Начислений не найдено.',
+
+    'last_payments_title': 'Мои последние платежи',
+    'last_payments_sub': 'Последние 5 платежей',
+    'th_date': 'Дата',
+    'th_payment_amount': 'Сумма',
+    'th_payment_type': 'Тип',
+    'view_all_payments': 'Посмотреть все платежи →',
+    'empty_payments': 'Платежей пока нет.',
+
+    'announcements_title': 'Объявления',
+    'announcements_sub': 'Последние 5 объявлений',
+    'announcements_expired': '(Истекло)',
+    'empty_announcements': 'Объявлений пока нет.',
+
+    'tickets_title': 'Мои последние заявки',
+    'tickets_sub': 'Последние 5 заявок',
+    'th_ticket_title': 'Тема',
+    'th_ticket_status': 'Статус',
+    'th_ticket_date': 'Дата',
+    'view_all_tickets': 'Посмотреть все заявки →',
+    'empty_tickets': 'Вы ещё не создавали заявки.',
+
+    'status_open': 'Открыто',
+    'status_partial': 'Частично',
+    'status_paid': 'Оплачено',
+
+    'type_general': 'Общее',
+    'dash': '-'
   }
 } %}
 
@@ -243,15 +302,8 @@
     color: #9ca3af;
   }
 
-  .amount-positive {
-    color: #16a34a;
-    font-weight: 700;
-  }
-
-  .amount-negative {
-    color: #b91c1c;
-    font-weight: 700;
-  }
+  .amount-positive { color: #16a34a; font-weight: 700; }
+  .amount-negative { color: #b91c1c; font-weight: 700; }
 
   .status-pill {
     display: inline-flex;
@@ -262,20 +314,9 @@
     font-weight: 500;
   }
 
-  .status-open {
-    background: #fef2f2;
-    color: #b91c1c;
-  }
-
-  .status-partial {
-    background: #fffbeb;
-    color: #92400e;
-  }
-
-  .status-paid {
-    background: #ecfdf3;
-    color: #166534;
-  }
+  .status-open { background: #fef2f2; color: #b91c1c; }
+  .status-partial { background: #fffbeb; color: #92400e; }
+  .status-paid { background: #ecfdf3; color: #166534; }
 
   .section-card {
     background: #ffffff;
@@ -325,9 +366,7 @@
     color: #6b7280;
   }
 
-  .list-table tr:last-child td {
-    border-bottom: none;
-  }
+  .list-table tr:last-child td { border-bottom: none; }
 
   .pill-small {
     display: inline-flex;
@@ -343,9 +382,7 @@
     border-bottom: 1px solid #f3f4f6;
   }
 
-  .announcement-item:last-child {
-    border-bottom: none;
-  }
+  .announcement-item:last-child { border-bottom: none; }
 
   .announcement-item h4 {
     margin: 0 0 2px 0;
@@ -367,28 +404,15 @@
   }
 
   @media (max-width: 1024px) {
-    .resident-dashboard-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .resident-cards {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
+    .resident-dashboard-grid { grid-template-columns: 1fr; }
+    .resident-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
 
   @media (max-width: 640px) {
-    .resident-cards {
-      grid-template-columns: 1fr;
-    }
-
-    .section-card {
-      padding: 12px 12px;
-    }
-
+    .resident-cards { grid-template-columns: 1fr; }
+    .section-card { padding: 12px 12px; }
     .list-table th,
-    .list-table td {
-      padding: 5px 2px;
-    }
+    .list-table td { padding: 5px 2px; }
   }
 </style>
 
@@ -579,7 +603,8 @@
 
       {% if announcements and announcements|length > 0 %}
         {% for ann in announcements %}
-        {% set is_expired = ann.created_at and (today - ann.created_at.date()).days >= 29 %}
+          {# 29 günden eskiyse "expired" gibi göster (mevcut mantığı bozmadan) #}
+          {% set is_expired = ann.created_at and (today - ann.created_at.date()).days >= 29 %}
 
           <div class="announcement-item" style="{% if is_expired %}opacity:0.6;{% endif %}">
             <h4 style="{% if is_expired %}text-decoration:line-through;{% endif %}">{{ ann.title }}</h4>
@@ -600,7 +625,6 @@
         </p>
       {% endif %}
     </div>
-
 
     <!-- Talepler -->
     <div class="section-card">
@@ -625,11 +649,16 @@
                   <td>{{ t.title }}</td>
                   <td>
                     <span class="pill-small">
+                      {# burada istersek "open/closed" gibi backend değerlerini çevirip gösterebiliriz #}
                       {{ t.status or "open" }}
                     </span>
                   </td>
                   <td>
-                    {{ t.created_at.strftime("%d.%m.%Y %H:%M") }}
+                    {% if t.created_at %}
+                      {{ t.created_at.strftime("%d.%m.%Y %H:%M") }}
+                    {% else %}
+                      {{ tp('dash') }}
+                    {% endif %}
                   </td>
                 </tr>
               {% endfor %}

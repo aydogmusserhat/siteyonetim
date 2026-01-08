@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {# ============================================================
-   ÖDEME YÖNETİMİ - 3 DİL (TR / EN / ME) UYUMLU
+   ÖDEME YÖNETİMİ - 4 DİL (TR / EN / ME / RU) UYUMLU
    ============================================================ #}
 
 {% set LANG = session.get('lang','tr') %}
@@ -191,6 +191,68 @@
     'confirm_delete': 'Da li ste sigurni da želite obrisati ovu uplatu?',
     'alert_delete_failed': 'Uplata nije mogla biti obrisana.',
     'alert_delete_error': 'Došlo je do greške pri brisanju uplate.'
+  },
+
+  'ru': {
+    'page_title': 'Управление платежами',
+    'topbar_title': 'Управление платежами',
+
+    'new_payment_title': 'Новая запись платежа',
+
+    'label_apartment': 'Квартира',
+    'apartment_pick': 'Выберите квартиру...',
+
+    'label_bill_type': 'Тип задолженности',
+    'bill_aidat': 'Ежемесячный взнос',
+    'bill_elektrik': 'Электричество',
+    'bill_su': 'Вода',
+    'bill_dogalgaz': 'Природный газ',
+    'bill_ekstra': 'Доп. расход',
+
+    'label_payer': 'Плательщик (необязательно)',
+    'payer_unknown': 'Не указано',
+
+    'label_amount': 'Сумма (₺)',
+    'ph_amount': 'напр.: 500',
+
+    'label_payment_date': 'Дата платежа',
+
+    'label_method': 'Способ оплаты (необязательно)',
+    'method_none': 'Не выбрано',
+    'method_cash': 'Наличные',
+    'method_bank': 'Банковский перевод / EFT',
+    'method_pos': 'POS / Кредитная карта',
+    'method_online': 'Онлайн оплата',
+
+    'btn_save_payment': 'Сохранить платеж',
+
+    'list_title': 'Список платежей',
+
+    'col_apartment': 'Квартира',
+    'col_payer': 'Плательщик',
+    'col_related': 'Связанный долг',
+    'col_amount': 'Сумма',
+    'col_method': 'Способ',
+    'col_date': 'Дата',
+    'col_actions': 'Действия',
+
+    'dash': '-',
+
+    'btn_pdf': 'Скачать PDF',
+    'btn_edit': 'Редактировать',
+    'btn_delete': 'Удалить',
+    'btn_save': 'Сохранить',
+    'btn_cancel': 'Отмена',
+
+    'empty': 'Пока нет записанных платежей. Вы можете добавить платеж через форму слева.',
+
+    'ph_date_text': 'напр.: 04.01.2026',
+
+    'alert_update_failed': 'Не удалось обновить.',
+    'alert_update_error': 'Произошла ошибка при обновлении платежа.',
+    'confirm_delete': 'Вы уверены, что хотите удалить эту запись платежа?',
+    'alert_delete_failed': 'Не удалось удалить платеж.',
+    'alert_delete_error': 'Произошла ошибка при удалении платежа.'
   }
 } %}
 
@@ -497,6 +559,13 @@
         alert_delete_error: "{{ tp('alert_delete_error') }}"
       },
       me: {
+        alert_update_failed: "{{ tp('alert_update_failed') }}",
+        alert_update_error: "{{ tp('alert_update_error') }}",
+        confirm_delete: "{{ tp('confirm_delete') }}",
+        alert_delete_failed: "{{ tp('alert_delete_failed') }}",
+        alert_delete_error: "{{ tp('alert_delete_error') }}"
+      },
+      ru: {
         alert_update_failed: "{{ tp('alert_update_failed') }}",
         alert_update_error: "{{ tp('alert_update_error') }}",
         confirm_delete: "{{ tp('confirm_delete') }}",
