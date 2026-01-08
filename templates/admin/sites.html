@@ -1,7 +1,115 @@
 {% extends "base.html" %}
 
-{% block title %}Site Yönetimi{% endblock %}
-{% block topbar_title %}Site Yönetimi (Super Admin){% endblock %}
+{# ============================================================
+   SİTE YÖNETİMİ (SUPER ADMIN) - 3 DİL (TR / EN / ME) UYUMLU
+   ============================================================ #}
+
+{% set LANG = session.get('lang','tr') %}
+
+{% set I18N_PAGE = {
+  'tr': {
+    'page_title': 'Site Yönetimi',
+    'topbar_title': 'Site Yönetimi (Super Admin)',
+
+    'new_site_title': 'Yeni Site Oluştur',
+    'site_name_ph': 'Site adı',
+    'site_desc_ph': 'Adres / açıklama',
+    'btn_save_site': 'Siteyi Kaydet',
+
+    'new_admin_title': 'Yeni Admin Oluştur',
+    'admin_name_ph': 'İsim Soyisim',
+    'admin_email_ph': 'E-posta',
+    'admin_pass_ph': 'Şifre',
+    'select_site': 'Site seçin',
+    'btn_create_admin': 'Admini Oluştur',
+
+    'table_title': 'Oluşturulan Siteler ve Adminler',
+    'col_site_name': 'Site Adı',
+    'col_desc': 'Açıklama',
+    'col_admins': 'Adminler',
+    'col_actions': 'İşlemler',
+
+    'admin_not_assigned': 'Admin atanmadı',
+    'btn_delete_admin': 'Admini Sil',
+
+    'btn_switch_site': 'Bu Siteye Geç',
+    'btn_delete_site': 'Siteyi Sil',
+    'delete_rule': 'Silmek için önce adminleri kaldırın',
+
+    'dash': '-'
+  },
+
+  'en': {
+    'page_title': 'Site Management',
+    'topbar_title': 'Site Management (Super Admin)',
+
+    'new_site_title': 'Create New Site',
+    'site_name_ph': 'Site name',
+    'site_desc_ph': 'Address / description',
+    'btn_save_site': 'Save Site',
+
+    'new_admin_title': 'Create New Admin',
+    'admin_name_ph': 'Full name',
+    'admin_email_ph': 'Email',
+    'admin_pass_ph': 'Password',
+    'select_site': 'Select a site',
+    'btn_create_admin': 'Create Admin',
+
+    'table_title': 'Created Sites & Admins',
+    'col_site_name': 'Site',
+    'col_desc': 'Description',
+    'col_admins': 'Admins',
+    'col_actions': 'Actions',
+
+    'admin_not_assigned': 'No admin assigned',
+    'btn_delete_admin': 'Delete Admin',
+
+    'btn_switch_site': 'Switch to this site',
+    'btn_delete_site': 'Delete Site',
+    'delete_rule': 'Remove admins first to delete',
+
+    'dash': '-'
+  },
+
+  'me': {
+    'page_title': 'Upravljanje Sajtovima',
+    'topbar_title': 'Upravljanje Sajtovima (Super Admin)',
+
+    'new_site_title': 'Kreiraj Novi Sajt',
+    'site_name_ph': 'Naziv sajta',
+    'site_desc_ph': 'Adresa / opis',
+    'btn_save_site': 'Sačuvaj sajt',
+
+    'new_admin_title': 'Kreiraj Novog Admina',
+    'admin_name_ph': 'Ime i prezime',
+    'admin_email_ph': 'Email',
+    'admin_pass_ph': 'Lozinka',
+    'select_site': 'Izaberite sajt',
+    'btn_create_admin': 'Kreiraj admina',
+
+    'table_title': 'Kreirani Sajtovi i Admini',
+    'col_site_name': 'Sajt',
+    'col_desc': 'Opis',
+    'col_admins': 'Admini',
+    'col_actions': 'Akcije',
+
+    'admin_not_assigned': 'Admin nije dodijeljen',
+    'btn_delete_admin': 'Obriši admina',
+
+    'btn_switch_site': 'Prebaci na ovaj sajt',
+    'btn_delete_site': 'Obriši sajt',
+    'delete_rule': 'Prvo uklonite admine da biste obrisali',
+
+    'dash': '-'
+  }
+} %}
+
+{% macro tp(k) -%}
+  {{ I18N_PAGE.get(LANG, I18N_PAGE['tr']).get(k, I18N_PAGE['tr'].get(k, k)) }}
+{%- endmacro %}
+
+{% block title %}{{ tp('page_title') }}{% endblock %}
+{% block topbar_title %}{{ tp('topbar_title') }}{% endblock %}
 
 {% block content %}
 
@@ -70,9 +178,7 @@ th{
 
 /* Mobil uyum */
 @media(max-width:700px){
-  .actions-box{
-    gap:4px;
-  }
+  .actions-box{ gap:4px; }
 }
 
 .form-action{
@@ -90,21 +196,18 @@ th{
 
 /* Mobil uyum */
 @media(max-width:700px){
-  .form-action{
-    width:40%;
-  }
+  .form-action{ width:40%; }
 }
 
-.sites-table th{
-  text-align:left !important;
-}
-.sites-table td{
-  text-align:left;
-}
+.sites-table th{ text-align:left !important; }
+.sites-table td{ text-align:left; }
 
+/* Mobilde tablo rahat kaydırılsın */
+.table-wrap{
+  width:100%;
+  overflow-x:auto;
+}
 </style>
-
-
 
 <div class="dashboard-grid">
 
@@ -113,146 +216,140 @@ th{
 
     <!-- Yeni Site -->
     <div class="card" style="margin-bottom:14px;">
-      <h2 style="font-size:16px;">Yeni Site Oluştur</h2>
+      <h2 style="font-size:16px;">{{ tp('new_site_title') }}</h2>
 
       <form method="post" action="{{ url_for('admin.manage_sites') }}"
             style="display:flex; flex-direction:column; gap:10px;">
 
-        <input type="text" name="name" required placeholder="Site adı"
+        <input type="text" name="name" required placeholder="{{ tp('site_name_ph') }}"
                style="padding:8px; border-radius:8px; border:1px solid #ddd;">
 
-        <textarea name="description" rows="2" placeholder="Adres / açıklama"
+        <textarea name="description" rows="2" placeholder="{{ tp('site_desc_ph') }}"
                   style="padding:8px; border-radius:8px; border:1px solid #ddd;"></textarea>
 
         <button type="submit" class="form-action">
-          Siteyi Kaydet
+          {{ tp('btn_save_site') }}
         </button>
       </form>
     </div>
 
-
     <!-- Yeni Admin -->
     <div class="card">
-      <h2 style="font-size:16px;">Yeni Admin Oluştur</h2>
+      <h2 style="font-size:16px;">{{ tp('new_admin_title') }}</h2>
 
       <form method="post" action="{{ url_for('admin.create_site_admin') }}"
             style="display:flex; flex-direction:column; gap:10px;">
 
-        <input type="text" name="admin_name" required placeholder="İsim Soyisim"
+        <input type="text" name="admin_name" required placeholder="{{ tp('admin_name_ph') }}"
                style="padding:8px; border-radius:8px; border:1px solid #ddd;">
 
-        <input type="email" name="admin_email" required placeholder="E-posta"
+        <input type="email" name="admin_email" required placeholder="{{ tp('admin_email_ph') }}"
                style="padding:8px; border-radius:8px; border:1px solid #ddd;">
 
-        <input type="password" name="admin_password" required placeholder="Şifre"
+        <input type="password" name="admin_password" required placeholder="{{ tp('admin_pass_ph') }}"
                style="padding:8px; border-radius:8px; border:1px solid #ddd;">
 
         <select name="admin_site_id" required
                 style="padding:8px; border-radius:8px; border:1px solid #ddd;">
-          <option value="">Site seçin</option>
+          <option value="">{{ tp('select_site') }}</option>
           {% for site in sites %}
             <option value="{{ site.id }}">{{ site.name }}</option>
           {% endfor %}
         </select>
 
         <button type="submit" class="form-action">
-          Admini Oluştur
+          {{ tp('btn_create_admin') }}
         </button>
       </form>
     </div>
 
   </section>
 
-
-
-
   <!-- SAĞ TABLO -->
   <section>
 
     <div class="card">
-      <h2 style="font-size:16px;">Oluşturulan Siteler ve Adminler</h2>
+      <h2 style="font-size:16px;">{{ tp('table_title') }}</h2>
 
+      <div class="table-wrap">
         <table class="sites-table" style="width:100%; border-collapse:collapse;">
           <thead>
-          <tr style="background:#f3f4f6;">
-            <th style="padding:10px;">Site Adı</th>
-            <th style="padding:10px;">Açıklama</th>
-            <th style="padding:10px;">Adminler</th>
-            <th style="padding:10px;">İşlemler</th>
-          </tr>
-        </thead>
+            <tr style="background:#f3f4f6;">
+              <th style="padding:10px;">{{ tp('col_site_name') }}</th>
+              <th style="padding:10px;">{{ tp('col_desc') }}</th>
+              <th style="padding:10px;">{{ tp('col_admins') }}</th>
+              <th style="padding:10px;">{{ tp('col_actions') }}</th>
+            </tr>
+          </thead>
 
-        <tbody>
+          <tbody>
+          {% for site in sites %}
+            <tr style="border-bottom:1px solid #eee;">
 
-        {% for site in sites %}
-          <tr style="border-bottom:1px solid #eee;">
+              <td style="padding:10px;">{{ site.name }}</td>
 
-            <td style="padding:10px;">{{ site.name }}</td>
+              <td style="padding:10px; color:#666;">
+                {{ site.description or tp('dash') }}
+              </td>
 
-            <td style="padding:10px; color:#666;">
-              {{ site.description or "-" }}
-            </td>
+              <td style="padding:10px;">
+                {% set admins = site_admins_map.get(site.id) %}
 
-            <td style="padding:10px;">
-              {% set admins = site_admins_map.get(site.id) %}
+                {% if admins %}
+                  {% for admin in admins %}
+                    <div class="admin-item">
 
-              {% if admins %}
-                {% for admin in admins %}
-                  <div class="admin-item">
+                      <div class="admin-info">
+                        <strong>{{ admin.name }}</strong>
+                        <span style="color:#777;">{{ admin.email }}</span>
+                      </div>
 
-                    <div class="admin-info">
-                      <strong>{{ admin.name }}</strong>
-                      <span style="color:#777;">{{ admin.email }}</span>
+                      <form method="post"
+                            action="{{ url_for('admin.delete_site_admin', admin_id=admin.id) }}">
+                        <button class="action-btn btn-red">
+                          {{ tp('btn_delete_admin') }}
+                        </button>
+                      </form>
+
                     </div>
+                  {% endfor %}
+                {% else %}
+                  <span style="color:#aaa;">{{ tp('admin_not_assigned') }}</span>
+                {% endif %}
+              </td>
 
-                    <form method="post"
-                          action="{{ url_for('admin.delete_site_admin', admin_id=admin.id) }}">
-                      <button class="action-btn btn-red">
-                        Admini Sil
-                      </button>
-                    </form>
+              <td style="padding:10px;">
+                <div class="actions-box">
 
-                  </div>
-                {% endfor %}
-              {% else %}
-                <span style="color:#aaa;">Admin atanmadı</span>
-              {% endif %}
-            </td>
-
-
-            <td style="padding:10px;">
-
-              <div class="actions-box">
-
-                <form method="get"
-                      action="{{ url_for('admin.switch_active_site', site_id=site.id) }}">
-                  <button class="action-btn btn-blue">
-                    Bu Siteye Geç
-                  </button>
-                </form>
-
-                {% if not admins %}
-                  <form method="post"
-                        action="{{ url_for('admin.delete_site', site_id=site.id) }}">
-                    <button class="action-btn btn-red">
-                      Siteyi Sil
+                  <form method="get"
+                        action="{{ url_for('admin.switch_active_site', site_id=site.id) }}">
+                    <button class="action-btn btn-blue">
+                      {{ tp('btn_switch_site') }}
                     </button>
                   </form>
-                {% else %}
-                  <span style="font-size:11px; color:#888;">
-                    Silmek için önce adminleri kaldırın
-                  </span>
-                {% endif %}
 
-              </div>
+                  {% if not admins %}
+                    <form method="post"
+                          action="{{ url_for('admin.delete_site', site_id=site.id) }}">
+                      <button class="action-btn btn-red">
+                        {{ tp('btn_delete_site') }}
+                      </button>
+                    </form>
+                  {% else %}
+                    <span style="font-size:11px; color:#888;">
+                      {{ tp('delete_rule') }}
+                    </span>
+                  {% endif %}
 
-            </td>
+                </div>
+              </td>
 
-          </tr>
-        {% endfor %}
+            </tr>
+          {% endfor %}
+          </tbody>
 
-        </tbody>
-      </table>
+        </table>
+      </div>
     </div>
 
   </section>

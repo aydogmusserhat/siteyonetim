@@ -2,7 +2,13 @@
 <html lang="{{ session.get('lang','tr') }}">
 <head>
   <meta charset="utf-8">
-  <title>{% block title %}{{ 'Apartman Yönetim Paneli' if session.get('lang','tr')=='tr' else ('Apartment Management Panel' if session.get('lang')=='en' else 'Panel upravljanja zgradom') }}{% endblock %}</title>
+  <title>
+    {% block title %}
+      {{ 'Apartman Yönetim Paneli' if session.get('lang','tr')=='tr'
+         else ('Apartment Management Panel' if session.get('lang')=='en'
+         else 'Panel upravljanja zgradom') }}
+    {% endblock %}
+  </title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
@@ -117,7 +123,13 @@
     'role_resident_of': 'Sakin • ',
     'open_close_menu': 'Menüyü aç/kapa',
     'close_menu': 'Menüyü kapat',
-    'language': 'Dil'
+    'language': 'Dil',
+
+    'default_brand_name': 'QR Site Yönetim',
+    'default_site_name': 'Site / Apartman',
+
+    'role_super_admin': 'Sistem Süper Yöneticisi',
+    'all_sites_global': 'Tüm Siteler (Genel)'
   },
   'en': {
     'panel_title': 'Management Panel',
@@ -146,7 +158,13 @@
     'role_resident_of': 'Resident • ',
     'open_close_menu': 'Open/close menu',
     'close_menu': 'Close menu',
-    'language': 'Language'
+    'language': 'Language',
+
+    'default_brand_name': 'QR Site Management',
+    'default_site_name': 'Site / Building',
+
+    'role_super_admin': 'System Super Admin',
+    'all_sites_global': 'All Sites (Global)'
   },
   'me': {
     'panel_title': 'Upravljački panel',
@@ -175,7 +193,13 @@
     'role_resident_of': 'Stanar • ',
     'open_close_menu': 'Otvori/zatvori meni',
     'close_menu': 'Zatvori meni',
-    'language': 'Jezik'
+    'language': 'Jezik',
+
+    'default_brand_name': 'QR Upravljanje',
+    'default_site_name': 'Naselje / Zgrada',
+
+    'role_super_admin': 'Sistemski Super Admin',
+    'all_sites_global': 'Svi sajtovi (Globalno)'
   }
 } %}
 {% macro t(k) -%}
@@ -188,53 +212,60 @@
      SIDEBAR
      =========================================== #}
   <aside class="sidebar" id="sidebar">
-{% set site_name = session.get("active_site_name")
-    or (current_site_name if current_site_name is defined and current_site_name else 'QR Site Yönetim') %}
 
-<div class="sidebar__header">
+    {% set _role = session.get("user_role") %}
+    {% set _active_site = session.get("active_site_name") %}
 
-  <div class="sidebar__logo-wrapper">
+    {% set site_name = session.get("active_site_name")
+      or (current_site_name if current_site_name is defined and current_site_name else t('default_brand_name')) %}
 
-    <!-- LOGO -->
-    <img
-      src="{{ url_for('static', filename='logo1.png') }}"
-      alt="Logo"
-      class="sidebar__logo-img"
-      style="width:220px; height:150px; object-fit:contain;"
-    >
+    {# Global modda (super_admin + aktif site yok): başlığı çeviriyle bas #}
+    {% if _role == "super_admin" and not _active_site %}
+      {% set site_name = t('all_sites_global') %}
+    {% endif %}
 
-    <!-- ALTINA KURUMSAL SİTE ADI -->
-    <div class="sidebar__brand-block">
-      <div class="sidebar__brand-title">
-        {{ site_name }}
+    <div class="sidebar__header">
+      <div class="sidebar__logo-wrapper">
+
+        <img
+          src="{{ url_for('static', filename='logo1.png') }}"
+          alt="Logo"
+          class="sidebar__logo-img"
+          style="width:220px; height:150px; object-fit:contain;"
+        >
+
+        <div class="sidebar__brand-block">
+          <div class="sidebar__brand-title">
+            {{ site_name }}
+          </div>
+
+          <div class="sidebar__brand-subtitle">
+            {{ t('panel_title') }}
+          </div>
+        </div>
+
+        {% if session.get("user_role") == "super_admin" %}
+          <a href="{{ url_for('admin.manage_sites', lang=LANG) }}" class="sidebar__link">
+            {{ t('menu_site_mgmt') }}
+          </a>
+        {% endif %}
+
       </div>
 
-      <div class="sidebar__brand-subtitle">
-        {{ t('panel_title') }}
-      </div>
+      <button class="sidebar__close-btn" id="sidebarCloseBtn" aria-label="{{ t('close_menu') }}">
+        ✕
+      </button>
     </div>
 
-      {% if session.get("user_role") == "super_admin" %}
-        <a href="{{ url_for('admin.manage_sites') }}" class="sidebar__link">
-          {{ t('menu_site_mgmt') }}
-        </a>
-      {% endif %}
-
-  </div>
-
-  <!-- sadece mobilde görünen buton -->
-  <button class="sidebar__close-btn" id="sidebarCloseBtn" aria-label="{{ t('close_menu') }}">
-    ✕
-  </button>
-
-</div>
-
-
-    {# Kullanıcı / Site bilgisi kutusu #}
     <div class="sidebar__user">
       {% set user_name = session.get("user_name") %}
       {% set user_role = session.get("user_role") %}
-      {% set site_name = session.get("active_site_name") or session.get("site_name", "Site / Apartman") %}
+      {% set active_site_name = session.get("active_site_name") %}
+
+      {% set fallback_site_name = session.get("site_name", t('default_site_name')) %}
+      {% if user_role == "super_admin" and not active_site_name %}
+        {% set fallback_site_name = t('all_sites_global') %}
+      {% endif %}
 
       <div class="sidebar__user-name">
         {% if user_name %}
@@ -243,94 +274,99 @@
           {{ t('logged_in') }}
         {% endif %}
       </div>
+
       <div class="sidebar__user-role">
         {% if user_role == "admin" %}
-          {{ t('role_admin_of') }} {{ site_name }}
+          {{ t('role_admin_of') }} {{ active_site_name or fallback_site_name }}
         {% elif user_role == "resident" %}
-          {{ t('role_resident_of') }} {{ site_name }}
+          {{ t('role_resident_of') }} {{ active_site_name or fallback_site_name }}
+        {% elif user_role == "super_admin" %}
+          {{ t('role_super_admin') }} •
+          {% if active_site_name %}
+            {{ active_site_name }}
+          {% else %}
+            {{ t('all_sites_global') }}
+          {% endif %}
         {% else %}
-          {{ site_name }}
+          {{ active_site_name or fallback_site_name }}
         {% endif %}
       </div>
     </div>
 
-    {# ===========================================
-       NAV MENÜ
-       =========================================== #}
     <nav class="sidebar__nav">
       {% set endpoint = request.endpoint or "" %}
 
       {% if user_role == "admin" %}
 
-        <a href="{{ url_for('admin.dashboard') }}"
+        <a href="{{ url_for('admin.dashboard', lang=LANG) }}"
            class="sidebar__link {% if endpoint == 'admin.dashboard' %}sidebar__link--active{% endif %}">
           🏠 {{ t('menu_admin_dashboard') }}
         </a>
 
-        <a href="{{ url_for('admin.manage_apartments') }}"
+        <a href="{{ url_for('admin.manage_apartments', lang=LANG) }}"
            class="sidebar__link {% if endpoint == 'admin.manage_apartments' %}sidebar__link--active{% endif %}">
           🏢 {{ t('menu_apartments') }}
         </a>
 
-        <a href="{{ url_for('admin.manage_users') }}"
+        <a href="{{ url_for('admin.manage_users', lang=LANG) }}"
            class="sidebar__link {% if endpoint == 'admin.manage_users' %}sidebar__link--active{% endif %}">
           👥 {{ t('menu_users') }}
         </a>
 
-        <a href="{{ url_for('admin.manage_bills') }}"
+        <a href="{{ url_for('admin.manage_bills', lang=LANG) }}"
            class="sidebar__link {% if endpoint == 'admin.manage_bills' or endpoint == 'admin.dues_summary' %}sidebar__link--active{% endif %}">
           💳 {{ t('menu_bills') }}
         </a>
 
-        <a href="{{ url_for('admin.manage_payments') }}"
+        <a href="{{ url_for('admin.manage_payments', lang=LANG) }}"
            class="sidebar__link {% if endpoint == 'admin.manage_payments' %}sidebar__link--active{% endif %}">
           💰 {{ t('menu_payments') }}
         </a>
 
-        <a href="{{ url_for('admin.manage_announcements') }}"
+        <a href="{{ url_for('admin.manage_announcements', lang=LANG) }}"
            class="sidebar__link {% if endpoint == 'admin.manage_announcements' %}sidebar__link--active{% endif %}">
           📢 {{ t('menu_announcements') }}
         </a>
 
-        <a href="{{ url_for('admin.manage_tickets') }}"
+        <a href="{{ url_for('admin.manage_tickets', lang=LANG) }}"
            class="sidebar__link {% if endpoint == 'admin.manage_tickets' %}sidebar__link--active{% endif %}">
           🛠 {{ t('menu_tickets') }}
         </a>
 
-        <a href="{{ url_for('admin.settings') }}"
+        <a href="{{ url_for('admin.settings', lang=LANG) }}"
            class="sidebar__link {% if endpoint == 'admin.settings' %}sidebar__link--active{% endif %}">
           ⚙️ {{ t('menu_settings') }}
         </a>
 
       {% elif user_role == "resident" %}
 
-        <a href="{{ url_for('resident.dashboard') }}"
+        <a href="{{ url_for('resident.dashboard', lang=LANG) }}"
            class="sidebar__link {% if endpoint == 'resident.dashboard' %}sidebar__link--active{% endif %}">
           🏠 {{ t('menu_resident_dashboard') }}
         </a>
 
-        <a href="{{ url_for('resident.borclarim') }}"
+        <a href="{{ url_for('resident.borclarim', lang=LANG) }}"
            class="sidebar__link {% if endpoint == 'resident.borclarim' %}sidebar__link--active{% endif %}">
           💳 {{ t('menu_my_debts') }}
         </a>
 
-        <a href="{{ url_for('resident.odemelerim') }}"
+        <a href="{{ url_for('resident.odemelerim', lang=LANG) }}"
            class="sidebar__link {% if endpoint == 'resident.odemelerim' %}sidebar__link--active{% endif %}">
           💰 {{ t('menu_my_payments') }}
         </a>
 
-        <a href="{{ url_for('resident.taleplerim') }}"
+        <a href="{{ url_for('resident.taleplerim', lang=LANG) }}"
            class="sidebar__link {% if endpoint == 'resident.taleplerim' %}sidebar__link--active{% endif %}">
           🛠 {{ t('menu_my_tickets') }}
         </a>
 
-        <a href="{{ url_for('resident.profil') }}"
+        <a href="{{ url_for('resident.profil', lang=LANG) }}"
            class="sidebar__link {% if endpoint == 'resident.profil' %}sidebar__link--active{% endif %}">
           👤 {{ t('menu_profile') }}
         </a>
 
       {% else %}
-        <a href="{{ url_for('admin.dashboard') }}"
+        <a href="{{ url_for('admin.dashboard', lang=LANG) }}"
            class="sidebar__link {% if endpoint == 'admin.dashboard' %}sidebar__link--active{% endif %}">
           🏠 {{ t('menu_admin_dashboard') }}
         </a>
@@ -338,18 +374,14 @@
     </nav>
 
     <div class="sidebar__footer">
-      <a href="{{ url_for('auth.logout') }}" class="sidebar__logout-btn">
+      <a href="{{ url_for('auth.logout', lang=LANG) }}" class="sidebar__logout-btn">
         {{ t('logout') }}
       </a>
     </div>
   </aside>
 
-  {# ===========================================
-     ANA ALAN (TOPBAR + CONTENT)
-     =========================================== #}
   <div class="main">
 
-    {# TOPBAR #}
     <header class="topbar">
       <button class="topbar__menu-btn" id="sidebarToggleBtn" aria-label="{{ t('open_close_menu') }}">
         ☰
@@ -371,7 +403,6 @@
       </div>
 
       <div class="topbar__user" style="display:flex; align-items:center; gap:10px;">
-        <!-- Dil seçici -->
         <div class="lang-switch" id="langSwitch">
           <button type="button" class="lang-btn" id="langBtn" aria-haspopup="true" aria-expanded="false">
             <span class="lang-dot"></span>
@@ -381,22 +412,19 @@
 
           {% set nxt = request.full_path %}
           <div class="lang-menu" id="langMenu" role="menu" aria-label="Language menu">
-            <a class="lang-item" role="menuitem"
-               href="/set-lang/tr?next={{ nxt|urlencode }}">
+            <a class="lang-item" role="menuitem" href="/set-lang/tr?next={{ nxt|urlencode }}">
               <span style="display:flex; align-items:center; gap:10px;">
                 <span class="lang-flag">TR</span> Türkçe
               </span>
               <span class="lang-code">TR</span>
             </a>
-            <a class="lang-item" role="menuitem"
-               href="/set-lang/en?next={{ nxt|urlencode }}">
+            <a class="lang-item" role="menuitem" href="/set-lang/en?next={{ nxt|urlencode }}">
               <span style="display:flex; align-items:center; gap:10px;">
                 <span class="lang-flag">EN</span> English
               </span>
               <span class="lang-code">EN</span>
             </a>
-            <a class="lang-item" role="menuitem"
-               href="/set-lang/me?next={{ nxt|urlencode }}">
+            <a class="lang-item" role="menuitem" href="/set-lang/me?next={{ nxt|urlencode }}">
               <span style="display:flex; align-items:center; gap:10px;">
                 <span class="lang-flag">ME</span> Crnogorski
               </span>
@@ -410,13 +438,14 @@
         {% endif %}
         {% if user_role %}
           <span class="topbar__user-role">
-            {% if user_role == "admin" %}{{ t('role_admin') }}{% elif user_role == "resident" %}{{ t('role_resident') }}{% endif %}
+            {% if user_role == "admin" %}{{ t('role_admin') }}
+            {% elif user_role == "resident" %}{{ t('role_resident') }}
+            {% endif %}
           </span>
         {% endif %}
       </div>
     </header>
 
-    {# FLASH MESAJLARI #}
     <div class="flash-container" id="flashContainer">
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -438,7 +467,6 @@
       {% endwith %}
     </div>
 
-    {# SAYFA İÇERİĞİ #}
     <main class="content">
       {% block content %}{% endblock %}
     </main>
@@ -446,9 +474,6 @@
   </div>
 </div>
 
-{# ===========================================
-   GENEL JS (sidebar toggle + flash auto-hide + language dropdown)
-   =========================================== #}
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const sidebar = document.getElementById('sidebar');
@@ -456,7 +481,6 @@
     const closeBtn = document.getElementById('sidebarCloseBtn');
     const flashContainer = document.getElementById('flashContainer');
 
-    // Mobil menü aç/kapa
     if (toggleBtn && sidebar) {
       toggleBtn.addEventListener('click', function () {
         sidebar.classList.toggle('sidebar--open');
@@ -469,7 +493,6 @@
       });
     }
 
-    // Sidebar açıkken dışarı tıklayınca kapatma (mobil)
     document.addEventListener('click', function (e) {
       if (!sidebar) return;
       if (!sidebar.classList.contains('sidebar--open')) return;
@@ -481,7 +504,6 @@
       }
     });
 
-    // Flash mesajları otomatik gizle
     if (flashContainer) {
       setTimeout(function () {
         flashContainer.style.transition = 'opacity 0.4s ease';
@@ -494,7 +516,6 @@
       }, 4000);
     }
 
-    // Dil dropdown
     const langSwitch = document.getElementById('langSwitch');
     const langBtn = document.getElementById('langBtn');
     const langMenu = document.getElementById('langMenu');
