@@ -193,9 +193,8 @@ def dashboard():
 
     # 🔹 Site bilgisi / adı
     current_site_name = None
+    site_id = None  # ✅ duyurular filtrelemek için dışarıda dursun
     try:
-        site_id = None
-
         # 1) Öncelik: dairenin bağlı olduğu site
         if apartment is not None and getattr(apartment, "site_id", None):
             site_id = apartment.site_id
@@ -257,12 +256,19 @@ def dashboard():
         flash("Talep listeniz alınırken bir hata oluştu.", "error")
 
     # 🔹 Duyurular (tüm sakinlere açık olanlar)
+    # 🔹 Duyurular (sadece kendi sitesine ait + sakinlere açık olanlar)
     try:
+        q = Announcement.query.filter(Announcement.target.in_(["all", "residents"]))
+
+        if site_id:
+            q = q.filter(Announcement.site_id == site_id)  # ✅ sadece kendi sitesi
+        elif apartment is not None and getattr(apartment, "site_id", None):
+            q = q.filter(Announcement.site_id == apartment.site_id)
+        elif getattr(user, "site_id", None):
+            q = q.filter(Announcement.site_id == user.site_id)
+
         announcements = (
-            Announcement.query.filter(
-                Announcement.target.in_(["all", "residents"])
-            )
-            .order_by(Announcement.created_at.desc())
+            q.order_by(Announcement.created_at.desc())
             .limit(5)
             .all()
         )
