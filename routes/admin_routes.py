@@ -2909,7 +2909,6 @@ def manage_announcements():
 # ======================
 #  TALEPLER (SAKİN TALEPLERİ)
 # ======================
-
 @admin_bp.route("/tickets", methods=["GET"])
 @admin_required
 def manage_tickets():
@@ -2919,6 +2918,17 @@ def manage_tickets():
     """
     status_filter = (request.args.get("status") or "all").strip()
 
+    # ✅ Aktif siteyi bul (admin: kendi sitesi, super_admin: aktif site varsa o site)
+    admin_user = _get_current_admin()
+    site_id = session.get("active_site_id") or (admin_user.site_id if admin_user else None)
+
+    is_super = (admin_user and admin_user.role == "super_admin")
+    global_mode = is_super and not site_id  # super_admin site seçmezse tüm siteler
+
+    if not is_super and not site_id:
+        flash("Talep listesi için bir siteye atanmış olmanız gerekiyor.", "error")
+        return redirect(url_for("admin.dashboard"))
+
     tickets = []
     try:
         q = (
@@ -2926,6 +2936,11 @@ def manage_tickets():
             .outerjoin(Apartment, Ticket.apartment_id == Apartment.id)
             .outerjoin(User, Ticket.user_id == User.id)
         )
+
+        # ✅ Normal admin: sadece kendi sitesi
+        # ✅ Super admin: site seçtiyse sadece o site, seçmediyse global (hepsi)
+        if not global_mode:
+            q = q.filter(Ticket.site_id == site_id)
 
         if status_filter in ("open", "in_progress", "closed"):
             q = q.filter(Ticket.status == status_filter)
@@ -2953,10 +2968,21 @@ def update_ticket_status(ticket_id: int):
         flash("Geçersiz talep durumu.", "error")
         return redirect(url_for("admin.manage_tickets"))
 
+    admin_user = _get_current_admin()
+    site_id = session.get("active_site_id") or (admin_user.site_id if admin_user else None)
+    is_super = (admin_user and admin_user.role == "super_admin")
+    global_mode = is_super and not site_id
+
     try:
         ticket = Ticket.query.get(ticket_id)
         if not ticket:
             flash("Talep bulunamadı.", "error")
+            return redirect(url_for("admin.manage_tickets"))
+
+        # ✅ Normal admin: sadece kendi sitesinin talebini güncelleyebilir
+        # ✅ Super admin: global modda hepsi, site seçiliyse o site
+        if not global_mode and ticket.site_id != site_id:
+            flash("Bu talep başka bir siteye ait. İşlem yapamazsınız.", "error")
             return redirect(url_for("admin.manage_tickets"))
 
         ticket.status = new_status
@@ -2976,7 +3002,6 @@ def update_ticket_status(ticket_id: int):
 
     status_filter = request.args.get("status") or "all"
     return redirect(url_for("admin.manage_tickets", status=status_filter))
-
 
 # ======================
 #  AYARLAR
