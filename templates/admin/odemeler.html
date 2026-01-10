@@ -633,77 +633,9 @@ table{
     border-color:#3b82f6;
     box-shadow:0 2px 6px rgba(59,130,246,.12);
   }
+ 
 
-  /* ===========================
-     MOBİL TABLO -> KART GÖRÜNÜM
-     Tam mobil uyum için:
-     - Thead gizlenir
-     - Tr, td blok olur
-     - Her td solunda etiket görünür (data-label ile)
-     =========================== */
-  @media (max-width: 640px){
-    .table-wrap{ overflow: visible; }
 
-    table{ border-collapse: separate; border-spacing: 0 10px; }
-
-    thead{ display:none; }
-
-    tbody tr{
-      display:block;
-      background:#fff;
-      border:1px solid #e5e7eb;
-      border-radius:12px;
-      box-shadow:0 1px 2px rgba(0,0,0,0.06);
-      overflow:hidden;
-    }
-
-    tbody td{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:12px;
-      padding: 12px;
-      border-bottom:1px solid #f1f5f9;
-      font-size: 13px;
-    }
-
-    tbody td:last-child{
-      border-bottom:none;
-    }
-
-    tbody td::before{
-      content: attr(data-label);
-      font-weight:800;
-      color:#475569;
-      flex: 0 0 auto;
-      min-width: 110px;
-      text-transform: uppercase;
-      letter-spacing: .3px;
-      font-size: 11px;
-      line-height: 1.2;
-    }
-
-    td.amount{
-      text-align:left;
-      white-space: normal;
-    }
-
-    .btn-danger{
-      width: 100%;
-      padding: 10px 12px;
-    }
-
-    .link, .receipt-link{
-      width: 100%;
-      justify-content:center;
-      text-align:center;
-    }
-  }
-
-  @media (max-width: 420px){
-    tbody td::before{ min-width: 96px; }
-    .receipt-link{ padding: 8px 10px; }
-  }
 
 </style>
 
