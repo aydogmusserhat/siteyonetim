@@ -993,15 +993,25 @@ def dashboard():
             )
             month_bills_sum = q_mb.scalar()
 
-            # Ödemeler
-            q_mp = db.session.query(func.coalesce(func.sum(Payment.amount), 0))
-            if not global_mode:
-                q_mp = q_mp.filter(Payment.site_id == site_id)
-            q_mp = q_mp.filter(
-                Payment.payment_date >= month_start,
-                Payment.payment_date < month_end,
+            # Ödemeler (Muhasebe doğru olsun: ödeme, bağlı olduğu borcun vade ayına yazılsın)
+            q_mp = (
+                db.session.query(func.coalesce(func.sum(Payment.amount), 0))
+                .join(Bill, Payment.bill_id == Bill.id)  # sadece bir borca bağlı ödemeler
             )
+
+            if not global_mode:
+                # burada Bill.site_id yeterli (istersen Payment.site_id filtresi de ekleyebilirsin)
+                q_mp = q_mp.filter(Bill.site_id == site_id)
+
+            q_mp = q_mp.filter(
+                or_(
+                    and_(Bill.due_date.isnot(None), Bill.due_date >= month_start, Bill.due_date < month_end),
+                    and_(Bill.due_date.is_(None), Bill.created_at >= month_start, Bill.created_at < month_end),
+                )
+            )
+
             month_payments_sum = q_mp.scalar()
+
 
             billed = Decimal(month_bills_sum or 0)
             paid = Decimal(month_payments_sum or 0)

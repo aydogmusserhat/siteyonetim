@@ -6660,3 +6660,5 @@ sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - c
 2026-01-10 23:39:55,497 [INFO] app: Makbuz dili (payment_receipt) = tr
 2026-01-10 23:48:44,946 [INFO] app: Denetim: DELETE Payment (ID: 6) - Kullanıcı: 1 - Site: 4
 2026-01-11 00:04:43,515 [INFO] app: Denetim: CREATE Payment (ID: 10) - Kullanıcı: 1 - Site: 4
+2026-01-11 02:05:02,327 [INFO] app: Denetim: DELETE Payment (ID: 2) - Kullanıcı: 1 - Site: 1
+2026-01-11 02:05:38,786 [INFO] app: Denetim: CREATE Payment (ID: 11) - Kullanıcı: 1 - Site: 1
