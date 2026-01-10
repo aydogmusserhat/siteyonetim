@@ -662,6 +662,9 @@ def _parse_date_flex(value: str):
 # ==============================================================================
 # ======================
 #  DASHBOARD
+# ==============================================================================
+# ======================
+#  DASHBOARD
 # ======================
 @admin_bp.route("/dashboard")
 @admin_required
@@ -702,7 +705,7 @@ def dashboard():
             except SQLAlchemyError:
                 pass
         else:
-            # Normal admin ve site yoksa hala engelle
+            # Normal admin ve site yoksa engelle
             flash("Bu paneli kullanabilmek için bir siteye atanmış olmanız gerekiyor.", "error")
             return redirect(url_for("index"))
 
@@ -720,7 +723,6 @@ def dashboard():
         "expected_income_this_month": Decimal("0.00"),
         "open_tickets": 0,
         "carryover_amount": Decimal("0.00"),  # önceki aylardan devir eden (kalan) tutar
-
     }
 
     today = date.today()
@@ -764,14 +766,7 @@ def dashboard():
         else:
             month_end = date(today.year, today.month + 1, 1)
 
-        # ==========================================================
-        # DEVİR EDEN TUTAR (önceki aylardan kalan NET bakiye)
-        # - due_date varsa due_date < month_start
-        # - due_date yoksa created_at < month_start
-        # - (Bill.amount - bill'e bağlı ödemeler) toplamı
-        # ==========================================================
-        from sqlalchemy import and_, or_, case
-
+        # ===== SUBQUERY: HER BILL İÇİN TOPLAM ÖDENEN =====
         pay_sum_subq = (
             db.session.query(
                 Payment.bill_id.label("bill_id"),
@@ -781,17 +776,19 @@ def dashboard():
             .subquery()
         )
 
+        # ==========================================================
+        # DEVİR EDEN TUTAR (önceki aylardan kalan NET bakiye)
+        # - due_date varsa due_date < month_start
+        # - due_date yoksa created_at < month_start
+        # - (Bill.amount - bill'e bağlı ödemeler) toplamı
+        # ==========================================================
+        from sqlalchemy import and_, or_
+
         q_carry = (
             db.session.query(
                 func.coalesce(
                     func.sum(
-                        case(
-                            (
-                                (Bill.amount - func.coalesce(pay_sum_subq.c.paid_sum, 0)) > 0,
-                                (Bill.amount - func.coalesce(pay_sum_subq.c.paid_sum, 0)),
-                            ),
-                            else_=0,
-                        )
+                        Bill.amount - func.coalesce(pay_sum_subq.c.paid_sum, 0)
                     ),
                     0,
                 )
@@ -843,19 +840,15 @@ def dashboard():
         stats["total_paid_amount"] = Decimal(str(paid_sum))
 
         # ==========================================================
-        # Açık / kısmi borç (NET) = (borç - o borca ait ödemeler)
+        # AÇıK / kısmı borç (NET) 
+        # = Her borçun (Bill.amount - o borca ait ödemeler) toplamı
+        # Pozitif: borç, Negatif: fazla ödeme (kredit)
         # ==========================================================
         q_open_net = (
             db.session.query(
                 func.coalesce(
                     func.sum(
-                        case(
-                            (
-                                (Bill.amount - func.coalesce(pay_sum_subq.c.paid_sum, 0)) > 0,
-                                (Bill.amount - func.coalesce(pay_sum_subq.c.paid_sum, 0)),
-                            ),
-                            else_=0,
-                        )
+                        Bill.amount - func.coalesce(pay_sum_subq.c.paid_sum, 0)
                     ),
                     0,
                 )
@@ -872,7 +865,6 @@ def dashboard():
 
     except SQLAlchemyError as exc:
         current_app.logger.exception("Dashboard borç/ödeme istatistikleri alınamadı: %s", exc)
-
 
     # =========================
     #  TALEP SAYISI
@@ -988,7 +980,6 @@ def dashboard():
             else:
                 month_end = date(y, m + 1, 1)
 
-            # Faturalar
             # Faturalar (Vade tarihine göre; due_date NULL ise created_at fallback)
             q_mb = db.session.query(func.coalesce(func.sum(Bill.amount), 0))
             if not global_mode:
@@ -1001,7 +992,6 @@ def dashboard():
                 )
             )
             month_bills_sum = q_mb.scalar()
-
 
             # Ödemeler
             q_mp = db.session.query(func.coalesce(func.sum(Payment.amount), 0))
@@ -1044,7 +1034,6 @@ def dashboard():
         today=today,
         global_mode=global_mode,
     )
-
 
 # ======================
 #  DAİRELER
@@ -2101,6 +2090,7 @@ def _recalc_bill_status(bill: Bill):
 #  ÖDEMELER
 # ======================
 from sqlalchemy import func
+
 @admin_bp.route("/payments", methods=["GET", "POST"])
 @admin_required
 def manage_payments():
@@ -2126,6 +2116,9 @@ def manage_payments():
             flash("Daire ve tutar zorunludur.", "error")
         else:
             try:
+                created_payment_ids = []  # ✅ dağıtımda birden fazla ödeme satırı oluşabilir
+                original_amount = None    # ✅ girilen tutarı sakla
+
                 # Temel ödeme objesini oluştur
                 payment = Payment(
                     site_id=site_id,               # 🔴 BU SİTEYE AİT
@@ -2140,6 +2133,7 @@ def manage_payments():
                 # Tutar
                 try:
                     payment.amount = Decimal(amount.replace(",", "."))
+                    original_amount = Decimal(payment.amount or 0)
                 except (ValueError, ArithmeticError):
                     flash("Tutar sayısal olmalıdır.", "error")
                     return redirect(url_for("admin.manage_payments"))
@@ -2154,96 +2148,152 @@ def manage_payments():
                 else:
                     payment.payment_date = datetime.utcnow().date()
 
-                # ==========================================================
-                # Otomatik eşleştirme (öncelik sırası):
-                #   1) Ödeme ayındaki (payment_date) borçları -> due_date ayına göre
-                #   2) due_date NULL ise aynı ayda oluşturulanlar (created_at)
-                #   3) Hâlâ yoksa: FIFO -> en eski borç (due_date NULL ise en öne)
-                #
-                # Kuralın: due_date NULL olan eski borçlar -> en eski borçtan düşülecek.
-                # ==========================================================
-                if not bill_id and bill_type:
-                    try:
-                        apt_id_int = int(apartment_id)
-                    except ValueError:
-                        apt_id_int = None
+                apt_id_int = int(apartment_id)
+                remaining_amount = Decimal(payment.amount or 0)
 
-                    if apt_id_int:
-                        pay_date = payment.payment_date or datetime.utcnow().date()
-                        month_start = date(pay_date.year, pay_date.month, 1)
-                        if pay_date.month == 12:
-                            month_end = date(pay_date.year + 1, 1, 1)
-                        else:
-                            month_end = date(pay_date.year, pay_date.month + 1, 1)
+                # ==========================================================
+                # ÖDEME DAĞITIMI
+                # Bill seçilmişse: Seçilen bill'e bağla
+                # Bill seçilmemişse: Dairenin açık borçlarına FIFO dağıt
+                # ==========================================================
 
-                        # 1) Önce "o ayın borçları": due_date ayına göre
-                        # 2) due_date NULL ise created_at ayına göre aynı aya denk gelenleri de dahil et
-                        candidate_q = (
-                            Bill.query.filter(
-                                Bill.site_id == site_id,          # 🔴 SİTE FİLTRESİ
-                                Bill.apartment_id == apt_id_int,
-                                Bill.type == bill_type,
-                                Bill.status.in_(["open", "partial"]),
-                            )
-                            .filter(
-                                (
-                                    (Bill.due_date.isnot(None)) &
-                                    (Bill.due_date >= month_start) &
-                                    (Bill.due_date < month_end)
-                                )
-                                |
-                                (
-                                    (Bill.due_date.is_(None)) &
-                                    (Bill.created_at >= month_start) &
-                                    (Bill.created_at < month_end)
-                                )
-                            )
-                            # due_date NULL olanlar en eski gibi sayılacağı için:
-                            # coalesce(due_date, created_at) ile sıralıyoruz.
-                            .order_by(func.coalesce(Bill.due_date, Bill.created_at).asc(), Bill.id.asc())
+                if bill_id and bill_id.strip():
+                    # ✅ Seçilen bill'e direkt bağla (eski mantık)
+                    payment.bill_id = int(bill_id)
+
+                    # İstersen ödeme kaydında bill_type tutmak için:
+                    # (Modelinde alan varsa zaten template fallback kullanıyorsun)
+                    if bill_type:
+                        try:
+                            payment.bill_type = bill_type
+                        except Exception:
+                            pass
+
+                    db.session.add(payment)
+                    db.session.flush()
+                    created_payment_ids.append(int(payment.id))
+                else:
+                    # ✅ Dairenin en eski açık borçlarını bul ve dağıt
+                    # due_date NULL olan eski borçlar önce gelecek
+                    open_bills = (
+                        Bill.query.filter(
+                            Bill.site_id == site_id,
+                            Bill.apartment_id == apt_id_int,
+                            Bill.status.in_(["open", "partial"]),
                         )
+                        .order_by(
+                            func.coalesce(Bill.due_date, Bill.created_at).asc(),
+                            Bill.id.asc()
+                        )
+                        .all()
+                    )
 
-                        candidate = candidate_q.first()
+                    if not open_bills:
+                        # Açık borç yoksa, ödemeyi direkt kaydet (devret olarak)
+                        # (bill_id None kalır)
+                        if bill_type:
+                            try:
+                                payment.bill_type = bill_type
+                            except Exception:
+                                pass
 
-                        # Eğer bu ay filtresinde aday yoksa, FIFO fallback:
-                        # (due_date NULL -> en eski borç sayılır)
-                        if not candidate:
-                            candidate = (
-                                Bill.query.filter(
-                                    Bill.site_id == site_id,
-                                    Bill.apartment_id == apt_id_int,
-                                    Bill.type == bill_type,
-                                    Bill.status.in_(["open", "partial"]),
-                                )
-                                .order_by(func.coalesce(Bill.due_date, Bill.created_at).asc(), Bill.id.asc())
-                                .first()
-                            )
+                        db.session.add(payment)
+                        db.session.flush()
+                        created_payment_ids.append(int(payment.id))
+                    else:
+                        # Ödemeyi açık borçlara dağıt
+                        for bill in open_bills:
+                            if remaining_amount <= 0:
+                                break
 
-                        if candidate:
-                            # Bu borç için daha önce ödenen toplam
+                            # Bu borç için daha ödenen toplam
                             already_paid = (
                                 db.session.query(func.coalesce(func.sum(Payment.amount), 0))
-                                .filter(Payment.bill_id == candidate.id)
+                                .filter(Payment.bill_id == bill.id)
                                 .scalar()
                             )
                             already_paid = Decimal(already_paid or 0)
-                            remaining = Decimal(candidate.amount or 0) - already_paid
 
-                            # Kalan varsa eşleştir
-                            if remaining > 0:
-                                payment.bill_id = candidate.id
-                                bill_id = str(candidate.id)
+                            bill_amount = Decimal(bill.amount or 0)
+                            bill_remaining = bill_amount - already_paid
 
-                # Eğer override veya otomatik bir bill_id bulunduysa
+                            if bill_remaining <= 0:
+                                # Bu borç tamamen ödendi, atla
+                                continue
+
+                            # Bu borca ne kadar ödeme yapacağız?
+                            pay_for_this_bill = min(remaining_amount, bill_remaining)
+
+                            # Ödeme satırı oluştur (bir ödeme = bir borç)
+                            payment_line = Payment(
+                                site_id=site_id,
+                                apartment_id=apt_id_int,
+                                bill_id=bill.id,
+                                user_id=int(user_id) if user_id else None,
+                                amount=pay_for_this_bill,
+                                payment_date=payment.payment_date,
+                                method=payment.method,
+                            )
+
+                            # Modelinde bill_type alanı varsa ve frontend gönderiyorsa:
+                            if bill_type:
+                                try:
+                                    payment_line.bill_type = bill_type
+                                except Exception:
+                                    pass
+
+                            db.session.add(payment_line)
+                            db.session.flush()
+                            created_payment_ids.append(int(payment_line.id))
+
+                            # Kalan ödemeyi azalt
+                            remaining_amount -= pay_for_this_bill
+
+                        # Eğer ödeme kaldıysa (tüm borçlar ödenmiş), devret hesabına al
+                        if remaining_amount > 0:
+                            payment.amount = remaining_amount
+                            payment.bill_id = None
+
+                            if bill_type:
+                                try:
+                                    payment.bill_type = bill_type
+                                except Exception:
+                                    pass
+
+                            db.session.add(payment)
+                            db.session.flush()
+                            created_payment_ids.append(int(payment.id))
+
+                # İlgili borcun/borçların durumunu güncelle
                 if bill_id:
-                    payment.bill_id = int(bill_id)
-
-                db.session.add(payment)
-
-                # İlgili borcun durumunu güncelle
-                if bill_id:
+                    # Seçilen bill'in statusunu güncelle
                     bill = Bill.query.get(int(bill_id))
                     if bill and bill.site_id == site_id:
+                        total_paid_for_bill = (
+                            db.session.query(func.coalesce(func.sum(Payment.amount), 0))
+                            .filter(Payment.bill_id == bill.id)
+                            .scalar()
+                        )
+                        total_paid_for_bill = Decimal(total_paid_for_bill or 0)
+                        bill_amount = Decimal(bill.amount or 0)
+
+                        if total_paid_for_bill >= bill_amount:
+                            bill.status = "paid"
+                        elif total_paid_for_bill > 0:
+                            bill.status = "partial"
+                        else:
+                            bill.status = "open"
+                else:
+                    # Tüm açık borçların statusını güncelle
+                    open_bills = (
+                        Bill.query.filter(
+                            Bill.site_id == site_id,
+                            Bill.apartment_id == apt_id_int,
+                            Bill.status.in_(["open", "partial"]),
+                        )
+                        .all()
+                    )
+                    for bill in open_bills:
                         total_paid_for_bill = (
                             db.session.query(func.coalesce(func.sum(Payment.amount), 0))
                             .filter(Payment.bill_id == bill.id)
@@ -2261,22 +2311,44 @@ def manage_payments():
 
                 db.session.commit()
 
-                # ✅ Audit Log (CREATE Payment)
+                # ✅ Audit Log (CREATE Payment) — dağıtımda çok satır oluşabilir
                 try:
-                    log_action(
-                        action="CREATE",
-                        entity_type="Payment",
-                        entity_id=payment.id,
-                        old_values=None,
-                        new_values=_payment_audit_dict(payment),
-                        description=f"Ödeme oluşturuldu (id={payment.id})",
-                        site_id=site_id,
-                        status="success",
-                    )
+                    for pid in (created_payment_ids or []):
+                        try:
+                            p = Payment.query.get(int(pid))
+                        except Exception:
+                            p = None
+
+                        log_action(
+                            action="CREATE",
+                            entity_type="Payment",
+                            entity_id=int(pid) if pid else None,
+                            old_values=None,
+                            new_values=_payment_audit_dict(p) if p else {
+                                "site_id": site_id,
+                                "apartment_id": apartment_id,
+                                "bill_id": bill_id,
+                                "user_id": user_id,
+                                "amount": str(original_amount) if original_amount is not None else amount,
+                                "payment_date": payment_date_str,
+                                "method": method,
+                                "bill_type": bill_type,
+                            },
+                            description=f"Ödeme oluşturuldu (id={pid})",
+                            site_id=site_id,
+                            status="success",
+                        )
                 except Exception:
                     current_app.logger.exception("Audit log yazılamadı (CREATE Payment)")
 
-                flash("Ödeme kaydı oluşturuldu.", "success")
+                if bill_id:
+                    flash("Ödeme kaydı oluşturuldu.", "success")
+                else:
+                    # remaining_amount dağıtım sonrası kaldıysa devret'e alındı (payment objesinde)
+                    if remaining_amount > 0:
+                        flash(f"Ödeme dağıtıldı. Kalan {remaining_amount:.2f} TL devret hesabına alındı.", "success")
+                    else:
+                        flash("Ödeme açık borçlara dağıtıldı.", "success")
 
             except (ValueError, SQLAlchemyError) as exc:
                 db.session.rollback()
@@ -2361,12 +2433,46 @@ def manage_payments():
         current_app.logger.exception("Ödeme listesi alınamadı: %s", exc)
         flash("Ödeme listesi alınırken bir hata oluştu.", "error")
 
+    # ✅ Bills -> JS payload (ödenen / kalan hesaplarıyla)
+    bill_ids = [b.id for b in bills] if bills else []
+
+    paid_map = {}
+    if bill_ids:
+        rows = (
+            db.session.query(
+                Payment.bill_id,
+                func.coalesce(func.sum(Payment.amount), 0)
+            )
+            .filter(Payment.site_id == site_id)
+            .filter(Payment.bill_id.in_(bill_ids))
+            .group_by(Payment.bill_id)
+            .all()
+        )
+        paid_map = {int(bid): float(total or 0) for (bid, total) in rows if bid is not None}
+
+    bills_payload = []
+    for b in (bills or []):
+        amount = float(getattr(b, "amount", 0) or 0)
+        paid = float(paid_map.get(int(b.id), 0))
+        remaining = max(0.0, amount - paid)
+
+        bills_payload.append({
+            "id": int(b.id),
+            "apartment_id": int(getattr(b, "apartment_id", 0) or 0),
+            "type": getattr(b, "type", None),
+            "description": getattr(b, "description", None) or getattr(b, "desc", None) or "",
+            "amount": amount,
+            "paid": paid,
+            "remaining": remaining,
+        })
+
     return render_template(
         "admin/odemeler.html",
         apartments=apartments,
         bills=bills,
         users=users,
         payments=payments,
+        bills_payload=bills_payload,   # ✅ bunu ekledik
     )
 
 

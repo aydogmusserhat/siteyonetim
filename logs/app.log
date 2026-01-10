@@ -6398,3 +6398,265 @@ sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) NOT NULL constraint fail
 2026-01-08 23:20:23,018 [INFO] app: Denetim: CREATE Payment (ID: 5) - Kullanıcı: 2 - Site: 2
 2026-01-08 23:21:13,723 [INFO] app: Makbuz dili (payment_receipt) = tr
 2026-01-10 13:29:22,671 [INFO] app: Denetim: CREATE Payment (ID: 6) - Kullanıcı: 1 - Site: 4
+2026-01-10 23:04:10,743 [ERROR] app: İlk super admin oluşturulurken hata: Error creating backref 'apartment' on relationship 'Apartment.payments': property of that name exists on mapper 'Mapper[Payment(payments)]'
+Traceback (most recent call last):
+  File "C:\Users\Serhat\Desktop\siteyonetimV3.6\app.py", line 99, in create_app
+    existing_super = User.query.filter_by(role="super_admin").first()
+  File "c:\Program Files\Python39\lib\site-packages\flask_sqlalchemy\model.py", line 22, in __get__
+    return cls.query_class(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 276, in __init__
+    self._set_entities(entities)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 288, in _set_entities
+    self._raw_columns = [
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 289, in <listcomp>
+    coercions.expect(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\sql\coercions.py", line 388, in expect
+    insp._post_inspect
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\util\langhelpers.py", line 1257, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 2724, in _post_inspect
+    self._check_configure()
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 2401, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 4214, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 4255, in _do_configure_registries
+    mapper._post_configure_properties()
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 2418, in _post_configure_properties
+    prop.init()
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\interfaces.py", line 589, in init
+    self.do_init()
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\relationships.py", line 1661, in do_init
+    self._generate_backref()
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\relationships.py", line 2089, in _generate_backref
+    raise sa_exc.ArgumentError(
+sqlalchemy.exc.ArgumentError: Error creating backref 'apartment' on relationship 'Apartment.payments': property of that name exists on mapper 'Mapper[Payment(payments)]'
+2026-01-10 23:04:12,148 [ERROR] app: Site adı okunamadı: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Apartment(apartments)]'. Original exception was: Error creating backref 'apartment' on relationship 'Apartment.payments': property of that name exists on mapper 'Mapper[Payment(payments)]'
+Traceback (most recent call last):
+  File "C:\Users\Serhat\Desktop\siteyonetimV3.6\routes\admin_routes.py", line 578, in get_site_display_name
+    settings = SystemSetting.get_singleton()
+  File "C:\Users\Serhat\Desktop\siteyonetimV3.6\models\settings_model.py", line 26, in get_singleton
+    obj = cls.query.get(1)
+  File "c:\Program Files\Python39\lib\site-packages\flask_sqlalchemy\model.py", line 22, in __get__
+    return cls.query_class(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 276, in __init__
+    self._set_entities(entities)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 288, in _set_entities
+    self._raw_columns = [
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 289, in <listcomp>
+    coercions.expect(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\sql\coercions.py", line 388, in expect
+    insp._post_inspect
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\util\langhelpers.py", line 1257, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 2724, in _post_inspect
+    self._check_configure()
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 2401, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 4214, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 4251, in _do_configure_registries
+    raise e
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Apartment(apartments)]'. Original exception was: Error creating backref 'apartment' on relationship 'Apartment.payments': property of that name exists on mapper 'Mapper[Payment(payments)]'
+2026-01-10 23:04:14,048 [ERROR] app: Login sırasında veritabanı hatası: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Apartment(apartments)]'. Original exception was: Error creating backref 'apartment' on relationship 'Apartment.payments': property of that name exists on mapper 'Mapper[Payment(payments)]'
+Traceback (most recent call last):
+  File "C:\Users\Serhat\Desktop\siteyonetimV3.6\routes\auth_routes.py", line 44, in login
+    user = User.query.filter_by(email=email).first()
+  File "c:\Program Files\Python39\lib\site-packages\flask_sqlalchemy\model.py", line 22, in __get__
+    return cls.query_class(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 276, in __init__
+    self._set_entities(entities)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 288, in _set_entities
+    self._raw_columns = [
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 289, in <listcomp>
+    coercions.expect(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\sql\coercions.py", line 388, in expect
+    insp._post_inspect
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\util\langhelpers.py", line 1257, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 2724, in _post_inspect
+    self._check_configure()
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 2401, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 4214, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 4251, in _do_configure_registries
+    raise e
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Apartment(apartments)]'. Original exception was: Error creating backref 'apartment' on relationship 'Apartment.payments': property of that name exists on mapper 'Mapper[Payment(payments)]'
+2026-01-10 23:06:01,173 [ERROR] app: İlk super admin oluşturulurken hata: Error creating backref 'bill' on relationship 'Bill.payments': property of that name exists on mapper 'Mapper[Payment(payments)]'
+Traceback (most recent call last):
+  File "C:\Users\Serhat\Desktop\siteyonetimV3.6\app.py", line 99, in create_app
+    existing_super = User.query.filter_by(role="super_admin").first()
+  File "c:\Program Files\Python39\lib\site-packages\flask_sqlalchemy\model.py", line 22, in __get__
+    return cls.query_class(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 276, in __init__
+    self._set_entities(entities)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 288, in _set_entities
+    self._raw_columns = [
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 289, in <listcomp>
+    coercions.expect(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\sql\coercions.py", line 388, in expect
+    insp._post_inspect
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\util\langhelpers.py", line 1257, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 2724, in _post_inspect
+    self._check_configure()
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 2401, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 4214, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 4255, in _do_configure_registries
+    mapper._post_configure_properties()
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 2418, in _post_configure_properties
+    prop.init()
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\interfaces.py", line 589, in init
+    self.do_init()
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\relationships.py", line 1661, in do_init
+    self._generate_backref()
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\relationships.py", line 2089, in _generate_backref
+    raise sa_exc.ArgumentError(
+sqlalchemy.exc.ArgumentError: Error creating backref 'bill' on relationship 'Bill.payments': property of that name exists on mapper 'Mapper[Payment(payments)]'
+2026-01-10 23:06:02,553 [ERROR] app: Site adı okunamadı: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Bill(bills)]'. Original exception was: Error creating backref 'bill' on relationship 'Bill.payments': property of that name exists on mapper 'Mapper[Payment(payments)]'
+Traceback (most recent call last):
+  File "C:\Users\Serhat\Desktop\siteyonetimV3.6\routes\admin_routes.py", line 578, in get_site_display_name
+    settings = SystemSetting.get_singleton()
+  File "C:\Users\Serhat\Desktop\siteyonetimV3.6\models\settings_model.py", line 26, in get_singleton
+    obj = cls.query.get(1)
+  File "c:\Program Files\Python39\lib\site-packages\flask_sqlalchemy\model.py", line 22, in __get__
+    return cls.query_class(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 276, in __init__
+    self._set_entities(entities)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 288, in _set_entities
+    self._raw_columns = [
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 289, in <listcomp>
+    coercions.expect(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\sql\coercions.py", line 388, in expect
+    insp._post_inspect
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\util\langhelpers.py", line 1257, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 2724, in _post_inspect
+    self._check_configure()
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 2401, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 4214, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 4251, in _do_configure_registries
+    raise e
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Bill(bills)]'. Original exception was: Error creating backref 'bill' on relationship 'Bill.payments': property of that name exists on mapper 'Mapper[Payment(payments)]'
+2026-01-10 23:06:03,952 [ERROR] app: Login sırasında veritabanı hatası: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Bill(bills)]'. Original exception was: Error creating backref 'bill' on relationship 'Bill.payments': property of that name exists on mapper 'Mapper[Payment(payments)]'
+Traceback (most recent call last):
+  File "C:\Users\Serhat\Desktop\siteyonetimV3.6\routes\auth_routes.py", line 44, in login
+    user = User.query.filter_by(email=email).first()
+  File "c:\Program Files\Python39\lib\site-packages\flask_sqlalchemy\model.py", line 22, in __get__
+    return cls.query_class(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 276, in __init__
+    self._set_entities(entities)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 288, in _set_entities
+    self._raw_columns = [
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 289, in <listcomp>
+    coercions.expect(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\sql\coercions.py", line 388, in expect
+    insp._post_inspect
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\util\langhelpers.py", line 1257, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 2724, in _post_inspect
+    self._check_configure()
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 2401, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 4214, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 4251, in _do_configure_registries
+    raise e
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Bill(bills)]'. Original exception was: Error creating backref 'bill' on relationship 'Bill.payments': property of that name exists on mapper 'Mapper[Payment(payments)]'
+2026-01-10 23:08:39,767 [ERROR] app: İlk super admin oluşturulurken hata: Error creating backref 'bill' on relationship 'Bill.payments': property of that name exists on mapper 'Mapper[Payment(payments)]'
+Traceback (most recent call last):
+  File "C:\Users\Serhat\Desktop\siteyonetimV3.6\app.py", line 99, in create_app
+    existing_super = User.query.filter_by(role="super_admin").first()
+  File "c:\Program Files\Python39\lib\site-packages\flask_sqlalchemy\model.py", line 22, in __get__
+    return cls.query_class(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 276, in __init__
+    self._set_entities(entities)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 288, in _set_entities
+    self._raw_columns = [
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 289, in <listcomp>
+    coercions.expect(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\sql\coercions.py", line 388, in expect
+    insp._post_inspect
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\util\langhelpers.py", line 1257, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 2724, in _post_inspect
+    self._check_configure()
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 2401, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 4214, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 4255, in _do_configure_registries
+    mapper._post_configure_properties()
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 2418, in _post_configure_properties
+    prop.init()
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\interfaces.py", line 589, in init
+    self.do_init()
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\relationships.py", line 1661, in do_init
+    self._generate_backref()
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\relationships.py", line 2089, in _generate_backref
+    raise sa_exc.ArgumentError(
+sqlalchemy.exc.ArgumentError: Error creating backref 'bill' on relationship 'Bill.payments': property of that name exists on mapper 'Mapper[Payment(payments)]'
+2026-01-10 23:08:41,149 [ERROR] app: Site adı okunamadı: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Bill(bills)]'. Original exception was: Error creating backref 'bill' on relationship 'Bill.payments': property of that name exists on mapper 'Mapper[Payment(payments)]'
+Traceback (most recent call last):
+  File "C:\Users\Serhat\Desktop\siteyonetimV3.6\routes\admin_routes.py", line 578, in get_site_display_name
+    settings = SystemSetting.get_singleton()
+  File "C:\Users\Serhat\Desktop\siteyonetimV3.6\models\settings_model.py", line 26, in get_singleton
+    obj = cls.query.get(1)
+  File "c:\Program Files\Python39\lib\site-packages\flask_sqlalchemy\model.py", line 22, in __get__
+    return cls.query_class(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 276, in __init__
+    self._set_entities(entities)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 288, in _set_entities
+    self._raw_columns = [
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 289, in <listcomp>
+    coercions.expect(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\sql\coercions.py", line 388, in expect
+    insp._post_inspect
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\util\langhelpers.py", line 1257, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 2724, in _post_inspect
+    self._check_configure()
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 2401, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 4214, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 4251, in _do_configure_registries
+    raise e
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Bill(bills)]'. Original exception was: Error creating backref 'bill' on relationship 'Bill.payments': property of that name exists on mapper 'Mapper[Payment(payments)]'
+2026-01-10 23:08:42,515 [ERROR] app: Login sırasında veritabanı hatası: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Bill(bills)]'. Original exception was: Error creating backref 'bill' on relationship 'Bill.payments': property of that name exists on mapper 'Mapper[Payment(payments)]'
+Traceback (most recent call last):
+  File "C:\Users\Serhat\Desktop\siteyonetimV3.6\routes\auth_routes.py", line 44, in login
+    user = User.query.filter_by(email=email).first()
+  File "c:\Program Files\Python39\lib\site-packages\flask_sqlalchemy\model.py", line 22, in __get__
+    return cls.query_class(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 276, in __init__
+    self._set_entities(entities)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 288, in _set_entities
+    self._raw_columns = [
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 289, in <listcomp>
+    coercions.expect(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\sql\coercions.py", line 388, in expect
+    insp._post_inspect
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\util\langhelpers.py", line 1257, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 2724, in _post_inspect
+    self._check_configure()
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 2401, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 4214, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\mapper.py", line 4251, in _do_configure_registries
+    raise e
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Bill(bills)]'. Original exception was: Error creating backref 'bill' on relationship 'Bill.payments': property of that name exists on mapper 'Mapper[Payment(payments)]'
+2026-01-10 23:28:22,058 [INFO] app: Denetim: CREATE Payment (ID: 7) - Kullanıcı: 1 - Site: 4
+2026-01-10 23:29:36,423 [INFO] app: Denetim: CREATE Payment (ID: 8) - Kullanıcı: 1 - Site: 4
+2026-01-10 23:39:18,723 [INFO] app: Makbuz dili (payment_receipt) = tr
+2026-01-10 23:39:49,711 [INFO] app: Denetim: CREATE Payment (ID: 9) - Kullanıcı: 1 - Site: 2
+2026-01-10 23:39:55,497 [INFO] app: Makbuz dili (payment_receipt) = tr
+2026-01-10 23:48:44,946 [INFO] app: Denetim: DELETE Payment (ID: 6) - Kullanıcı: 1 - Site: 4
+2026-01-11 00:04:43,515 [INFO] app: Denetim: CREATE Payment (ID: 10) - Kullanıcı: 1 - Site: 4

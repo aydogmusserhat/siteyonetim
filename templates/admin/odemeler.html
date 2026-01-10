@@ -1,7 +1,10 @@
 {% extends "base.html" %}
 
 {# ============================================================
-   ÖDEME YÖNETİMİ - 4 DİL (TR / EN / ME / RU) UYUMLU
+   ÖDEME YÖNETİMİ - GELİŞTİRİLMİŞ (TR / EN / ME / RU) UYUMLU
+   - Daire seç -> ödenmemiş borçlar listelenir
+   - Borç seç -> kalan/ödenen/toplam görünür + ödeme özeti
+   - Kaydet -> mevcut backend /admin/payments POST'u ile uyumlu
    ============================================================ #}
 
 {% set LANG = session.get('lang','tr') %}
@@ -12,61 +15,66 @@
     'topbar_title': 'Ödeme Yönetimi',
 
     'new_payment_title': 'Yeni Ödeme Kaydı',
-
     'label_apartment': 'Daire',
     'apartment_pick': 'Daire seçin...',
 
-    'label_bill_type': 'Borç Türü',
-    'bill_aidat': 'Aidat',
-    'bill_elektrik': 'Elektrik',
-    'bill_su': 'Su',
-    'bill_dogalgaz': 'Doğalgaz',
-    'bill_ekstra': 'Ekstra Gider',
+    'label_unpaid_bills': 'Ödenmemiş Borçlar',
+    'unpaid_hint': 'Daire seçerek borçları yükleyin',
+    'no_unpaid': 'Bu dairenin ödenmemiş borcu yok',
 
-    'label_payer': 'Ödemeyi Yapan (opsiyonel)',
-    'payer_unknown': 'Belirtilmedi',
+    'selected_bill_title': 'Seçili Borç Detayları',
+    'bill_desc': 'Açıklama',
+    'bill_total': 'Toplam Tutar',
+    'bill_paid': 'Daha Önce Ödenen',
+    'bill_remaining': 'Kalan Tutar',
 
-    'label_amount': 'Tutar (₺)',
-    'ph_amount': 'Örn: 500',
-
+    'label_amount': 'Ödeme Tutarı (₺)',
     'label_payment_date': 'Ödeme Tarihi',
-
-    'label_method': 'Ödeme Yöntemi (opsiyonel)',
+    'label_method': 'Ödeme Yöntemi',
     'method_none': 'Seçilmedi',
     'method_cash': 'Nakit',
     'method_bank': 'Banka Havalesi / EFT',
     'method_pos': 'POS / Kredi Kartı',
     'method_online': 'Online Ödeme',
 
+    'label_payer': 'Ödemeyi Yapan (Opsiyonel)',
+    'payer_unknown': 'Belirtilmedi',
+
+    'payment_summary': 'Ödeme Özeti',
+    'summary_pay': 'Yapılacak Ödeme',
+    'summary_new_remaining': 'Yeni Kalan',
+    'summary_status': 'Durum',
+    'status_open': 'AÇIK',
+    'status_partial': 'KISMİ',
+    'status_paid': 'ÖDENDİ',
+
     'btn_save_payment': 'Ödemeyi Kaydet',
 
-    'list_title': 'Kayıtlı Ödemeler',
-
+    'list_title': 'Ödeme Tarihçesi',
     'col_apartment': 'Daire',
-    'col_payer': 'Ödeyen',
-    'col_related': 'İlgili Borç',
+    'col_related': 'Borç Türü',
     'col_amount': 'Tutar',
-    'col_method': 'Yöntem',
     'col_date': 'Tarih',
-    'col_actions': 'İşlemler',
-
-    'dash': '-',
-
-    'btn_pdf': 'PDF İndir',
-    'btn_edit': 'Düzenle',
+    'col_method': 'Yöntem',
+    'col_receipt': 'Makbuz',
+    'col_actions': 'İşlem',
     'btn_delete': 'Sil',
-    'btn_save': 'Kaydet',
-    'btn_cancel': 'Vazgeç',
+    'confirm_delete': 'Bu ödemeyi silmek istiyor musunuz?',
+    'delete_ok': 'Ödeme silindi.',
+    'delete_fail': 'Ödeme silinemedi.' ,
+    'col_receipt': 'Makbuz',
+    'col_actions': 'İşlem',
+    'btn_delete': 'Sil',
+    'confirm_delete': 'Bu ödemeyi silmek istiyor musunuz?',
+    'delete_ok': 'Ödeme silindi.',
+    'delete_fail': 'Ödeme silinemedi.' ,
+    'empty': 'Henüz ödeme kaydı yok',
 
-    'empty': 'Henüz kayıtlı bir ödeme bulunmuyor. Soldaki formdan ödeme kaydı oluşturabilirsiniz.',
-
-    'ph_date_text': 'Örn: 04.01.2026',
-
-    'alert_update_failed': 'Güncelleme başarısız.',
-    'alert_update_error': 'Ödeme güncellenirken bir hata oluştu.',
-    'confirm_delete': 'Bu ödeme kaydını silmek istediğinizden emin misiniz?',
-    'alert_delete_failed': 'Ödeme silinemedi.',
-    'alert_delete_error': 'Ödeme silinirken bir hata oluştu.'
+    'err_apartment': 'Daire seçmelisiniz.',
+    'err_bill': 'Borç seçmelisiniz.',
+    'err_amount': 'Geçerli bir tutar girin.',
+    'err_date': 'Ödeme tarihini seçmelisiniz.',
+    'err_max': 'Bu borç için maksimum ödeme: '
   },
 
   'en': {
@@ -74,61 +82,66 @@
     'topbar_title': 'Payment Management',
 
     'new_payment_title': 'New Payment Record',
-
     'label_apartment': 'Apartment',
     'apartment_pick': 'Select an apartment...',
 
-    'label_bill_type': 'Debt Type',
-    'bill_aidat': 'Dues',
-    'bill_elektrik': 'Electricity',
-    'bill_su': 'Water',
-    'bill_dogalgaz': 'Natural Gas',
-    'bill_ekstra': 'Extra Expense',
+    'label_unpaid_bills': 'Unpaid Debts',
+    'unpaid_hint': 'Select an apartment to load debts',
+    'no_unpaid': 'No unpaid debts for this apartment',
 
-    'label_payer': 'Paid By (optional)',
-    'payer_unknown': 'Not specified',
+    'selected_bill_title': 'Selected Debt Details',
+    'bill_desc': 'Description',
+    'bill_total': 'Total',
+    'bill_paid': 'Already Paid',
+    'bill_remaining': 'Remaining',
 
-    'label_amount': 'Amount (₺)',
-    'ph_amount': 'e.g., 500',
-
+    'label_amount': 'Payment Amount (₺)',
     'label_payment_date': 'Payment Date',
-
-    'label_method': 'Payment Method (optional)',
+    'label_method': 'Payment Method',
     'method_none': 'Not selected',
     'method_cash': 'Cash',
     'method_bank': 'Bank Transfer / EFT',
     'method_pos': 'POS / Credit Card',
     'method_online': 'Online Payment',
 
+    'label_payer': 'Paid By (optional)',
+    'payer_unknown': 'Not specified',
+
+    'payment_summary': 'Payment Summary',
+    'summary_pay': 'Payment',
+    'summary_new_remaining': 'New Remaining',
+    'summary_status': 'Status',
+    'status_open': 'OPEN',
+    'status_partial': 'PARTIAL',
+    'status_paid': 'PAID',
+
     'btn_save_payment': 'Save Payment',
 
-    'list_title': 'Recorded Payments',
-
+    'list_title': 'Payment History',
     'col_apartment': 'Apartment',
-    'col_payer': 'Payer',
-    'col_related': 'Related Debt',
+    'col_related': 'Debt Type',
     'col_amount': 'Amount',
-    'col_method': 'Method',
     'col_date': 'Date',
-    'col_actions': 'Actions',
-
-    'dash': '-',
-
-    'btn_pdf': 'Download PDF',
-    'btn_edit': 'Edit',
+    'col_method': 'Method',
+    'col_receipt': 'Receipt',
+    'col_actions': 'Action',
     'btn_delete': 'Delete',
-    'btn_save': 'Save',
-    'btn_cancel': 'Cancel',
+    'confirm_delete': 'Do you want to delete this payment?',
+    'delete_ok': 'Payment deleted.',
+    'delete_fail': 'Could not delete payment.' ,
+    'col_receipt': 'Receipt',
+    'col_actions': 'Action',
+    'btn_delete': 'Delete',
+    'confirm_delete': 'Do you want to delete this payment?',
+    'delete_ok': 'Payment deleted.',
+    'delete_fail': 'Could not delete payment.' ,
+    'empty': 'No payments yet',
 
-    'empty': 'There are no recorded payments yet. You can create a payment record using the form on the left.',
-
-    'ph_date_text': 'e.g., 04.01.2026',
-
-    'alert_update_failed': 'Update failed.',
-    'alert_update_error': 'An error occurred while updating the payment.',
-    'confirm_delete': 'Are you sure you want to delete this payment record?',
-    'alert_delete_failed': 'Payment could not be deleted.',
-    'alert_delete_error': 'An error occurred while deleting the payment.'
+    'err_apartment': 'You must select an apartment.',
+    'err_bill': 'You must select a debt.',
+    'err_amount': 'Enter a valid amount.',
+    'err_date': 'Select a payment date.',
+    'err_max': 'Maximum for this debt: '
   },
 
   'me': {
@@ -136,189 +149,636 @@
     'topbar_title': 'Upravljanje uplatama',
 
     'new_payment_title': 'Nova uplata',
-
     'label_apartment': 'Stan',
     'apartment_pick': 'Izaberite stan...',
 
-    'label_bill_type': 'Vrsta duga',
-    'bill_aidat': 'Mjesečna naknada',
-    'bill_elektrik': 'Struja',
-    'bill_su': 'Voda',
-    'bill_dogalgaz': 'Prirodni gas',
-    'bill_ekstra': 'Dodatni trošak',
+    'label_unpaid_bills': 'Neplaćeni dugovi',
+    'unpaid_hint': 'Izaberite stan da učitate dugove',
+    'no_unpaid': 'Nema neplaćenih dugova za ovaj stan',
 
-    'label_payer': 'Uplatio/la (opciono)',
-    'payer_unknown': 'Nije navedeno',
+    'selected_bill_title': 'Detalji izabranog duga',
+    'bill_desc': 'Opis',
+    'bill_total': 'Ukupno',
+    'bill_paid': 'Već plaćeno',
+    'bill_remaining': 'Preostalo',
 
-    'label_amount': 'Iznos (₺)',
-    'ph_amount': 'npr. 500',
-
+    'label_amount': 'Iznos uplate (₺)',
     'label_payment_date': 'Datum uplate',
-
-    'label_method': 'Način plaćanja (opciono)',
+    'label_method': 'Način plaćanja',
     'method_none': 'Nije izabrano',
     'method_cash': 'Gotovina',
     'method_bank': 'Bankovni transfer / EFT',
     'method_pos': 'POS / Kreditna kartica',
     'method_online': 'Online plaćanje',
 
+    'label_payer': 'Uplatio/la (opciono)',
+    'payer_unknown': 'Nije navedeno',
+
+    'payment_summary': 'Sažetak uplate',
+    'summary_pay': 'Uplata',
+    'summary_new_remaining': 'Novo preostalo',
+    'summary_status': 'Status',
+    'status_open': 'OTVORENO',
+    'status_partial': 'DJELOMIČNO',
+    'status_paid': 'PLAĆENO',
+
     'btn_save_payment': 'Sačuvaj uplatu',
 
-    'list_title': 'Evidentirane uplate',
-
+    'list_title': 'Istorija uplata',
     'col_apartment': 'Stan',
-    'col_payer': 'Uplatio/la',
-    'col_related': 'Povezani dug',
+    'col_related': 'Vrsta duga',
     'col_amount': 'Iznos',
-    'col_method': 'Način',
     'col_date': 'Datum',
-    'col_actions': 'Akcije',
-
-    'dash': '-',
-
-    'btn_pdf': 'Preuzmi PDF',
-    'btn_edit': 'Uredi',
+    'col_method': 'Način',
+    'col_receipt': 'Račun',
+    'col_receipt': 'Potvrda',
+    'col_actions': 'Akcija',
     'btn_delete': 'Obriši',
-    'btn_save': 'Sačuvaj',
-    'btn_cancel': 'Otkaži',
+    'confirm_delete': 'Želite li obrisati ovu uplatu?',
+    'delete_ok': 'Uplata obrisana.',
+    'delete_fail': 'Uplata se ne može obrisati.' ,
+    'empty': 'Još nema uplata',
 
-    'empty': 'Još nema evidentiranih uplata. Možete dodati uplatu preko forme sa lijeve strane.',
-
-    'ph_date_text': 'npr. 04.01.2026',
-
-    'alert_update_failed': 'Ažuriranje nije uspjelo.',
-    'alert_update_error': 'Došlo je do greške pri ažuriranju uplate.',
-    'confirm_delete': 'Da li ste sigurni da želite obrisati ovu uplatu?',
-    'alert_delete_failed': 'Uplata nije mogla biti obrisana.',
-    'alert_delete_error': 'Došlo je do greške pri brisanju uplate.'
+    'err_apartment': 'Morate izabrati stan.',
+    'err_bill': 'Morate izabrati dug.',
+    'err_amount': 'Unesite ispravan iznos.',
+    'err_date': 'Izaberite datum uplate.',
+    'err_max': 'Maksimum za ovaj dug: '
   },
 
   'ru': {
     'page_title': 'Управление платежами',
     'topbar_title': 'Управление платежами',
 
-    'new_payment_title': 'Новая запись платежа',
-
+    'new_payment_title': 'Новый платеж',
     'label_apartment': 'Квартира',
     'apartment_pick': 'Выберите квартиру...',
 
-    'label_bill_type': 'Тип задолженности',
-    'bill_aidat': 'Ежемесячный взнос',
-    'bill_elektrik': 'Электричество',
-    'bill_su': 'Вода',
-    'bill_dogalgaz': 'Природный газ',
-    'bill_ekstra': 'Доп. расход',
+    'label_unpaid_bills': 'Неоплаченные долги',
+    'unpaid_hint': 'Выберите квартиру, чтобы загрузить долги',
+    'no_unpaid': 'Нет неоплаченных долгов для этой квартиры',
 
-    'label_payer': 'Плательщик (необязательно)',
-    'payer_unknown': 'Не указано',
+    'selected_bill_title': 'Детали выбранного долга',
+    'bill_desc': 'Описание',
+    'bill_total': 'Сумма',
+    'bill_paid': 'Оплачено ранее',
+    'bill_remaining': 'Остаток',
 
-    'label_amount': 'Сумма (₺)',
-    'ph_amount': 'напр.: 500',
-
+    'label_amount': 'Сумма платежа (₺)',
     'label_payment_date': 'Дата платежа',
-
-    'label_method': 'Способ оплаты (необязательно)',
+    'label_method': 'Способ оплаты',
     'method_none': 'Не выбрано',
     'method_cash': 'Наличные',
     'method_bank': 'Банковский перевод / EFT',
     'method_pos': 'POS / Кредитная карта',
     'method_online': 'Онлайн оплата',
 
-    'btn_save_payment': 'Сохранить платеж',
+    'label_payer': 'Плательщик (необязательно)',
+    'payer_unknown': 'Не указано',
 
-    'list_title': 'Список платежей',
+    'payment_summary': 'Сводка платежа',
+    'summary_pay': 'Платеж',
+    'summary_new_remaining': 'Новый остаток',
+    'summary_status': 'Статус',
+    'status_open': 'ОТКРЫТО',
+    'status_partial': 'ЧАСТИЧНО',
+    'status_paid': 'ОПЛАЧЕНО',
 
+    'btn_save_payment': 'Сохранить',
+
+    'list_title': 'История платежей',
     'col_apartment': 'Квартира',
-    'col_payer': 'Плательщик',
-    'col_related': 'Связанный долг',
+    'col_related': 'Тип долга',
     'col_amount': 'Сумма',
-    'col_method': 'Способ',
     'col_date': 'Дата',
-    'col_actions': 'Действия',
-
-    'dash': '-',
-
-    'btn_pdf': 'Скачать PDF',
-    'btn_edit': 'Редактировать',
+    'col_method': 'Способ',
+    'col_receipt': 'Квитанция',
+    'col_actions': 'Действие',
     'btn_delete': 'Удалить',
-    'btn_save': 'Сохранить',
-    'btn_cancel': 'Отмена',
+    'confirm_delete': 'Удалить этот платеж?',
+    'delete_ok': 'Платёж удалён.',
+    'delete_fail': 'Не удалось удалить платёж.' ,
+    'col_receipt': 'Квитанция',
+    'col_actions': 'Действие',
+    'btn_delete': 'Удалить',
+    'confirm_delete': 'Удалить этот платеж?',
+    'delete_ok': 'Платёж удалён.',
+    'delete_fail': 'Не удалось удалить платёж.' ,
+    'empty': 'Платежей пока нет',
 
-    'empty': 'Пока нет записанных платежей. Вы можете добавить платеж через форму слева.',
-
-    'ph_date_text': 'напр.: 04.01.2026',
-
-    'alert_update_failed': 'Не удалось обновить.',
-    'alert_update_error': 'Произошла ошибка при обновлении платежа.',
-    'confirm_delete': 'Вы уверены, что хотите удалить эту запись платежа?',
-    'alert_delete_failed': 'Не удалось удалить платеж.',
-    'alert_delete_error': 'Произошла ошибка при удалении платежа.'
+    'err_apartment': 'Выберите квартиру.',
+    'err_bill': 'Выберите долг.',
+    'err_amount': 'Введите корректную сумму.',
+    'err_date': 'Выберите дату платежа.',
+    'err_max': 'Максимум для этого долга: '
   }
 } %}
 
-{% macro tp(k) -%}
-  {{ I18N_PAGE.get(LANG, I18N_PAGE['tr']).get(k, I18N_PAGE['tr'].get(k, k)) }}
-{%- endmacro %}
+{% set T = I18N_PAGE.get(LANG, I18N_PAGE['tr']) %}
+{% macro tp(k) %}{{ T.get(k, k) }}{% endmacro %}
 
 {% block title %}{{ tp('page_title') }}{% endblock %}
-{% block topbar_title %}
-  {{ tp('topbar_title') }}
-  {% if session.active_site_name %}
-    – {{ session.active_site_name }}
-  {% elif current_site_name %}
-    – {{ current_site_name }}
-  {% endif %}
-{% endblock %}
+{% block topbar_title %}{{ tp('topbar_title') }}{% endblock %}
 
 {% block content %}
 
-<div class="dashboard-grid">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
 
-  <!-- SOL: YENİ ÖDEME EKLE -->
-  <section>
-    <div class="card">
-      <h2 style="font-size:16px; margin-bottom:12px;">{{ tp('new_payment_title') }}</h2>
+  .pay-body {
+    font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:#f5f7fa;
+    padding: 10px 0;
+  }
 
-      <form method="post" style="display:flex; flex-direction:column; gap:10px;">
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    display:grid;
+    grid-template-columns: 0.5fr 1fr;
+    gap: 20px;
+    padding: 0 14px;
+  }
 
-        <div>
-          <label for="apartment_id" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('label_apartment') }}</label>
-          <select
-            id="apartment_id"
-            name="apartment_id"
-            required
-            style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+  @media (max-width: 1024px){
+    .container{
+      grid-template-columns: 1fr;
+      gap: 14px;
+      padding: 0 12px;
+    }
+    .card{
+      padding: 16px;
+      border-radius: 12px;
+    }
+  }
+
+  @media (max-width: 420px){
+    .container{ padding: 0 10px; }
+    .card{ padding: 14px; }
+  }
+
+  .card {
+    background:#fff;
+    border-radius:12px;
+    padding:24px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.1);
+    width: 100%;
+    min-width: 0;
+  }
+
+  .card h2 {
+    font-size:18px;
+    margin-bottom: 16px;
+    color:#0f172a;
+  }
+
+  .form-group { margin-bottom: 16px; }
+
+  label {
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    margin-bottom:6px;
+    color:#374151;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+  }
+
+  select, input {
+    width: 100%;
+    padding:10px 12px;
+    border:1px solid #e5e7eb;
+    border-radius:8px;
+    font-size:14px;
+    transition:all .2s;
+    background:#fff;
+    min-width: 0;
+  }
+
+  select:focus, input:focus {
+    outline:none;
+    border-color:#3b82f6;
+    box-shadow:0 0 0 3px rgba(59,130,246,0.12);
+  }
+
+  .grid-2 {
+    display:grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 16px;
+  }
+
+  @media (max-width: 520px){
+    .grid-2{ grid-template-columns: 1fr; gap: 12px; }
+  }
+
+  .bills-container {
+    background:#f9fafb;
+    border:1px solid #e5e7eb;
+    border-radius:8px;
+    padding:12px;
+    max-height:250px;
+    overflow:auto;
+    margin-bottom: 16px;
+  }
+
+  @media (max-width: 520px){
+    .bills-container{
+      max-height: 320px;
+      padding: 10px;
+    }
+  }
+
+  .bill-item {
+    padding:12px;
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:6px;
+    margin-bottom:8px;
+    cursor:pointer;
+    transition:all .2s;
+    min-width: 0;
+  }
+
+  .bill-item:hover {
+    border-color:#3b82f6;
+    box-shadow:0 2px 4px rgba(59,130,246,0.10);
+  }
+
+  .bill-item.selected {
+    background:#eff6ff;
+    border-color:#3b82f6;
+    box-shadow:0 0 0 3px rgba(59,130,246,0.12);
+  }
+
+  .bill-header {
+    font-weight:600;
+    color:#0f172a;
+    margin-bottom:4px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    flex-wrap: wrap;
+  }
+
+  .bill-info {
+    font-size:12px;
+    color:#6b7280;
+    margin-bottom:6px;
+    line-height: 1.35;
+    word-break: break-word;
+  }
+
+  .bill-amounts {
+    display:grid;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap:8px;
+    font-size:12px;
+    border-top:1px solid #e5e7eb;
+    padding-top:8px;
+    margin-top:8px;
+  }
+
+  @media (max-width: 520px){
+    .bill-amounts{ grid-template-columns: 1fr; gap: 10px; }
+    .amount-box{ display:flex; justify-content:space-between; align-items:center; text-align:left; }
+    .amount-label{ margin-bottom:0; }
+  }
+
+  .amount-box { text-align:center; }
+  .amount-label {
+    color:#6b7280;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.3px;
+    margin-bottom:3px;
+  }
+  .amount-value {
+    font-weight:700;
+    color:#0f172a;
+    font-size:13px;
+  }
+  .remaining-amount { color:#dc2626; font-weight:700; }
+  .paid-amount { color:#16a34a; }
+
+  .status-badge {
+    display:inline-block;
+    padding:4px 8px;
+    border-radius:4px;
+    font-size:11px;
+    font-weight:700;
+    text-transform:uppercase;
+    white-space: nowrap;
+  }
+  .status-open { background:#fee2e2; color:#991b1b; }
+  .status-partial { background:#fef3c7; color:#92400e; }
+  .status-paid { background:#dcfce7; color:#166534; }
+
+  .divider { height:1px; background:#e5e7eb; margin: 16px 0; }
+
+  .info-box {
+    background:#eff6ff;
+    border:1px solid #bfdbfe;
+    border-radius:8px;
+    padding:12px;
+    margin-bottom:16px;
+    font-size:13px;
+    color:#1e40af;
+  }
+  .info-box strong { color:#0f172a; }
+
+  .summary-grid {
+    display:grid;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+
+  @media (max-width: 520px){
+    .summary-grid{ grid-template-columns: 1fr; }
+  }
+
+  .summary-card {
+    background:#f9fafb;
+    padding:12px;
+    border-radius:8px;
+    border:1px solid #e5e7eb;
+    text-align:center;
+  }
+  .summary-label {
+    font-size:11px;
+    color:#6b7280;
+    text-transform:uppercase;
+    letter-spacing:.3px;
+    margin-bottom:4px;
+  }
+  .summary-value {
+    font-size:18px;
+    font-weight:800;
+    color:#0f172a;
+    word-break: break-word;
+  }
+
+  .error-message {
+    color:#991b1b;
+    background:#fee2e2;
+    border:1px solid #fecaca;
+    padding:10px 12px;
+    border-radius:8px;
+    font-size:12px;
+    margin-bottom: 16px;
+    display:none;
+    line-height: 1.35;
+  }
+
+  button {
+    padding: 10px 16px;
+    border:none;
+    border-radius:8px;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+    transition:all .2s;
+  }
+
+  .btn-danger{
+    background:#dc2626;
+    color:#fff;
+    padding:8px 12px;
+    border:none;
+    border-radius:8px;
+    font-weight:700;
+    cursor:pointer;
+    width: 100%;
+  }
+  .btn-danger:hover{background:#b91c1c;}
+  .btn-danger:disabled{background:#fca5a5;cursor:not-allowed;}
+
+  .btn-primary {
+    background:#16a34a;
+    color:#fff;
+    width:100%;
+  }
+  .btn-primary:hover { background:#15803d; }
+  .btn-primary:disabled { background:#d1d5db; cursor:not-allowed; }
+
+ .table-wrap{
+  width:100%;
+  max-width:100%;
+  overflow-x:auto;          /* ✅ taşmayı içeride kaydır */
+  overflow-y:hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size: 13px;
+  min-width: 720px;         /* istersen kalsın; artık taşmaz, içeride scroll olur */
+}
+
+
+  thead tr {
+    background:#f9fafb;
+    border-bottom: 2px solid #e5e7eb;
+  }
+
+  th, td { padding: 12px; }
+  th {
+    text-align:left;
+    color:#374151;
+    font-weight:700;
+    white-space: nowrap;
+  }
+  td {
+    border-bottom: 1px solid #e5e7eb;
+    color:#0f172a;
+    vertical-align: top;
+    min-width: 0;
+  }
+  td.amount {
+    text-align:right;
+    color:#16a34a;
+    font-weight:800;
+    white-space:nowrap;
+  }
+  td.muted { color:#9ca3af; }
+
+  .link{
+    color:#2563eb;
+    font-weight:600;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+  .link:hover{text-decoration:underline;}
+
+  .receipt-link{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:6px 10px;
+    border-radius:999px;
+    border:1px solid #e5e7eb;
+    text-decoration:none;
+    font-weight:700;
+    font-size:12px;
+    color:#0f172a;
+    background:#fff;
+    transition: all .2s ease;
+    white-space: nowrap;
+  }
+  .receipt-link:hover{
+    border-color:#3b82f6;
+    box-shadow:0 2px 6px rgba(59,130,246,.12);
+  }
+
+  /* ===========================
+     MOBİL TABLO -> KART GÖRÜNÜM
+     Tam mobil uyum için:
+     - Thead gizlenir
+     - Tr, td blok olur
+     - Her td solunda etiket görünür (data-label ile)
+     =========================== */
+  @media (max-width: 640px){
+    .table-wrap{ overflow: visible; }
+
+    table{ border-collapse: separate; border-spacing: 0 10px; }
+
+    thead{ display:none; }
+
+    tbody tr{
+      display:block;
+      background:#fff;
+      border:1px solid #e5e7eb;
+      border-radius:12px;
+      box-shadow:0 1px 2px rgba(0,0,0,0.06);
+      overflow:hidden;
+    }
+
+    tbody td{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      padding: 12px;
+      border-bottom:1px solid #f1f5f9;
+      font-size: 13px;
+    }
+
+    tbody td:last-child{
+      border-bottom:none;
+    }
+
+    tbody td::before{
+      content: attr(data-label);
+      font-weight:800;
+      color:#475569;
+      flex: 0 0 auto;
+      min-width: 110px;
+      text-transform: uppercase;
+      letter-spacing: .3px;
+      font-size: 11px;
+      line-height: 1.2;
+    }
+
+    td.amount{
+      text-align:left;
+      white-space: normal;
+    }
+
+    .btn-danger{
+      width: 100%;
+      padding: 10px 12px;
+    }
+
+    .link, .receipt-link{
+      width: 100%;
+      justify-content:center;
+      text-align:center;
+    }
+  }
+
+  @media (max-width: 420px){
+    tbody td::before{ min-width: 96px; }
+    .receipt-link{ padding: 8px 10px; }
+  }
+
+</style>
+
+<div class="pay-body">
+  <div class="container">
+
+    <!-- SOL: ÖDEME FORMU -->
+    <section class="card">
+      <h2>💳 {{ tp('new_payment_title') }}</h2>
+
+      <div id="errorMessage" class="error-message"></div>
+
+      <form method="POST" action="{{ url_for('admin.manage_payments') }}" id="paymentForm">
+        <!-- Daire -->
+        <div class="form-group">
+          <label for="apartmentSelect">{{ tp('label_apartment') }}</label>
+          <select id="apartmentSelect" name="apartment_id" required>
             <option value="">{{ tp('apartment_pick') }}</option>
-            {% for apt in apartments %}
-              <option value="{{ apt.id }}">
-                {{ apt.block }} Blok • Kat {{ apt.floor }} • No {{ apt.number }}
-              </option>
+            {% for a in apartments %}
+              <option value="{{ a.id }}">{{ a.block }} Blok, Kat {{ a.floor }}, No {{ a.number }}</option>
             {% endfor %}
           </select>
         </div>
 
-        <!-- Borç türü -->
-        <div>
-          <label for="bill_type" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('label_bill_type') }}</label>
-          <select
-            id="bill_type"
-            name="bill_type"
-            required
-            style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
-            <option value="aidat">{{ tp('bill_aidat') }}</option>
-            <option value="elektrik">{{ tp('bill_elektrik') }}</option>
-            <option value="su">{{ tp('bill_su') }}</option>
-            <option value="dogalgaz">{{ tp('bill_dogalgaz') }}</option>
-            <option value="ekstra">{{ tp('bill_ekstra') }}</option>
-          </select>
+        <!-- Borç listesi -->
+        <div class="form-group">
+          <label>{{ tp('label_unpaid_bills') }}</label>
+          <div class="bills-container" id="billsContainer">
+            <div class="muted" style="text-align:center; padding:18px 8px;">{{ tp('unpaid_hint') }}</div>
+          </div>
+          <input type="hidden" name="bill_id" id="billIdHidden" value="">
+          <input type="hidden" name="bill_type" id="billTypeHidden" value="">
         </div>
 
-        <div>
-          <label for="user_id" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('label_payer') }}</label>
-          <select
-            id="user_id"
-            name="user_id"
-            style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+        <!-- Borç detay -->
+        <div id="billDetails" style="display:none;">
+          <div class="divider"></div>
+          <h3 style="font-size:14px; margin-bottom:12px; color:#0f172a;">{{ tp('selected_bill_title') }}</h3>
+          <div class="info-box">
+            <div style="margin-bottom:8px;"><strong>{{ tp('bill_desc') }}:</strong> <span id="billDesc">-</span></div>
+            <div style="margin-bottom:8px;"><strong>{{ tp('bill_total') }}:</strong> ₺<span id="billAmount">0.00</span></div>
+            <div style="margin-bottom:8px;"><strong>{{ tp('bill_paid') }}:</strong> ₺<span id="billPaid">0.00</span></div>
+            <div><strong>{{ tp('bill_remaining') }}:</strong> <span class="remaining-amount">₺<span id="billRemaining">0.00</span></span></div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Ödeme bilgileri -->
+        <div class="form-group">
+          <label for="paymentAmount">{{ tp('label_amount') }}</label>
+          <input type="number" id="paymentAmount" name="amount" step="0.01" min="0" placeholder="500.00" required>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label for="paymentDate">{{ tp('label_payment_date') }}</label>
+            <input type="date" id="paymentDate" name="payment_date" required>
+          </div>
+
+          <div class="form-group">
+            <label for="paymentMethod">{{ tp('label_method') }}</label>
+            <select id="paymentMethod" name="method">
+              <option value="">{{ tp('method_none') }}</option>
+              <option value="nakit">💵 {{ tp('method_cash') }}</option>
+              <option value="banka">🏦 {{ tp('method_bank') }}</option>
+              <option value="pos">💳 {{ tp('method_pos') }}</option>
+              <option value="online">📱 {{ tp('method_online') }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="payer">{{ tp('label_payer') }}</label>
+          <select id="payer" name="user_id">
             <option value="">{{ tp('payer_unknown') }}</option>
             {% for u in users %}
               <option value="{{ u.id }}">{{ u.name }}</option>
@@ -326,413 +786,383 @@
           </select>
         </div>
 
-        <div style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px;">
-          <div>
-            <label for="amount" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('label_amount') }}</label>
-            <input
-              type="text"
-              id="amount"
-              name="amount"
-              required
-              placeholder="{{ tp('ph_amount') }}"
-              style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+        <!-- Ödeme özeti -->
+        <div id="paymentSummary" style="display:none;">
+          <div class="divider"></div>
+          <h3 style="font-size:14px; margin-bottom:12px; color:#0f172a;">{{ tp('payment_summary') }}</h3>
+          <div class="summary-grid">
+            <div class="summary-card">
+              <div class="summary-label">{{ tp('summary_pay') }}</div>
+              <div class="summary-value">₺<span id="summaryAmount">0.00</span></div>
+            </div>
+            <div class="summary-card">
+              <div class="summary-label">{{ tp('summary_new_remaining') }}</div>
+              <div class="summary-value" style="color:#dc2626;">₺<span id="summaryNewRemaining">0.00</span></div>
+            </div>
+            <div class="summary-card">
+              <div class="summary-label">{{ tp('summary_status') }}</div>
+              <div style="margin-top:8px;">
+                <span id="summaryStatus" class="status-badge status-open">{{ tp('status_open') }}</span>
+              </div>
+            </div>
           </div>
-
-          <div>
-            <label for="payment_date" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('label_payment_date') }}</label>
-            <input
-              type="date"
-              id="payment_date"
-              name="payment_date"
-              style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
-          </div>
         </div>
 
-        <div>
-          <label for="method" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('label_method') }}</label>
-          <select
-            id="method"
-            name="method"
-            style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
-            <option value="">{{ tp('method_none') }}</option>
-            <option value="nakit">{{ tp('method_cash') }}</option>
-            <option value="banka">{{ tp('method_bank') }}</option>
-            <option value="pos">{{ tp('method_pos') }}</option>
-            <option value="online">{{ tp('method_online') }}</option>
-          </select>
-        </div>
-
-        <div style="margin-top:4px;">
-          <button type="submit"
-                  style="padding:8px 12px; border-radius:999px; border:none; background:#16a34a; color:white; font-size:13px; cursor:pointer;">
-            {{ tp('btn_save_payment') }}
-          </button>
-        </div>
-
+        <button class="btn-primary" type="submit" id="savePayment">💾 {{ tp('btn_save_payment') }}</button>
       </form>
-    </div>
-  </section>
+    </section>
 
-  <!-- SAĞ: ÖDEME LİSTESİ -->
-  <section>
-    <div class="card">
-      <h2 style="font-size:16px; margin-bottom:10px;">{{ tp('list_title') }}</h2>
+    <!-- SAĞ: ÖDEME TARİHÇESİ -->
+    <section class="card">
+      <h2>📊 {{ tp('list_title') }}</h2>
 
-      {% if payments %}
-        <div style="width:100%; overflow-x:auto;">
-          <table style="width:100%; border-collapse:collapse; font-size:12px;">
-            <thead>
-              <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
-                <th style="text-align:left; padding:6px 4px;">{{ tp('col_apartment') }}</th>
-                <th style="text-align:left; padding:6px 4px;">{{ tp('col_payer') }}</th>
-                <th style="text-align:left; padding:6px 4px;">{{ tp('col_related') }}</th>
-                <th style="text-align:left; padding:6px 4px;">{{ tp('col_amount') }}</th>
-                <th style="text-align:left; padding:6px 4px;">{{ tp('col_method') }}</th>
-                <th style="text-align:left; padding:6px 4px;">{{ tp('col_date') }}</th>
-                <th style="text-align:right; padding:6px 4px;">{{ tp('col_actions') }}</th>
-              </tr>
-            </thead>
-            <tbody>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="min-width:100px;">{{ tp('col_apartment') }}</th>
+              <th style="min-width:160px;">{{ tp('col_related') }}</th>
+              <th style="text-align:right; min-width:120px;">{{ tp('col_amount') }}</th>
+              <th style="min-width:100px;">{{ tp('col_date') }}</th>
+              <th style="min-width:100px;">{{ tp('col_method') }}</th>
+              <th style="min-width:120px;">{{ tp('col_receipt') }}</th>
+              <th style="min-width:110px;">{{ tp('col_actions') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if payments %}
               {% for payment, apt, user, bill in payments %}
-                <tr class="payment-row"
-                    data-payment-id="{{ payment.id }}"
-                    data-update-url="{{ url_for('admin.update_payment', payment_id=payment.id) }}"
-                    data-delete-url="{{ url_for('admin.delete_payment', payment_id=payment.id) }}"
-                    style="border-bottom:1px solid #f3f4f6;">
-                  <!-- Daire -->
-                  <td style="padding:6px 4px; white-space:nowrap;">
-                    {{ apt.block }} Blok • {{ apt.floor }}/{{ apt.number }}
-                  </td>
+                <tr>
+                  <td data-label="{{ tp('col_apartment') }}" style="white-space:nowrap;">{{ apt.block }} Blok • {{ apt.floor }}/{{ apt.number }}</td>
 
-                  <!-- Ödeyen -->
-                  <td style="padding:6px 4px; white-space:nowrap;">
-                    {% if user %}
-                      {{ user.name }}
-                    {% else %}
-                      <span style="color:#9ca3af;">{{ tp('payer_unknown') }}</span>
-                    {% endif %}
-                  </td>
-
-                  <!-- İlgili Borç: sadece tür -->
-                  <td style="padding:6px 4px;">
+                  <td data-label="{{ tp('col_related') }}">
                     {% set t = None %}
-                    {% if bill and bill.type %}
-                      {% set t = bill.type %}
-                    {% elif payment.bill_type is defined and payment.bill_type %}
-                      {% set t = payment.bill_type %}
-                    {% endif %}
-
+                    {% if bill and bill.type %}{% set t = bill.type %}{% endif %}
+                    {% if not t and payment.bill_type is defined and payment.bill_type %}{% set t = payment.bill_type %}{% endif %}
                     {% if t %}
-                      {% if t == 'aidat' %}
-                        {{ tp('bill_aidat') }}
-                      {% elif t == 'elektrik' %}
-                        {{ tp('bill_elektrik') }}
-                      {% elif t == 'su' %}
-                        {{ tp('bill_su') }}
-                      {% elif t == 'dogalgaz' %}
-                        {{ tp('bill_dogalgaz') }}
-                      {% elif t == 'ekstra' %}
-                        {{ tp('bill_ekstra') }}
-                      {% else %}
-                        {{ t|capitalize }}
+                      {% if t == 'aidat' %}💰 Aidat
+                      {% elif t == 'elektrik' %}⚡ Elektrik
+                      {% elif t == 'su' %}💧 Su
+                      {% elif t == 'dogalgaz' %}🔥 Doğalgaz
+                      {% elif t == 'ekstra' %}📦 Ekstra
+                      {% else %}{{ t|capitalize }}
                       {% endif %}
                     {% else %}
-                      <span style="color:#9ca3af;">{{ tp('payer_unknown') }}</span>
+                      <span class="muted">-</span>
+                    {% endif %}
+                    {% if bill and bill.description %}
+                      <div style="font-size:12px; color:#6b7280; margin-top:4px; line-height:1.35; word-break:break-word;">{{ bill.description }}</div>
                     {% endif %}
                   </td>
 
-                  <!-- TUTAR: inline edit -->
-                  <td style="padding:6px 4px; white-space:nowrap; color:#16a34a;">
-                    <span class="editable-view amount-display">
-                      ₺ {{ "%.2f"|format(payment.amount) }}
-                    </span>
-                    <input
-                      type="text"
-                      class="editable-input amount-input"
-                      value="{{ "%.2f"|format(payment.amount) }}"
-                      style="display:none; width:90px; padding:3px 6px; border-radius:6px; border:1px solid #e5e7eb; font-size:11px; text-align:right;">
+                  <td data-label="{{ tp('col_amount') }}" class="amount">₺ {{ "%.2f"|format(payment.amount) }}</td>
+
+                  <td data-label="{{ tp('col_date') }}" style="white-space:nowrap;">{{ payment.payment_date.strftime("%d.%m.%Y") if payment.payment_date else "-" }}</td>
+
+                  <td data-label="{{ tp('col_method') }}">{{ payment.method or "-" }}</td>
+
+                  <td data-label="{{ tp('col_receipt') }}" style="white-space:nowrap;">
+                    <a class="receipt-link" href="{{ url_for('admin.payment_receipt', payment_id=payment.id) }}" target="_blank">📄 PDF</a>
                   </td>
 
-                  <!-- YÖNTEM: inline select -->
-                  <td style="padding:6px 4px; white-space:nowrap;">
-                    <span class="editable-view method-display">
-                      {% if payment.method %}
-                        {{ payment.method|capitalize }}
-                      {% else %}
-                        <span style="color:#9ca3af;">{{ tp('dash') }}</span>
-                      {% endif %}
-                    </span>
-                    <select
-                      class="editable-input method-input"
-                      style="display:none; padding:3px 6px; border-radius:6px; border:1px solid #e5e7eb; font-size:11px;">
-                      <option value="">{{ tp('method_none') }}</option>
-                      <option value="nakit" {% if payment.method == 'nakit' %}selected{% endif %}>{{ tp('method_cash') }}</option>
-                      <option value="banka" {% if payment.method == 'banka' %}selected{% endif %}>{{ tp('method_bank') }}</option>
-                      <option value="pos" {% if payment.method == 'pos' %}selected{% endif %}>{{ tp('method_pos') }}</option>
-                      <option value="online" {% if payment.method == 'online' %}selected{% endif %}>{{ tp('method_online') }}</option>
-                    </select>
-                  </td>
-
-                  <!-- TARİH: inline edit -->
-                  <td style="padding:6px 4px; white-space:nowrap;">
-                    <span class="editable-view date-display">
-                      {% if payment.payment_date %}
-                        {{ payment.payment_date.strftime('%d.%m.%Y') }}
-                      {% else %}
-                        <span style="color:#9ca3af;">{{ tp('dash') }}</span>
-                      {% endif %}
-                    </span>
-                    <input
-                      type="text"
-                      class="editable-input date-input"
-                      value="{% if payment.payment_date %}{{ payment.payment_date.strftime('%d.%m.%Y') }}{% endif %}"
-                      placeholder="{{ tp('ph_date_text') }}"
-                      style="display:none; width:110px; padding:3px 6px; border-radius:6px; border:1px solid #e5e7eb; font-size:11px;">
-                  </td>
-
-                  <!-- İŞLEMLER -->
-                  <td style="padding:6px 4px; white-space:nowrap; text-align:right;">
-
-                    <!-- PDF İndir butonu (her zaman görünsün) -->
-                    <a href="{{ url_for('admin.payment_receipt', payment_id=payment.id) }}"
-                      target="_blank"
-                      class="btn btn-sm btn-outline-secondary me-1"
-                      style="padding:3px 8px; font-size:11px;">
-                      {{ tp('btn_pdf') }}
-                    </a>
-
+                  <td data-label="{{ tp('col_actions') }}" style="white-space:nowrap;">
                     <button type="button"
-                            class="btn btn-sm btn-outline-primary me-1 btn-edit"
-                            style="padding:3px 8px; font-size:11px;">
-                      {{ tp('btn_edit') }}
-                    </button>
-                    <button type="button"
-                            class="btn btn-sm btn-outline-danger btn-delete"
-                            style="padding:3px 8px; font-size:11px;">
+                            class="btn-danger btn-delete-payment"
+                            data-delete-url="{{ url_for('admin.delete_payment', payment_id=payment.id) }}">
                       {{ tp('btn_delete') }}
                     </button>
-
-                    <button type="button"
-                            class="btn btn-sm btn-success me-1 btn-save"
-                            style="padding:3px 8px; font-size:11px; display:none;">
-                      {{ tp('btn_save') }}
-                    </button>
-                    <button type="button"
-                            class="btn btn-sm btn-secondary btn-cancel"
-                            style="padding:3px 8px; font-size:11px; display:none;">
-                      {{ tp('btn_cancel') }}
-                    </button>
                   </td>
-
                 </tr>
               {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      {% else %}
-        <p style="font-size:13px; color:#6b7280;">
-          {{ tp('empty') }}
-        </p>
-      {% endif %}
-    </div>
-  </section>
+            {% else %}
+              <tr>
+                <td colspan="7" class="muted" style="text-align:center; padding: 32px 12px;">{{ tp('empty') }}</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </section>
 
+  </div>
 </div>
 
 <script>
-  (function () {
-    const LANG = "{{ LANG }}";
+  // Backend'den hazır gelen borç payload'u (admin_routes.py içinde hazırlanır)
+  const BILLS = {{ (bills_payload or [])|tojson }};
 
-    const I18N = {
-      tr: {
-        alert_update_failed: "{{ tp('alert_update_failed') }}",
-        alert_update_error: "{{ tp('alert_update_error') }}",
-        confirm_delete: "{{ tp('confirm_delete') }}",
-        alert_delete_failed: "{{ tp('alert_delete_failed') }}",
-        alert_delete_error: "{{ tp('alert_delete_error') }}"
-      },
-      en: {
-        alert_update_failed: "{{ tp('alert_update_failed') }}",
-        alert_update_error: "{{ tp('alert_update_error') }}",
-        confirm_delete: "{{ tp('confirm_delete') }}",
-        alert_delete_failed: "{{ tp('alert_delete_failed') }}",
-        alert_delete_error: "{{ tp('alert_delete_error') }}"
-      },
-      me: {
-        alert_update_failed: "{{ tp('alert_update_failed') }}",
-        alert_update_error: "{{ tp('alert_update_error') }}",
-        confirm_delete: "{{ tp('confirm_delete') }}",
-        alert_delete_failed: "{{ tp('alert_delete_failed') }}",
-        alert_delete_error: "{{ tp('alert_delete_error') }}"
-      },
-      ru: {
-        alert_update_failed: "{{ tp('alert_update_failed') }}",
-        alert_update_error: "{{ tp('alert_update_error') }}",
-        confirm_delete: "{{ tp('confirm_delete') }}",
-        alert_delete_failed: "{{ tp('alert_delete_failed') }}",
-        alert_delete_error: "{{ tp('alert_delete_error') }}"
-      }
-    };
+  const labels = {
+    billTypes: {
+      aidat: "💰 Aidat",
+      elektrik: "⚡ Elektrik",
+      su: "💧 Su",
+      dogalgaz: "🔥 Doğalgaz",
+      ekstra: "📦 Ekstra"
+    },
+    errApartment: {{ tp('err_apartment')|tojson }},
+    errBill: {{ tp('err_bill')|tojson }},
+    errAmount: {{ tp('err_amount')|tojson }},
+    errDate: {{ tp('err_date')|tojson }},
+    errMaxPrefix: {{ tp('err_max')|tojson }},
+    unpaidHint: {{ tp('unpaid_hint')|tojson }},
+    noUnpaid: {{ tp('no_unpaid')|tojson }},
+    statusOpen: {{ tp('status_open')|tojson }},
+    statusPartial: {{ tp('status_partial')|tojson }},
+    statusPaid: {{ tp('status_paid')|tojson }},
+    confirmDelete: {{ tp('confirm_delete')|tojson }},
+    deleteOk: {{ tp('delete_ok')|tojson }},
+    deleteFail: {{ tp('delete_fail')|tojson }}
+  };
 
-    const T = I18N[LANG] || I18N.tr;
+  let selectedBill = null;
 
-    const rows = document.querySelectorAll(".payment-row");
-    if (!rows.length) return;
+  // Elements
+  const apartmentSelect = document.getElementById('apartmentSelect');
+  const billsContainer = document.getElementById('billsContainer');
+  const paymentAmount = document.getElementById('paymentAmount');
+  const paymentDate = document.getElementById('paymentDate');
+  const paymentMethod = document.getElementById('paymentMethod');
+  const payer = document.getElementById('payer');
+  const savePayment = document.getElementById('savePayment');
+  const billDetails = document.getElementById('billDetails');
+  const paymentSummary = document.getElementById('paymentSummary');
+  const errorMessage = document.getElementById('errorMessage');
+  const billIdHidden = document.getElementById('billIdHidden');
+  const billTypeHidden = document.getElementById('billTypeHidden');
 
-    function enterEdit(row) {
-      if (row.dataset.editing === "1") return;
-      row.dataset.editing = "1";
-
-      row.querySelectorAll(".editable-view").forEach(el => el.style.display = "none");
-      row.querySelectorAll(".editable-input").forEach(el => el.style.display = "");
-
-      const editBtn = row.querySelector(".btn-edit");
-      const deleteBtn = row.querySelector(".btn-delete");
-      const saveBtn = row.querySelector(".btn-save");
-      const cancelBtn = row.querySelector(".btn-cancel");
-
-      if (editBtn) editBtn.style.display = "none";
-      if (deleteBtn) deleteBtn.style.display = "none";
-      if (saveBtn) saveBtn.style.display = "";
-      if (cancelBtn) cancelBtn.style.display = "";
-
-      const amountInput = row.querySelector(".amount-input");
-      const methodInput = row.querySelector(".method-input");
-      const dateInput = row.querySelector(".date-input");
-
-      row.dataset.originalAmount = amountInput ? amountInput.value : "";
-      row.dataset.originalMethod = methodInput ? methodInput.value : "";
-      row.dataset.originalDate = dateInput ? dateInput.value : "";
-    }
-
-    function exitEdit(row, restore) {
-      row.dataset.editing = "0";
-
-      const amountInput = row.querySelector(".amount-input");
-      const methodInput = row.querySelector(".method-input");
-      const dateInput = row.querySelector(".date-input");
-
-      if (restore) {
-        if (amountInput) amountInput.value = row.dataset.originalAmount || "";
-        if (methodInput) methodInput.value = row.dataset.originalMethod || "";
-        if (dateInput) dateInput.value = row.dataset.originalDate || "";
-      }
-
-      row.querySelectorAll(".editable-view").forEach(el => el.style.display = "");
-      row.querySelectorAll(".editable-input").forEach(el => el.style.display = "none");
-
-      const editBtn = row.querySelector(".btn-edit");
-      const deleteBtn = row.querySelector(".btn-delete");
-      const saveBtn = row.querySelector(".btn-save");
-      const cancelBtn = row.querySelector(".btn-cancel");
-
-      if (editBtn) editBtn.style.display = "";
-      if (deleteBtn) deleteBtn.style.display = "";
-      if (saveBtn) saveBtn.style.display = "none";
-      if (cancelBtn) cancelBtn.style.display = "none";
-    }
-
-    rows.forEach(row => {
-      const editBtn = row.querySelector(".btn-edit");
-      const deleteBtn = row.querySelector(".btn-delete");
-      const saveBtn = row.querySelector(".btn-save");
-      const cancelBtn = row.querySelector(".btn-cancel");
-
-      if (editBtn) {
-        editBtn.addEventListener("click", () => enterEdit(row));
-      }
-
-      if (cancelBtn) {
-        cancelBtn.addEventListener("click", () => exitEdit(row, true));
-      }
-
-      if (saveBtn) {
-        saveBtn.addEventListener("click", async () => {
-          const updateUrl = row.dataset.updateUrl;
-          if (!updateUrl) return;
-
-          const amountInput = row.querySelector(".amount-input");
-          const methodInput = row.querySelector(".method-input");
-          const dateInput = row.querySelector(".date-input");
-
-          const body = new URLSearchParams();
-          body.append("amount", amountInput ? amountInput.value.trim() : "");
-          body.append("method", methodInput ? methodInput.value.trim() : "");
-          body.append("payment_date", dateInput ? dateInput.value.trim() : "");
-
-          try {
-            const res = await fetch(updateUrl, {
-              method: "POST",
-              headers: {
-                "X-Requested-With": "XMLHttpRequest",
-                "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-              },
-              body
-            });
-
-            const data = await res.json();
-            if (!data.ok) {
-              alert(data.error || T.alert_update_failed);
-              return;
-            }
-
-            const amountDisplay = row.querySelector(".amount-display");
-            const dateDisplay = row.querySelector(".date-display");
-            const methodDisplay = row.querySelector(".method-display");
-
-            if (amountDisplay && data.amount) {
-              amountDisplay.textContent = data.amount;
-            }
-            if (dateDisplay) {
-              if (data.payment_date) {
-                dateDisplay.textContent = data.payment_date;
-              } else {
-                dateDisplay.innerHTML = '<span style="color:#9ca3af;">-</span>';
-              }
-            }
-            if (methodDisplay && methodInput) {
-              const opt = methodInput.options[methodInput.selectedIndex];
-              if (methodInput.value) {
-                methodDisplay.textContent = opt ? opt.textContent : methodInput.value;
-              } else {
-                methodDisplay.innerHTML = '<span style="color:#9ca3af;">-</span>';
-              }
-            }
-
-            exitEdit(row, false);
-          } catch (err) {
-            console.error(err);
-            alert(T.alert_update_error);
-          }
-        });
-      }
-
-      if (deleteBtn) {
-        deleteBtn.addEventListener("click", async () => {
-          const deleteUrl = row.dataset.deleteUrl;
-          if (!deleteUrl) return;
-
-          if (!confirm(T.confirm_delete)) return;
-
-          try {
-            const res = await fetch(deleteUrl, {
-              method: "POST",
-              headers: { "X-Requested-With": "XMLHttpRequest" },
-            });
-            const data = await res.json();
-            if (!data.ok) {
-              alert(data.error || T.alert_delete_failed);
-              return;
-            }
-            row.remove();
-          } catch (err) {
-            console.error(err);
-            alert(T.alert_delete_error);
-          }
-        });
-      }
-    });
+  // Bugünün tarihi
+  (function setToday(){
+    const today = new Date().toISOString().split('T')[0];
+    if (!paymentDate.value) paymentDate.value = today;
   })();
+
+  function showError(msg){
+    errorMessage.textContent = "❌ " + msg;
+    errorMessage.style.display = "block";
+  }
+  function clearError(){
+    errorMessage.style.display = "none";
+    errorMessage.textContent = "";
+  }
+
+  function money(n){
+    const x = Number(n || 0);
+    return x.toFixed(2);
+  }
+
+  function renderBills(apartmentId){
+    selectedBill = null;
+    billIdHidden.value = "";
+    billTypeHidden.value = "";
+    billDetails.style.display = "none";
+    paymentSummary.style.display = "none";
+    paymentAmount.value = "";
+    paymentAmount.removeAttribute("max");
+
+    if (!apartmentId){
+      billsContainer.innerHTML = `<div class="muted" style="text-align:center; padding:18px 8px;">${labels.unpaidHint}</div>`;
+      return;
+    }
+
+    const debts = BILLS.filter(b => String(b.apartment_id) === String(apartmentId));
+    const unpaid = debts.filter(b => Number(b.remaining || 0) > 0);
+
+    if (unpaid.length === 0){
+      billsContainer.innerHTML = `<div class="muted" style="text-align:center; padding:18px 8px;">✅ ${labels.noUnpaid}</div>`;
+      return;
+    }
+
+    billsContainer.innerHTML = unpaid.map(bill => {
+      const typeLabel = labels.billTypes[bill.type] || bill.type || "-";
+      const statusClass = (bill.paid > 0) ? "status-partial" : "status-open";
+      const statusText = (bill.paid > 0) ? labels.statusPartial : labels.statusOpen;
+
+      return `
+        <div class="bill-item" data-bill-id="${bill.id}">
+          <div style="display:flex; gap:10px; align-items:flex-start;">
+            <input type="radio" name="selectedBillRadio" value="${bill.id}" style="width:auto; margin-top:3px;">
+            <div style="flex:1; min-width:0;">
+              <div class="bill-header">
+                <span>${typeLabel}</span>
+                <span class="status-badge ${statusClass}" style="padding:2px 6px; font-size:10px;">${statusText}</span>
+              </div>
+              <div class="bill-info">${(bill.description || "-")}</div>
+
+              <div class="bill-amounts">
+                <div class="amount-box">
+                  <div class="amount-label">Tutar</div>
+                  <div class="amount-value">₺${money(bill.amount)}</div>
+                </div>
+                <div class="amount-box">
+                  <div class="amount-label">Ödenmiş</div>
+                  <div class="amount-value paid-amount">₺${money(bill.paid)}</div>
+                </div>
+                <div class="amount-box">
+                  <div class="amount-label">Kalan</div>
+                  <div class="amount-value remaining-amount">₺${money(bill.remaining)}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    // bind radios
+    billsContainer.querySelectorAll('input[name="selectedBillRadio"]').forEach(radio => {
+      radio.addEventListener('change', function(){
+        const billId = Number(this.value);
+        selectedBill = unpaid.find(b => Number(b.id) === billId) || null;
+
+        billsContainer.querySelectorAll('.bill-item').forEach(it => it.classList.remove('selected'));
+        const wrap = this.closest('.bill-item');
+        if (wrap) wrap.classList.add('selected');
+
+        updateBillDetails();
+      });
+    });
+
+    // tıklayınca da seçsin
+    billsContainer.querySelectorAll('.bill-item').forEach(item => {
+      item.addEventListener('click', function(e){
+        const radio = item.querySelector('input[name="selectedBillRadio"]');
+        if (!radio) return;
+        if (e.target && (e.target.tagName === "INPUT")) return;
+        radio.checked = true;
+        radio.dispatchEvent(new Event('change'));
+      });
+    });
+  }
+
+  function updateBillDetails(){
+    if (!selectedBill){
+      billDetails.style.display = "none";
+      billIdHidden.value = "";
+      billTypeHidden.value = "";
+      paymentAmount.removeAttribute("max");
+      paymentSummary.style.display = "none";
+      return;
+    }
+
+    document.getElementById("billDesc").textContent = selectedBill.description || "-";
+    document.getElementById("billAmount").textContent = money(selectedBill.amount);
+    document.getElementById("billPaid").textContent = money(selectedBill.paid);
+    document.getElementById("billRemaining").textContent = money(selectedBill.remaining);
+
+    billDetails.style.display = "block";
+
+    billIdHidden.value = String(selectedBill.id);
+    billTypeHidden.value = selectedBill.type || "";
+
+    paymentAmount.max = String(Number(selectedBill.remaining || 0));
+  }
+
+  paymentAmount.addEventListener("input", function(){
+    if (!selectedBill){
+      paymentSummary.style.display = "none";
+      return;
+    }
+
+    const amount = Number(this.value || 0);
+    const remaining = Number(selectedBill.remaining || 0);
+    const newRemaining = remaining - amount;
+
+    if (amount > 0){
+      document.getElementById("summaryAmount").textContent = money(amount);
+      document.getElementById("summaryNewRemaining").textContent = money(Math.max(0, newRemaining));
+
+      const statusSpan = document.getElementById("summaryStatus");
+      statusSpan.style.background = "";
+      statusSpan.style.color = "";
+      if (newRemaining <= 0){
+        statusSpan.textContent = labels.statusPaid;
+        statusSpan.className = "status-badge status-paid";
+      } else {
+        statusSpan.textContent = labels.statusPartial;
+        statusSpan.className = "status-badge status-partial";
+      }
+
+      paymentSummary.style.display = "block";
+    } else {
+      paymentSummary.style.display = "none";
+    }
+  });
+
+  apartmentSelect.addEventListener("change", function(){
+    clearError();
+    renderBills(this.value);
+  });
+
+  // submit validation (frontend)
+  document.getElementById("paymentForm").addEventListener("submit", function(e){
+    clearError();
+
+    if (!apartmentSelect.value){
+      e.preventDefault();
+      showError(labels.errApartment);
+      return;
+    }
+    if (!selectedBill){
+      e.preventDefault();
+      showError(labels.errBill);
+      return;
+    }
+
+    const amt = Number(paymentAmount.value || 0);
+    if (!(amt > 0)){
+      e.preventDefault();
+      showError(labels.errAmount);
+      return;
+    }
+    const remaining = Number(selectedBill.remaining || 0);
+    if (amt > remaining + 1e-9){
+      e.preventDefault();
+      showError(labels.errMaxPrefix + "₺" + money(remaining));
+      return;
+    }
+    if (!paymentDate.value){
+      e.preventDefault();
+      showError(labels.errDate);
+      return;
+    }
+  });
+
+  // =========================
+  // Ödeme silme (AJAX)
+  // =========================
+  document.addEventListener('click', async function(e){
+    const btn = e.target.closest('.btn-delete-payment');
+    if(!btn) return;
+
+    const url = btn.getAttribute('data-delete-url');
+    if(!url) return;
+
+    if(!confirm(labels.confirmDelete)) return;
+
+    btn.disabled = true;
+
+    try{
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+
+      const data = await res.json().catch(()=>null);
+
+      if(res.ok && data && data.ok){
+        const tr = btn.closest('tr');
+        if(tr) tr.remove();
+        alert("✅ " + labels.deleteOk);
+      }else{
+        alert("❌ " + ((data && data.error) ? data.error : labels.deleteFail));
+        btn.disabled = false;
+      }
+    }catch(err){
+      alert("❌ " + labels.deleteFail);
+      btn.disabled = false;
+    }
+  });
+
 </script>
 
 {% endblock %}
