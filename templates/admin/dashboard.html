@@ -74,6 +74,9 @@
 
     'no_tickets': 'Henüz talep oluşturulmamış.',
 
+    'carryover_amount': 'Önceki Aylardan Devir Eden',
+    'carryover_hint': 'Bu aydan önceki borçların ödenmemiş kalan toplamı',
+
     'recent_announcements': 'Son Duyurular',
     'created_by': 'Oluşturan',
     'unknown': 'Bilinmiyor',
@@ -147,6 +150,9 @@
     'ticket_open': 'Open',
 
     'no_tickets': 'No requests have been created yet.',
+
+    'carryover_amount': 'Carryover from Previous Months',
+    'carryover_hint': 'Total unpaid remaining amount from bills before this month',
 
     'recent_announcements': 'Recent Announcements',
     'created_by': 'Created by',
@@ -222,6 +228,9 @@
 
     'no_tickets': 'Još nema zahtjeva.',
 
+    'carryover_amount': 'Prenos iz prethodnih mjeseci',
+    'carryover_hint': 'Ukupan neplaćeni preostali iznos dugova prije ovog mjeseca',
+
     'recent_announcements': 'Najnovija obavještenja',
     'created_by': 'Kreirao',
     'unknown': 'Nepoznato',
@@ -295,6 +304,9 @@
     'ticket_open': 'Открыто',
 
     'no_tickets': 'Пока нет созданных заявок.',
+
+    'carryover_amount': 'Переходящий остаток (прошлые месяцы)',
+    'carryover_hint': 'Сумма неоплаченного остатка по долгам до текущего месяца',
 
     'recent_announcements': 'Последние объявления',
     'created_by': 'Создал(а)',
@@ -377,6 +389,16 @@
           </div>
           <div class="stat-card__hint">
             {{ tp('total_bill_records') }}: {{ stats.total_bills }}
+          </div>
+        </div>
+        <!-- Önceki Aylardan Devir Eden -->
+        <div class="stat-card">
+          <div class="stat-card__label">{{ tp('carryover_amount') }}</div>
+          <div class="stat-card__value">
+            ₺ {{ "%.2f"|format(stats.carryover_amount) }}
+          </div>
+          <div class="stat-card__hint">
+            {{ tp('carryover_hint') }}
           </div>
         </div>
 

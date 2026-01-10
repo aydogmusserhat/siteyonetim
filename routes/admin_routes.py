@@ -719,6 +719,8 @@ def dashboard():
         # Bu ay oluşturulan borçların toplamı
         "expected_income_this_month": Decimal("0.00"),
         "open_tickets": 0,
+        "carryover_amount": Decimal("0.00"),  # önceki aylardan devir eden (kalan) tutar
+
     }
 
     today = date.today()
@@ -762,18 +764,74 @@ def dashboard():
         else:
             month_end = date(today.year, today.month + 1, 1)
 
-        # Bu ay oluşturulan borçların toplamı
+        # ==========================================================
+        # DEVİR EDEN TUTAR (önceki aylardan kalan NET bakiye)
+        # - due_date varsa due_date < month_start
+        # - due_date yoksa created_at < month_start
+        # - (Bill.amount - bill'e bağlı ödemeler) toplamı
+        # ==========================================================
+        from sqlalchemy import and_, or_, case
+
+        pay_sum_subq = (
+            db.session.query(
+                Payment.bill_id.label("bill_id"),
+                func.coalesce(func.sum(Payment.amount), 0).label("paid_sum"),
+            )
+            .group_by(Payment.bill_id)
+            .subquery()
+        )
+
+        q_carry = (
+            db.session.query(
+                func.coalesce(
+                    func.sum(
+                        case(
+                            (
+                                (Bill.amount - func.coalesce(pay_sum_subq.c.paid_sum, 0)) > 0,
+                                (Bill.amount - func.coalesce(pay_sum_subq.c.paid_sum, 0)),
+                            ),
+                            else_=0,
+                        )
+                    ),
+                    0,
+                )
+            )
+            .outerjoin(pay_sum_subq, pay_sum_subq.c.bill_id == Bill.id)
+            .filter(Bill.status.in_(["open", "partial"]))
+        )
+
+        if not global_mode:
+            q_carry = q_carry.filter(Bill.site_id == site_id)
+
+        q_carry = q_carry.filter(
+            or_(
+                and_(Bill.due_date.isnot(None), Bill.due_date < month_start),
+                and_(Bill.due_date.is_(None), Bill.created_at < month_start),
+            )
+        )
+
+        carry_sum = q_carry.scalar() or 0
+        stats["carryover_amount"] = Decimal(str(carry_sum))
+
+        # ==========================================================
+        # Bu ay beklenen gelir (Vade ayına göre)
+        # - due_date varsa due_date ayı
+        # - due_date yoksa created_at ayı
+        # ==========================================================
         q_billed = db.session.query(func.coalesce(func.sum(Bill.amount), 0))
         if not global_mode:
             q_billed = q_billed.filter(Bill.site_id == site_id)
+
         q_billed = q_billed.filter(
-            Bill.created_at >= month_start,
-            Bill.created_at < month_end,
+            or_(
+                and_(Bill.due_date.isnot(None), Bill.due_date >= month_start, Bill.due_date < month_end),
+                and_(Bill.due_date.is_(None), Bill.created_at >= month_start, Bill.created_at < month_end),
+            )
         )
         billed_sum = q_billed.scalar() or 0
         stats["expected_income_this_month"] = Decimal(str(billed_sum))
 
-        # Bu ay yapılan ödemeler
+        # Bu ay yapılan ödemeler (nakit akışı: ödeme tarihi bu ay olanlar)
         q_paid = db.session.query(func.coalesce(func.sum(Payment.amount), 0))
         if not global_mode:
             q_paid = q_paid.filter(Payment.site_id == site_id)
@@ -784,15 +842,37 @@ def dashboard():
         paid_sum = q_paid.scalar() or 0
         stats["total_paid_amount"] = Decimal(str(paid_sum))
 
-        # Açık / kısmi borç (net)
-        q_open = db.session.query(func.coalesce(func.sum(Bill.amount), 0))
+        # ==========================================================
+        # Açık / kısmi borç (NET) = (borç - o borca ait ödemeler)
+        # ==========================================================
+        q_open_net = (
+            db.session.query(
+                func.coalesce(
+                    func.sum(
+                        case(
+                            (
+                                (Bill.amount - func.coalesce(pay_sum_subq.c.paid_sum, 0)) > 0,
+                                (Bill.amount - func.coalesce(pay_sum_subq.c.paid_sum, 0)),
+                            ),
+                            else_=0,
+                        )
+                    ),
+                    0,
+                )
+            )
+            .outerjoin(pay_sum_subq, pay_sum_subq.c.bill_id == Bill.id)
+            .filter(Bill.status.in_(["open", "partial"]))
+        )
+
         if not global_mode:
-            q_open = q_open.filter(Bill.site_id == site_id)
-        q_open = q_open.filter(Bill.status.in_(["open", "partial"]))
-        open_sum = q_open.scalar() or 0
-        stats["total_open_amount"] = Decimal(str(open_sum))
+            q_open_net = q_open_net.filter(Bill.site_id == site_id)
+
+        open_net_sum = q_open_net.scalar() or 0
+        stats["total_open_amount"] = Decimal(str(open_net_sum))
+
     except SQLAlchemyError as exc:
         current_app.logger.exception("Dashboard borç/ödeme istatistikleri alınamadı: %s", exc)
+
 
     # =========================
     #  TALEP SAYISI
@@ -909,14 +989,19 @@ def dashboard():
                 month_end = date(y, m + 1, 1)
 
             # Faturalar
+            # Faturalar (Vade tarihine göre; due_date NULL ise created_at fallback)
             q_mb = db.session.query(func.coalesce(func.sum(Bill.amount), 0))
             if not global_mode:
                 q_mb = q_mb.filter(Bill.site_id == site_id)
+
             q_mb = q_mb.filter(
-                Bill.created_at >= month_start,
-                Bill.created_at < month_end,
+                or_(
+                    and_(Bill.due_date.isnot(None), Bill.due_date >= month_start, Bill.due_date < month_end),
+                    and_(Bill.due_date.is_(None), Bill.created_at >= month_start, Bill.created_at < month_end),
+                )
             )
             month_bills_sum = q_mb.scalar()
+
 
             # Ödemeler
             q_mp = db.session.query(func.coalesce(func.sum(Payment.amount), 0))
@@ -2015,6 +2100,7 @@ def _recalc_bill_status(bill: Bill):
 # ======================
 #  ÖDEMELER
 # ======================
+from sqlalchemy import func
 @admin_bp.route("/payments", methods=["GET", "POST"])
 @admin_required
 def manage_payments():
@@ -2068,7 +2154,14 @@ def manage_payments():
                 else:
                     payment.payment_date = datetime.utcnow().date()
 
-                # Otomatik eşleştirme: tür + daire + ay
+                # ==========================================================
+                # Otomatik eşleştirme (öncelik sırası):
+                #   1) Ödeme ayındaki (payment_date) borçları -> due_date ayına göre
+                #   2) due_date NULL ise aynı ayda oluşturulanlar (created_at)
+                #   3) Hâlâ yoksa: FIFO -> en eski borç (due_date NULL ise en öne)
+                #
+                # Kuralın: due_date NULL olan eski borçlar -> en eski borçtan düşülecek.
+                # ==========================================================
                 if not bill_id and bill_type:
                     try:
                         apt_id_int = int(apartment_id)
@@ -2083,19 +2176,49 @@ def manage_payments():
                         else:
                             month_end = date(pay_date.year, pay_date.month + 1, 1)
 
+                        # 1) Önce "o ayın borçları": due_date ayına göre
+                        # 2) due_date NULL ise created_at ayına göre aynı aya denk gelenleri de dahil et
                         candidate_q = (
                             Bill.query.filter(
                                 Bill.site_id == site_id,          # 🔴 SİTE FİLTRESİ
                                 Bill.apartment_id == apt_id_int,
                                 Bill.type == bill_type,
-                                Bill.due_date >= month_start,
-                                Bill.due_date < month_end,
                                 Bill.status.in_(["open", "partial"]),
                             )
-                            .order_by(Bill.due_date.asc())
+                            .filter(
+                                (
+                                    (Bill.due_date.isnot(None)) &
+                                    (Bill.due_date >= month_start) &
+                                    (Bill.due_date < month_end)
+                                )
+                                |
+                                (
+                                    (Bill.due_date.is_(None)) &
+                                    (Bill.created_at >= month_start) &
+                                    (Bill.created_at < month_end)
+                                )
+                            )
+                            # due_date NULL olanlar en eski gibi sayılacağı için:
+                            # coalesce(due_date, created_at) ile sıralıyoruz.
+                            .order_by(func.coalesce(Bill.due_date, Bill.created_at).asc(), Bill.id.asc())
                         )
 
                         candidate = candidate_q.first()
+
+                        # Eğer bu ay filtresinde aday yoksa, FIFO fallback:
+                        # (due_date NULL -> en eski borç sayılır)
+                        if not candidate:
+                            candidate = (
+                                Bill.query.filter(
+                                    Bill.site_id == site_id,
+                                    Bill.apartment_id == apt_id_int,
+                                    Bill.type == bill_type,
+                                    Bill.status.in_(["open", "partial"]),
+                                )
+                                .order_by(func.coalesce(Bill.due_date, Bill.created_at).asc(), Bill.id.asc())
+                                .first()
+                            )
+
                         if candidate:
                             # Bu borç için daha önce ödenen toplam
                             already_paid = (
@@ -2106,6 +2229,7 @@ def manage_payments():
                             already_paid = Decimal(already_paid or 0)
                             remaining = Decimal(candidate.amount or 0) - already_paid
 
+                            # Kalan varsa eşleştir
                             if remaining > 0:
                                 payment.bill_id = candidate.id
                                 bill_id = str(candidate.id)
@@ -2145,7 +2269,7 @@ def manage_payments():
                         entity_id=payment.id,
                         old_values=None,
                         new_values=_payment_audit_dict(payment),
-                        description=f"Ödeme oluşturuldu (tutar={payment.amount}, daire_id={payment.apartment_id}, bill_id={payment.bill_id})",
+                        description=f"Ödeme oluşturuldu (id={payment.id})",
                         site_id=site_id,
                         status="success",
                     )
@@ -2244,6 +2368,7 @@ def manage_payments():
         users=users,
         payments=payments,
     )
+
 
 @admin_bp.route("/payments/<int:payment_id>/update", methods=["POST"])
 @admin_required
