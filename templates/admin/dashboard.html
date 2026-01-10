@@ -533,6 +533,46 @@ tr.is-active-month-row {
   .dash-table { font-size: 11px; }
   .dash-table th, .dash-table td { padding: 6px 4px; }
 }
+/* 400px altı ultra küçük ekran düzeltmesi */
+@media (max-width: 380px) {
+
+  body {
+    overflow-x: hidden;
+  }
+
+  .dashboard-grid {
+    padding: 2px;
+    grid-template-columns: 0.8fr;
+  }
+
+  .card {
+    padding: 10px;
+    margin-top: 10px;
+  }
+
+  .stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-card__value {
+    font-size: 18px;
+  }
+
+  .stat-card__label {
+    font-size: 10px;
+  }
+
+  .topbar,
+  header {
+    position: relative !important;
+  }
+
+  .page-content,
+  main {
+    padding-top: 8px !important;
+  }
+}
+
 </style>
 
 <div class="dashboard-grid">
