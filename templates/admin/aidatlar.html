@@ -477,6 +477,86 @@
 
   <!-- SAĞ: BORÇ / AİDAT LİSTESİ + ÖZET -->
   <section>
+        <!-- ✅ DAİRE BAZINDA TOPLAM BORÇ ÖZETİ -->
+    <div class="card">
+      <h2 style="font-size:16px; margin-bottom:10px;">{{ tp('apartment_summary_title') }}</h2>
+
+      {% if apartment_summaries %}
+        <div style="width:100%; overflow-x:auto;">
+          <table style="width:100%; border-collapse:separate; border-spacing:0 6px; font-size:12px;">
+            <thead>
+              <tr style="background:#f9fafb;">
+                <th style="text-align:left; padding:6px 8px;">{{ tp('col_apartment') }}</th>
+                <th style="text-align:center; padding:6px 8px;">{{ tp('debt_types') }}</th>
+                <th style="text-align:right; padding:6px 8px;">{{ tp('total_col') }}</th>
+                <th style="text-align:right; padding:6px 8px;">{{ tp('paid_col') }}</th>
+                <th style="text-align:right; padding:6px 8px;">{{ tp('remaining_col') }}</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for row in apartment_summaries %}
+                {% set has_debt = row.remaining > 0 %}
+                <tr>
+                  <td colspan="5" style="padding:0;">
+                    <div style="
+                      display:grid;
+                      grid-template-columns: 1.2fr 2fr 1fr 1fr 1fr;
+                      padding:8px 10px;
+                      border-radius:12px;
+                      border:1px solid {{ '#fee2e2' if has_debt else '#dcfce7' }};
+                      background:{{ '#fef2f2' if has_debt else '#f0fdf4' }};
+                    ">
+
+                      <!-- Daire -->
+                      <div style="font-weight:600;">
+                        {{ row.apartment.block }} Blok • {{ row.apartment.floor }}/{{ row.apartment.number }}
+                      </div>
+
+                      <!-- 🔹 Tür + Tutar listesi -->
+                      <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                        {% for t,val in row.type_totals.items() %}
+                          <span style="
+                            padding:3px 8px;
+                            border-radius:999px;
+                            background:white;
+                            border:1px solid #e5e7eb;
+                            font-size:11px;
+                          ">
+                            {{ TYPE_LABEL.get(LANG, TYPE_LABEL['tr']).get(t, t) }}: ₺ {{ "%.2f"|format(val) }}
+                          </span>
+                        {% endfor %}
+                      </div>
+
+                      <!-- Toplam -->
+                      <div style="text-align:right;">
+                        ₺ {{ "%.2f"|format(row.total_debt) }}
+                      </div>
+
+                      <!-- Ödenen -->
+                      <div style="text-align:right; color:#16a34a;">
+                        ₺ {{ "%.2f"|format(row.total_paid) }}
+                      </div>
+
+                      <!-- Kalan -->
+                      <div style="text-align:right; color:{{ '#b91c1c' if has_debt else '#15803d' }};">
+                        ₺ {{ "%.2f"|format(row.remaining) }}
+                      </div>
+
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+
+          </table>
+        </div>
+      {% else %}
+        <p style="font-size:13px; color:#6b7280;">
+          {{ tp('no_summary') }}
+        </p>
+      {% endif %}
+    </div>
     <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
         <h2 style="font-size:16px;">{{ tp('existing_title') }}</h2>
@@ -669,86 +749,7 @@
     </div>
 
 
-    <!-- ✅ DAİRE BAZINDA TOPLAM BORÇ ÖZETİ -->
-    <div class="card">
-      <h2 style="font-size:16px; margin-bottom:10px;">{{ tp('apartment_summary_title') }}</h2>
 
-      {% if apartment_summaries %}
-        <div style="width:100%; overflow-x:auto;">
-          <table style="width:100%; border-collapse:separate; border-spacing:0 6px; font-size:12px;">
-            <thead>
-              <tr style="background:#f9fafb;">
-                <th style="text-align:left; padding:6px 8px;">{{ tp('col_apartment') }}</th>
-                <th style="text-align:center; padding:6px 8px;">{{ tp('debt_types') }}</th>
-                <th style="text-align:right; padding:6px 8px;">{{ tp('total_col') }}</th>
-                <th style="text-align:right; padding:6px 8px;">{{ tp('paid_col') }}</th>
-                <th style="text-align:right; padding:6px 8px;">{{ tp('remaining_col') }}</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {% for row in apartment_summaries %}
-                {% set has_debt = row.remaining > 0 %}
-                <tr>
-                  <td colspan="5" style="padding:0;">
-                    <div style="
-                      display:grid;
-                      grid-template-columns: 1.2fr 2fr 1fr 1fr 1fr;
-                      padding:8px 10px;
-                      border-radius:12px;
-                      border:1px solid {{ '#fee2e2' if has_debt else '#dcfce7' }};
-                      background:{{ '#fef2f2' if has_debt else '#f0fdf4' }};
-                    ">
-
-                      <!-- Daire -->
-                      <div style="font-weight:600;">
-                        {{ row.apartment.block }} Blok • {{ row.apartment.floor }}/{{ row.apartment.number }}
-                      </div>
-
-                      <!-- 🔹 Tür + Tutar listesi -->
-                      <div style="display:flex; flex-wrap:wrap; gap:6px;">
-                        {% for t,val in row.type_totals.items() %}
-                          <span style="
-                            padding:3px 8px;
-                            border-radius:999px;
-                            background:white;
-                            border:1px solid #e5e7eb;
-                            font-size:11px;
-                          ">
-                            {{ TYPE_LABEL.get(LANG, TYPE_LABEL['tr']).get(t, t) }}: ₺ {{ "%.2f"|format(val) }}
-                          </span>
-                        {% endfor %}
-                      </div>
-
-                      <!-- Toplam -->
-                      <div style="text-align:right;">
-                        ₺ {{ "%.2f"|format(row.total_debt) }}
-                      </div>
-
-                      <!-- Ödenen -->
-                      <div style="text-align:right; color:#16a34a;">
-                        ₺ {{ "%.2f"|format(row.total_paid) }}
-                      </div>
-
-                      <!-- Kalan -->
-                      <div style="text-align:right; color:{{ '#b91c1c' if has_debt else '#15803d' }};">
-                        ₺ {{ "%.2f"|format(row.remaining) }}
-                      </div>
-
-                    </div>
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-
-          </table>
-        </div>
-      {% else %}
-        <p style="font-size:13px; color:#6b7280;">
-          {{ tp('no_summary') }}
-        </p>
-      {% endif %}
-    </div>
 
   </section>
 

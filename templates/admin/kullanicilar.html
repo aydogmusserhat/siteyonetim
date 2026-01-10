@@ -52,6 +52,10 @@
     'btn_deactivate': 'Pasifleştir',
     'btn_activate': 'Aktifleştir',
 
+    'label_password_confirm': 'Şifre (Tekrar)',
+    'ph_password_confirm': 'Şifreyi tekrar girin',
+    'password_mismatch': 'Şifreler eşleşmiyor.',
+
     'empty': 'Henüz sistemde kayıtlı bir kullanıcı bulunmuyor (admin hariç).'
   },
 
@@ -99,6 +103,10 @@
 
     'btn_deactivate': 'Deactivate',
     'btn_activate': 'Activate',
+
+    'label_password_confirm': 'Confirm Password',
+    'ph_password_confirm': 'Re-enter password',
+    'password_mismatch': 'Passwords do not match.',
 
     'empty': 'There are no registered users in the system yet (excluding admin).'
   },
@@ -148,6 +156,10 @@
     'btn_deactivate': 'Deaktiviraj',
     'btn_activate': 'Aktiviraj',
 
+    'label_password_confirm': 'Lozinka (Ponovo)',
+    'ph_password_confirm': 'Ponovo unesite lozinku',
+    'password_mismatch': 'Lozinke se ne poklapaju.',
+
     'empty': 'Još nema registrovanih korisnika u sistemu (osim admina).'
   },
 
@@ -196,6 +208,10 @@
     'btn_deactivate': 'Деактивировать',
     'btn_activate': 'Активировать',
 
+    'label_password_confirm': 'Пароль (повтор)',
+    'ph_password_confirm': 'Введите пароль ещё раз',
+    'password_mismatch': 'Пароли не совпадают.',
+
     'empty': 'Пока нет зарегистрированных пользователей в системе (кроме администратора).'
   }
 } %}
@@ -223,7 +239,7 @@
     <div class="card">
       <h2 style="font-size:16px; margin-bottom:12px;">{{ tp('new_user') }}</h2>
 
-      <form method="post" style="display:flex; flex-direction:column; gap:10px;">
+      <form id="create-user-form" method="post" style="display:flex; flex-direction:column; gap:10px;">
 
         <div>
           <label for="name" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('label_name') }}</label>
@@ -254,7 +270,11 @@
             id="phone"
             name="phone"
             placeholder="{{ tp('ph_phone') }}"
+            inputmode="numeric"
+            pattern="[0-9+ ]*"
+            oninput="this.value = this.value.replace(/[^0-9+ ]/g, '')"
             style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+
         </div>
 
         <div style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px;">
@@ -286,16 +306,41 @@
           </div>
         </div>
 
-        <div>
-          <label for="password" style="display:block; font-size:13px; margin-bottom:3px;">{{ tp('label_password') }}</label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            required
-            placeholder="{{ tp('ph_password') }}"
-            style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
-        </div>
+<div style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px;">
+
+  <div>
+    <label for="password" style="display:block; font-size:13px; margin-bottom:3px;">
+      {{ tp('label_password') }}
+    </label>
+    <input
+      type="password"
+      id="password"
+      name="password"
+      required
+      placeholder="{{ tp('ph_password') }}"
+      style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+  </div>
+
+  <div>
+    <label for="password_confirm" style="display:block; font-size:13px; margin-bottom:3px;">
+      {{ tp('label_password_confirm') }}
+    </label>
+    <input
+      type="password"
+      id="password_confirm"
+      name="password_confirm"
+      required
+      placeholder="{{ tp('ph_password_confirm') }}"
+      style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid #e5e7eb; font-size:13px;">
+  </div>
+
+</div>
+
+<div id="password_error" style="color:#dc2626; font-size:12px; display:none; margin-top:4px;">
+  {{ tp('password_mismatch') }}
+</div>
+
+
 
         <div style="margin-top:4px;">
           <button type="submit"
@@ -303,6 +348,31 @@
             {{ tp('btn_create') }}
           </button>
         </div>
+<script>
+(function () {
+  const form = document.getElementById("create-user-form");
+  if (!form) return; // Bu sayfa değilse çalışmasın
+
+  form.addEventListener("submit", function(e) {
+    const passEl = document.getElementById("password");
+    const confirmEl = document.getElementById("password_confirm");
+    const errorBox = document.getElementById("password_error");
+
+    if (!passEl || !confirmEl) return; // input yoksa karışma
+
+    const pass = passEl.value;
+    const confirm = confirmEl.value;
+
+    if (pass !== confirm) {
+      e.preventDefault();
+      if (errorBox) errorBox.style.display = "block";
+    } else {
+      if (errorBox) errorBox.style.display = "none";
+    }
+  });
+})();
+</script>
+
 
       </form>
     </div>
