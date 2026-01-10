@@ -62,6 +62,8 @@
     'status_partial': 'Kısmi',
     'status_paid': 'Ödendi',
 
+    'th_ticket_desc': 'Açıklama',
+
     'type_general': 'Genel',
     'dash': '-'
   },
@@ -120,6 +122,8 @@
     'status_open': 'Open',
     'status_partial': 'Partial',
     'status_paid': 'Paid',
+
+    'th_ticket_desc': 'Description',
 
     'type_general': 'General',
     'dash': '-'
@@ -180,6 +184,8 @@
     'status_partial': 'Djelimično',
     'status_paid': 'Plaćeno',
 
+    'th_ticket_desc': 'Opis',
+
     'type_general': 'Opšte',
     'dash': '-'
   },
@@ -238,6 +244,8 @@
     'status_open': 'Открыто',
     'status_partial': 'Частично',
     'status_paid': 'Оплачено',
+
+    'th_ticket_desc': 'Описание',
 
     'type_general': 'Общее',
     'dash': '-'
@@ -402,6 +410,29 @@
     font-size: 10px;
     color: #9ca3af;
   }
+/* ✅ YENİ etiketi (kırmızı yanıp söner) */
+.badge-new-blink{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .3px;
+  margin-right: 8px;
+  color:#fff;
+  background:#dc2626;
+  box-shadow:0 0 0 rgba(220,38,38,0);
+  animation: newBlink 1s infinite;
+  vertical-align: middle;
+}
+
+@keyframes newBlink{
+  0%   { transform:scale(1);    opacity:1;    box-shadow:0 0 0 0 rgba(220,38,38,.55); }
+  50%  { transform:scale(1.03); opacity:.75;  box-shadow:0 0 0 6px rgba(220,38,38,0); }
+  100% { transform:scale(1);    opacity:1;    box-shadow:0 0 0 0 rgba(220,38,38,0); }
+}
 
   @media (max-width: 1024px) {
     .resident-dashboard-grid { grid-template-columns: 1fr; }
@@ -414,6 +445,13 @@
     .list-table th,
     .list-table td { padding: 5px 2px; }
   }
+  .ticket-desc-cell{
+  white-space: normal;      /* tek satıra sıkıştırma yok */
+  word-break: break-word;   /* uzun kelime/URL kır */
+  line-height: 1.35;
+  max-width: 520px;         /* çok uzamasın; istersen artır */
+}
+
 </style>
 
 <div class="resident-dashboard-grid">
@@ -607,7 +645,14 @@
           {% set is_expired = ann.created_at and (today - ann.created_at.date()).days >= 29 %}
 
           <div class="announcement-item" style="{% if is_expired %}opacity:0.6;{% endif %}">
-            <h4 style="{% if is_expired %}text-decoration:line-through;{% endif %}">{{ ann.title }}</h4>
+            <h4 style="{% if is_expired %}text-decoration:line-through;{% endif %}">
+                {% if ann.is_new %}
+                  <span class="badge-new-blink">YENİ</span>
+                {% endif %}
+
+                {{ ann.title }}
+              </h4>
+
             {% if ann.content %}
               <p style="{% if is_expired %}text-decoration:line-through;{% endif %}">{{ ann.content }}</p>
             {% endif %}
@@ -639,19 +684,19 @@
             <thead>
               <tr>
                 <th>{{ tp('th_ticket_title') }}</th>
+                <th>{{ tp('th_ticket_desc') }}</th>
                 <th>{{ tp('th_ticket_status') }}</th>
                 <th>{{ tp('th_ticket_date') }}</th>
+
               </tr>
             </thead>
             <tbody>
               {% for t in tickets %}
                 <tr>
                   <td>{{ t.title }}</td>
+                  <td class="ticket-desc-cell">{{ t.description or tp('dash') }}</td>
                   <td>
-                    <span class="pill-small">
-                      {# burada istersek "open/closed" gibi backend değerlerini çevirip gösterebiliriz #}
-                      {{ t.status or "open" }}
-                    </span>
+                    <span class="pill-small">{{ t.status or "open" }}</span>
                   </td>
                   <td>
                     {% if t.created_at %}
@@ -661,6 +706,7 @@
                     {% endif %}
                   </td>
                 </tr>
+
               {% endfor %}
             </tbody>
           </table>

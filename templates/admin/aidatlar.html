@@ -353,9 +353,38 @@
 <div class="dashboard-grid">
 
   <!-- SOL: YENİ BORÇ / AİDAT EKLE -->
-  <section>
-    <div class="card">
-      <h2 style="font-size:16px; margin-bottom:12px;">{{ tp('new_record_title') }}</h2>
+<div class="card">
+
+  <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px;">
+    <h2 style="font-size:16px; margin:0;">{{ tp('new_record_title') }}</h2>
+
+    <!-- ✅ Aç/Kapa -->
+    <button
+      type="button"
+      id="toggleNewBillBtn"
+      aria-expanded="false"
+      style="
+        padding:6px 10px;
+        border-radius:999px;
+        border:1px solid #e5e7eb;
+        background:#fff;
+        cursor:pointer;
+        font-size:12px;
+        font-weight:800;
+        color:#374151;
+        white-space:nowrap;
+      "
+      title="Aç / Kapat"
+    >
+      ▼ Aç
+    </button>
+  </div>
+
+  <!-- ✅ Panel (başlangıçta kapalı) -->
+  <div id="newBillPanel" style="display:none;">
+
+    <form method="post" style="display:flex; flex-direction:column; gap:10px;">
+
 
       <form method="post" style="display:flex; flex-direction:column; gap:10px;">
 
@@ -438,8 +467,12 @@
           </button>
         </div>
 
-      </form>
-    </div>
+    </form>
+
+  </div>  {# ✅ newBillPanel kapanışı #}
+
+</div>
+
   </section>
 
   <!-- SAĞ: BORÇ / AİDAT LİSTESİ + ÖZET -->
@@ -923,6 +956,27 @@
 
     attachFormHandlers();
   });
+</script>
+<script>
+  (function () {
+    const btn = document.getElementById("toggleNewBillBtn");
+    const panel = document.getElementById("newBillPanel");
+    if (!btn || !panel) return;
+
+    function setState(open) {
+      panel.style.display = open ? "block" : "none";
+      btn.setAttribute("aria-expanded", open ? "true" : "false");
+      btn.textContent = open ? "▲ Kapat" : "▼ Aç";
+    }
+
+    // ✅ Başlangıçta kapalı
+    setState(false);
+
+    btn.addEventListener("click", function () {
+      const isOpen = btn.getAttribute("aria-expanded") === "true";
+      setState(!isOpen);
+    });
+  })();
 </script>
 
 {% endblock %}

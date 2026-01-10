@@ -24,6 +24,7 @@
 
     'list_title': 'Mevcut Taleplerim',
     'col_title': 'Başlık',
+    'col_desc': 'Açıklama',
     'col_status': 'Durum',
     'col_priority': 'Öncelik',
     'col_date': 'Tarih',
@@ -53,6 +54,7 @@
 
     'list_title': 'My Current Requests',
     'col_title': 'Title',
+    'col_desc': 'Description',
     'col_status': 'Status',
     'col_priority': 'Priority',
     'col_date': 'Date',
@@ -82,6 +84,7 @@
 
     'list_title': 'Moji postojeći zahtjevi',
     'col_title': 'Naslov',
+    'col_desc': 'Opis',
     'col_status': 'Status',
     'col_priority': 'Prioritet',
     'col_date': 'Datum',
@@ -111,6 +114,7 @@
 
     'list_title': 'Мои текущие заявки',
     'col_title': 'Заголовок',
+    'col_desc': 'Описание',
     'col_status': 'Статус',
     'col_priority': 'Приоритет',
     'col_date': 'Дата',
@@ -139,6 +143,39 @@
 {% endblock %}
 
 {% block content %}
+
+<style>
+  /* ✅ Açıklama hücresi tam okunsun */
+  .ticket-desc-cell{
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.35;
+  }
+
+  /* Mobilde daha rahat okunsun */
+  @media (max-width: 640px){
+    .tickets-table thead{ display:none; }
+    .tickets-table, .tickets-table tbody, .tickets-table tr, .tickets-table td{
+      display:block;
+      width:100%;
+    }
+    .tickets-table tr{
+      border-bottom:1px solid #f3f4f6;
+      padding:10px 6px;
+    }
+    .tickets-table td{
+      padding:4px 0 !important;
+      white-space: normal !important;
+    }
+    .tickets-table td[data-label]::before{
+      content: attr(data-label) ": ";
+      font-weight: 700;
+      color:#6b7280;
+      display:inline-block;
+      margin-right:6px;
+    }
+  }
+</style>
 
 <div class="dashboard-grid">
 
@@ -201,10 +238,11 @@
 
       {% if tickets %}
         <div style="max-height:360px; overflow:auto;">
-          <table style="width:100%; border-collapse:collapse; font-size:12px;">
+          <table class="tickets-table" style="width:100%; border-collapse:collapse; font-size:12px;">
             <thead>
               <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
                 <th style="text-align:left; padding:6px 4px;">{{ tp('col_title') }}</th>
+                <th style="text-align:left; padding:6px 4px;">{{ tp('col_desc') }}</th>
                 <th style="text-align:left; padding:6px 4px;">{{ tp('col_status') }}</th>
                 <th style="text-align:left; padding:6px 4px;">{{ tp('col_priority') }}</th>
                 <th style="text-align:left; padding:6px 4px;">{{ tp('col_date') }}</th>
@@ -213,13 +251,20 @@
             <tbody>
               {% for t in tickets %}
                 <tr style="border-bottom:1px solid #f3f4f6;">
-                  <td style="padding:6px 4px; max-width:220px;">
+                  <!-- Başlık -->
+                  <td style="padding:6px 4px; max-width:220px;" data-label="{{ tp('col_title') }}">
                     <span style="display:inline-block; max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                       {{ t.title }}
                     </span>
                   </td>
 
-                  <td style="padding:6px 4px; white-space:nowrap;">
+                  <!-- ✅ Açıklama: tam okunsun -->
+                  <td class="ticket-desc-cell" style="padding:6px 4px;" data-label="{{ tp('col_desc') }}">
+                    {{ t.description or tp('dash') }}
+                  </td>
+
+                  <!-- Durum -->
+                  <td style="padding:6px 4px; white-space:nowrap;" data-label="{{ tp('col_status') }}">
                     {% if t.status == 'closed' %}
                       <span style="padding:2px 8px; border-radius:999px; background:#dcfce7; color:#15803d;">{{ tp('status_closed') }}</span>
                     {% elif t.status == 'in_progress' %}
@@ -229,7 +274,8 @@
                     {% endif %}
                   </td>
 
-                  <td style="padding:6px 4px; white-space:nowrap;">
+                  <!-- Öncelik -->
+                  <td style="padding:6px 4px; white-space:nowrap;" data-label="{{ tp('col_priority') }}">
                     {% if t.priority == 'high' %}
                       <span style="color:#b91c1c;">{{ tp('priority_high') }}</span>
                     {% elif t.priority == 'low' %}
@@ -239,7 +285,8 @@
                     {% endif %}
                   </td>
 
-                  <td style="padding:6px 4px; white-space:nowrap;">
+                  <!-- Tarih -->
+                  <td style="padding:6px 4px; white-space:nowrap;" data-label="{{ tp('col_date') }}">
                     {% if t.created_at %}
                       {{ t.created_at.strftime('%d.%m.%Y') }}
                     {% else %}

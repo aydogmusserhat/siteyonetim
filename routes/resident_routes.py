@@ -1,5 +1,5 @@
 from functools import wraps
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from decimal import Decimal
 
 from flask import (
@@ -272,6 +272,15 @@ def dashboard():
             .limit(5)
             .all()
         )
+        # ✅ 24 saat içinde olan duyurular için "is_new" işaretle
+        now_utc = datetime.utcnow()
+        for a in announcements:
+            created = getattr(a, "created_at", None)
+            if created:
+                a.is_new = (now_utc - created) <= timedelta(hours=24)
+            else:
+                a.is_new = False
+
     except SQLAlchemyError as exc:
         current_app.logger.exception("Sakin duyuru listesi alınamadı: %s", exc)
         flash("Duyurular alınırken bir hata oluştu.", "error")
