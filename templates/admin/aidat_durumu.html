@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {# ============================================================
-   AİDAT DURUMU - 4 DİL (TR / EN / ME / RU) UYUMLU
+   AIDAT DURUMU - 4 DİL (TR / EN / ME / RU) UYUMLU
    ============================================================ #}
 
 {% set LANG = session.get('lang','tr') %}
@@ -35,7 +35,10 @@
     'legend_unpaid': 'Ödenmedi',
     'legend_not_defined': 'Aidat tanımlı değil',
 
-    'no_data': 'Görüntülenecek daire veya aidat kaydı bulunamadı.'
+    'no_data': 'Görüntülenecek daire veya aidat kaydı bulunamadı.',
+    
+    'summary_paid': 'TOPLAM ÖDENEN',
+    'summary_remaining': 'KALAN BORÇ'
   },
 
   'en': {
@@ -66,7 +69,10 @@
     'legend_unpaid': 'Unpaid',
     'legend_not_defined': 'No dues defined',
 
-    'no_data': 'No apartments or dues records found to display.'
+    'no_data': 'No apartments or dues records found to display.',
+    
+    'summary_paid': 'TOTAL PAID',
+    'summary_remaining': 'REMAINING DEBT'
   },
 
   'me': {
@@ -97,7 +103,10 @@
     'legend_unpaid': 'Neplaćeno',
     'legend_not_defined': 'Članarina nije definisana',
 
-    'no_data': 'Nema stanova ili evidencija članarine za prikaz.'
+    'no_data': 'Nema stanova ili evidencija članarine za prikaz.',
+    
+    'summary_paid': 'UKUPNO PLAĆENO',
+    'summary_remaining': 'PREOSTALI DUG'
   },
 
   'ru': {
@@ -105,7 +114,7 @@
     'topbar_title': 'Годовой статус взносов',
 
     'table_title': 'Таблица взносов по квартирам',
-    'table_desc': 'Каждая строка представляет квартиру, а столбцы — месяцы с января по декабрь. Если к квартире прикреплён жилец, его данные отображаются слева.',
+    'table_desc': 'Каждая строка представляет квартиру, а столбцы – месяцы с января по декабрь. Если к квартире прикреплён жилец, его данные отображаются слева.',
 
     'year': 'Год',
     'show': 'Показать',
@@ -128,7 +137,10 @@
     'legend_unpaid': 'Не оплачено',
     'legend_not_defined': 'Взнос не определён',
 
-    'no_data': 'Нет квартир или записей о взносах для отображения.'
+    'no_data': 'Нет квартир или записей о взносах для отображения.',
+    
+    'summary_paid': 'ВСЕГО ОПЛАЧЕНО',
+    'summary_remaining': 'ОСТАТОК ДОЛГА'
   }
 } %}
 
@@ -148,6 +160,21 @@
 {% block topbar_title %}{{ tp('topbar_title') }}{% endblock %}
 
 {% block content %}
+
+<style>
+  @keyframes pulse-flash {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.4;
+    }
+  }
+  
+  .unpaid-flash {
+    animation: pulse-flash 1.5s ease-in-out infinite !important;
+  }
+</style>
 
 <div class="card" style="overflow-x:auto;">
 
@@ -194,6 +221,8 @@
           {% for row in rows %}
             {% set apt = row.apartment %}
             {% set res = row.resident %}
+            
+            <!-- DAİRE / SAKİN SATIRI -->
             <tr style="border-bottom:1px solid #f3f4f6;">
               <!-- Daire -->
               <td style="padding:6px 6px; white-space:nowrap;">
@@ -221,7 +250,7 @@
                 {% endif %}
               </td>
 
-              <!-- Aylar -->
+              <!-- Aylar - Durum -->
               {% for m_num, m_label in months %}
                 {% set st = row.monthly[m_num] %}
                 <td style="padding:4px 4px; text-align:center;">
@@ -238,9 +267,9 @@
                       {{ tp('partial') }}
                     </span>
                   {% elif st == 'open' %}
-                    <span style="display:inline-flex; align-items:center; justify-content:center;
-                                 padding:3px 6px; border-radius:999px; font-size:10px;
-                                 background:#fee2e2; color:#b91c1c;">
+                    <span class="unpaid-flash" style="display:inline-flex; align-items:center; justify-content:center;
+                                padding:3px 6px; border-radius:999px; font-size:10px;
+                                background:#fee2e2; color:#b91c1c;">
                       {{ tp('unpaid') }}
                     </span>
                   {% else %}
@@ -253,7 +282,41 @@
                 </td>
               {% endfor %}
             </tr>
+
+            <!-- ÖDENEN TUTARLAR SATIRI -->
+            <tr style="border-bottom:1px solid #f3f4f6; background:#dcfce7;">
+              <td colspan="2" style="padding:4px 6px; font-weight:bold; color:#15803d; font-size:10px;">
+                ↳ {{ tp('summary_paid') }}
+              </td>
+              {% for m_num, m_label in months %}
+                <td style="padding:4px 4px; text-align:center; font-weight:bold; color:#15803d; font-size:9px;">
+                  {% if row.monthly_paid and row.monthly_paid[m_num] %}
+                    {{ "%.2f"|format(row.monthly_paid[m_num]|float) }}
+                  {% else %}
+                    0.00
+                  {% endif %}
+                </td>
+              {% endfor %}
+            </tr>
+
+            <!-- KALAN BORÇ SATIRI -->
+            <tr style="border-bottom:2px solid #e5e7eb; background:#fef2f2;">
+              <td colspan="2" style="padding:4px 6px; font-weight:bold; color:#b91c1c; font-size:10px;">
+                ↳ {{ tp('summary_remaining') }}
+              </td>
+              {% for m_num, m_label in months %}
+                <td style="padding:4px 4px; text-align:center; font-weight:bold; color:#b91c1c; font-size:9px;">
+                  {% if row.monthly_remaining and row.monthly_remaining[m_num] %}
+                    {{ "%.2f"|format(row.monthly_remaining[m_num]|float) }}
+                  {% else %}
+                    0.00
+                  {% endif %}
+                </td>
+              {% endfor %}
+            </tr>
+
           {% endfor %}
+
         </tbody>
       </table>
     </div>

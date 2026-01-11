@@ -551,18 +551,6 @@ def delete_site(site_id: int):
         flash("Site silinirken bir hata oluştu.", "error")
 
     return redirect(url_for("admin.manage_sites"))
-# ======================
-def _get_current_admin():
-    """Session'daki admin kullanıcının User nesnesini döner."""
-    user_id = session.get("user_id")
-    if not user_id:
-        return None
-    try:
-        return User.query.get(user_id)
-    except SQLAlchemyError as exc:
-        current_app.logger.exception("Admin bilgisi alınamadı: %s", exc)
-        return None
-
 
 # ======================
 #  SETTINGS / SITE NAME
@@ -1832,16 +1820,16 @@ def update_bill(bill_id: int):
 
 
 # ===== AİDAT DURUMU (YILLIK ÖZET TABLOSU + OTOMATİK AYLIK BORÇ) =====
+# admin_routes.py dosyasında aşağıdaki yerin tamamını değiştir:
+# Satır başlangıcı: @admin_bp.route("/dues-summary", methods=["GET"])
+# Satır bitişi: return render_template(...) ile bitişini bulup tümünü değiştir
+
 @admin_bp.route("/dues-summary", methods=["GET"])
 @admin_required
 def dues_summary():
     """
     Her DAİRE için, seçilen yılda Ocak–Aralık aidat durumlarını özetleyen tablo.
-
-    Not:
-    - Bu fonksiyon "otomatik aidat oluşturma" işini scheduler gibi değil,
-      bu sayfa açıldığında (lazy) yapar.
-    - Çoklu site güvenliği için tüm sorgular site_id ile filtrelenmiştir.
+    + HER DAİRE İÇİN AYLAR BAZINDA TOPLAM ÖDENEN / KALAN BORÇ satırları
     """
     # --- Aktif site kontrolü ---
     admin_user = _get_current_admin()
@@ -1893,8 +1881,6 @@ def dues_summary():
         apartments = []
 
     # 2) İçinde bulunulan yıl ve ay için otomatik aidat oluştur (lazy)
-    #    - sadece aidat kontrolü
-    #    - site_id yaz
     if year == current_year and apartments:
         try:
             active_apartment_ids = {apt.id for apt in apartments if apt.id is not None}
@@ -2048,12 +2034,28 @@ def dues_summary():
     rows = []
     for apt in apartments:
         monthly_status = {}
+        
+        # ✅ HER DAİRE İÇİN AYLAR BAZINDA ÖDENEN VE KALAN
+        monthly_paid = {}
+        monthly_remaining = {}
+        
         for m_num, _m_label in months:
             key = (apt.id, m_num)
+            
+            # Durum
             if key in status_map:
                 monthly_status[m_num] = status_map[key]
             else:
                 monthly_status[m_num] = None  # O ay için borç yok
+            
+            # Ödenen tutar
+            paid_for_month = paid_totals.get(key, Decimal("0"))
+            monthly_paid[m_num] = paid_for_month
+            
+            # Kalan borç
+            billed_for_month = bill_totals.get(key, Decimal("0"))
+            remaining_for_month = billed_for_month - paid_for_month
+            monthly_remaining[m_num] = remaining_for_month if remaining_for_month > 0 else Decimal("0.00")
 
         resident = resident_by_apartment.get(apt.id)
         rows.append(
@@ -2061,6 +2063,8 @@ def dues_summary():
                 "apartment": apt,
                 "resident": resident,
                 "monthly": monthly_status,
+                "monthly_paid": monthly_paid,           # ✅ YENİ
+                "monthly_remaining": monthly_remaining, # ✅ YENİ
             }
         )
 
