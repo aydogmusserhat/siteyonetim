@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% block title %}Ne Lazım - Yönet{% endblock %}
+{% block topbar_title %}Ne Lazım - Yönet (Superadmin){% endblock %}
+
+{% block content %}
+<style>
+  .wrap{ max-width:1100px; margin:0 auto; padding:16px; }
+  .grid{ display:grid; grid-template-columns: 1fr 1.2fr; gap:14px; }
+  .card{ background:#fff; border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:14px; box-shadow:0 8px 20px rgba(0,0,0,.04); }
+  .h{ font-weight:900; color:#0f172a; margin-bottom:10px; }
+  .row{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+  label{ font-size:12px; color:#475569; display:block; margin-bottom:6px; }
+  input, select, textarea{
+    width:100%; padding:10px 12px; border-radius:12px;
+    border:1px solid rgba(15,23,42,.12); outline:none; font-size:13px;
+    background:#fff;
+  }
+  textarea{ min-height:84px; resize:vertical; }
+  .btns{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+  .btn{
+    border:1px solid rgba(15,23,42,.12);
+    background:#fff; color:#0f172a;
+    border-radius:12px; padding:10px 12px; font-size:13px; cursor:pointer;
+  }
+  .btn.primary{ background:#111827; color:#fff; border-color:#111827; }
+  .btn.danger{ background:#fee2e2; border-color:#fecaca; color:#991b1b; }
+  .table{ width:100%; border-collapse:separate; border-spacing:0 8px; }
+  .tr{ background:#fff; border:1px solid rgba(15,23,42,.10); }
+  .trow{ border:1px solid rgba(15,23,42,.10); }
+  .titem{
+    display:grid; grid-template-columns: 70px 1fr 1fr 140px;
+    gap:10px; align-items:center;
+    padding:10px; border:1px solid rgba(15,23,42,.10);
+    border-radius:14px; background:#fff;
+  }
+  .img{ width:70px; height:52px; border-radius:12px; background:#f1f5f9; border:1px solid rgba(15,23,42,.08); overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:12px; color:#94a3b8; }
+  .img img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .meta{ font-size:12px; color:#64748b; margin-top:4px; }
+  .ops{ display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; }
+  .pill{ display:inline-flex; gap:6px; align-items:center; padding:4px 10px; border-radius:999px; font-size:12px; border:1px solid rgba(15,23,42,.10); background:#f8fafc; }
+  @media (max-width: 920px){
+    .grid{ grid-template-columns:1fr; }
+    .titem{ grid-template-columns: 70px 1fr; }
+    .ops{ grid-column:1/-1; justify-content:flex-start; }
+  }
+</style>
+<script>
+  const ITEMS = {{ items_json|tojson }};
+</script>
+<div class="wrap">
+
+  <div class="grid">
+    <div class="card">
+      <div class="h">Site Seç</div>
+      <form method="get" action="{{ url_for('admin.ne_lazim_manage', lang=LANG) }}">
+        <label>Site</label>
+        <select name="site_id" onchange="this.form.submit()">
+          {% for s in sites %}
+            <option value="{{ s.id }}" {% if s.id == selected_site_id %}selected{% endif %}>
+              {{ s.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </form>
+
+      <hr style="border:none; border-top:1px solid rgba(15,23,42,.08); margin:12px 0;">
+
+      <div class="h">Yeni İlan Ekle / Güncelle</div>
+
+      <form method="post" action="{{ url_for('admin.ne_lazim_save', lang=LANG) }}">
+        <input type="hidden" name="site_id" value="{{ selected_site_id }}">
+        <input type="hidden" name="item_id" id="item_id">
+
+        <div class="row">
+          <div>
+            <label>Başlık *</label>
+            <input name="title" id="title" required>
+          </div>
+          <div>
+            <label>Kategori</label>
+            <input name="category" id="category" placeholder="Market / Kuaför / ...">
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <div>
+            <label>Firma Adı</label>
+            <input name="company_name" id="company_name">
+          </div>
+          <div>
+            <label>Sıra</label>
+            <input name="sort_order" id="sort_order" type="number" value="0">
+          </div>
+        </div>
+
+        <div style="margin-top:10px;">
+          <label>Adres</label>
+          <input name="address" id="address">
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <div>
+            <label>Telefon</label>
+            <input name="phone" id="phone" placeholder="+90 ...">
+          </div>
+          <div>
+            <label>E-posta</label>
+            <input name="email" id="email">
+          </div>
+        </div>
+
+        <div style="margin-top:10px;">
+          <label>Website</label>
+          <input name="website" id="website" placeholder="https://...">
+        </div>
+
+        <div style="margin-top:10px;">
+          <label>Görsel URL (küçük resim)</label>
+          <input name="image_url" id="image_url" placeholder="https://.../image.jpg">
+        </div>
+
+        <div style="margin-top:10px;">
+          <label>Açıklama</label>
+          <textarea name="description" id="description"></textarea>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <div>
+            <label>Aktif mi?</label>
+            <select name="is_active" id="is_active">
+              <option value="1" selected>Aktif</option>
+              <option value="0">Pasif</option>
+            </select>
+          </div>
+          <div></div>
+        </div>
+
+        <div class="btns">
+          <button class="btn primary" type="submit">Kaydet</button>
+          <button class="btn" type="button" onclick="resetForm()">Formu Temizle</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="h">Seçili Site İlanları</div>
+
+      {% if items and items|length > 0 %}
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          {% for it in items %}
+            <div class="titem">
+              <div class="img">
+                {% if it.image_url %}<img src="{{ it.image_url }}" alt="img">{% else %}görsel{% endif %}
+              </div>
+
+              <div>
+                <div style="font-weight:900; color:#0f172a;">{{ it.title }}</div>
+                <div class="meta">
+                  {% if it.company_name %}<span class="pill">🏢 {{ it.company_name }}</span>{% endif %}
+                  {% if it.category %}<span class="pill">🏷 {{ it.category }}</span>{% endif %}
+                  <span class="pill">↕ sıra: {{ it.sort_order }}</span>
+                  <span class="pill">{{ "✅ aktif" if it.is_active else "⛔ pasif" }}</span>
+                </div>
+              </div>
+
+              <div>
+                <div class="meta">
+                  {% if it.phone %}📞 {{ it.phone }}<br>{% endif %}
+                  {% if it.email %}✉️ {{ it.email }}<br>{% endif %}
+                  {% if it.website %}🌐 {{ it.website }}{% endif %}
+                </div>
+              </div>
+
+              <div class="ops">
+                <button class="btn" type="button"
+                onclick='fillForm({{ it.id }}, ITEMS.find(x=>x.id==={{ it.id }}))'>Düzenle</button>
+
+
+                <form method="post" action="{{ url_for('admin.ne_lazim_delete', item_id=it.id, lang=LANG) }}"
+                      onsubmit="return confirm('Silinsin mi?');">
+                  <input type="hidden" name="site_id" value="{{ selected_site_id }}">
+                  <button class="btn danger" type="submit">Sil</button>
+                </form>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="color:#64748b; font-size:13px;">
+          Bu site için ilan yok. Sol panelden ekleyebilirsin.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+function resetForm(){
+  ["item_id","title","category","company_name","sort_order","address","phone","email","website","image_url","description"].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.value = (id === "sort_order") ? 0 : "";
+  });
+  document.getElementById("is_active").value = "1";
+}
+
+function fillForm(id, obj){
+  document.getElementById("item_id").value = id || "";
+  document.getElementById("title").value = obj.title || "";
+  document.getElementById("category").value = obj.category || "";
+  document.getElementById("company_name").value = obj.company_name || "";
+  document.getElementById("sort_order").value = (obj.sort_order ?? 0);
+  document.getElementById("address").value = obj.address || "";
+  document.getElementById("phone").value = obj.phone || "";
+  document.getElementById("email").value = obj.email || "";
+  document.getElementById("website").value = obj.website || "";
+  document.getElementById("image_url").value = obj.image_url || "";
+  document.getElementById("description").value = obj.description || "";
+  document.getElementById("is_active").value = obj.is_active ? "1" : "0";
+}
+</script>
+{% endblock %}

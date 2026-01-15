@@ -36,6 +36,7 @@ from models.site_model import Site  # 🔸 site modeli
 from audit_logging import log_action
 from typing import Optional
 
+from models.need_item_model import NeedItem
 
 import json
 from audit_logging import AuditLog  # audit_logging.py içindeki model
@@ -3344,4 +3345,170 @@ def settings():
         settings=settings_obj,
         site=site,
     )
+# ============================= ne lazım ========================================
+def _get_active_site_id_for_user(user: Optional[User]) -> Optional[int]:
+    # 1) Session'dan
+    site_id = session.get("active_site_id")
+    if site_id:
+        return int(site_id)
 
+    # 2) Kullanıcı site_id
+    if user and getattr(user, "site_id", None):
+        return int(user.site_id)
+
+    # 3) get_current_site fallback (session'ı da dolduruyor)
+    site = get_current_site()
+    return int(site.id) if site else None
+
+@admin_bp.route("/ne-lazim", methods=["GET"])
+@admin_required
+def ne_lazim():
+    admin_user = _get_current_admin()
+    site_id = _get_active_site_id_for_user(admin_user)
+    if not site_id:
+        flash("Bu sayfayı görmek için aktif bir site seçili olmalı.", "error")
+        return redirect(url_for("admin.dashboard"))
+
+    items = (
+        NeedItem.query
+        .filter_by(site_id=site_id, is_active=True)
+        .order_by(NeedItem.sort_order.asc(), NeedItem.id.desc())
+        .all()
+    )
+
+    return render_template(
+        "ne_lazim.html",
+        items=items,
+        active_site_name=session.get("active_site_name"),
+    )
+@admin_bp.route("/ne-lazim/manage", methods=["GET"])
+@admin_required
+def ne_lazim_manage():
+    if not _require_super_admin():
+        flash("Bu sayfayı sadece Süper Admin görüntüleyebilir.", "error")
+        return redirect(url_for("admin.ne_lazim"))
+
+    sites = Site.query.order_by(Site.name.asc()).all()
+    if not sites:
+        flash("Önce en az 1 site oluşturmalısınız.", "error")
+        return redirect(url_for("admin.dashboard"))
+
+    selected_site_id = request.args.get("site_id", type=int) or sites[0].id
+
+    items = (
+        NeedItem.query
+        .filter_by(site_id=selected_site_id)
+        .order_by(NeedItem.sort_order.asc(), NeedItem.id.desc())
+        .all()
+    )
+
+    items_json = [
+        {
+            "id": it.id,
+            "title": it.title,
+            "category": it.category or "",
+            "company_name": it.company_name or "",
+            "sort_order": it.sort_order or 0,
+            "address": it.address or "",
+            "phone": it.phone or "",
+            "email": it.email or "",
+            "website": it.website or "",
+            "image_url": it.image_url or "",
+            "description": it.description or "",
+            "is_active": bool(it.is_active),
+        }
+        for it in items
+    ]
+
+    return render_template(
+        "admin/ne_lazim_manage.html",
+        sites=sites,
+        selected_site_id=selected_site_id,
+        items=items,
+        items_json=items_json,
+    )
+
+
+
+@admin_bp.route("/ne-lazim/save", methods=["POST"])
+@admin_required
+def ne_lazim_save():
+    if not _require_super_admin():
+        flash("Bu işlemi sadece Süper Admin yapabilir.", "error")
+        return redirect(url_for("admin.ne_lazim"))
+
+    site_id = request.form.get("site_id", type=int)
+    if not site_id:
+        flash("Site seçimi zorunlu.", "error")
+        return redirect(url_for("admin.ne_lazim_manage"))
+
+    item_id = request.form.get("item_id", type=int)
+    title = (request.form.get("title") or "").strip()
+    if not title:
+        flash("Başlık zorunlu.", "error")
+        return redirect(url_for("admin.ne_lazim_manage", site_id=site_id))
+
+    def _s(v): return (v or "").strip() or None
+
+    is_active = (request.form.get("is_active") or "1") == "1"
+    sort_order = request.form.get("sort_order", type=int) or 0
+
+    try:
+        if item_id:
+            it = NeedItem.query.get(item_id)
+            if not it:
+                flash("Kayıt bulunamadı.", "error")
+                return redirect(url_for("admin.ne_lazim_manage", site_id=site_id))
+            it.site_id = site_id
+        else:
+            it = NeedItem(site_id=site_id)
+            db.session.add(it)
+
+        it.title = title
+        it.category = _s(request.form.get("category"))
+        it.company_name = _s(request.form.get("company_name"))
+        it.address = _s(request.form.get("address"))
+        it.phone = _s(request.form.get("phone"))
+        it.email = _s(request.form.get("email"))
+        it.website = _s(request.form.get("website"))
+        it.image_url = _s(request.form.get("image_url"))
+        it.description = _s(request.form.get("description"))
+        it.is_active = is_active
+        it.sort_order = sort_order
+
+        db.session.commit()
+        flash("Kaydedildi.", "success")
+
+    except SQLAlchemyError as exc:
+        db.session.rollback()
+        current_app.logger.exception("Ne Lazım kaydetme hatası: %s", exc)
+        flash("Kaydedilirken hata oluştu.", "error")
+
+    return redirect(url_for("admin.ne_lazim_manage", site_id=site_id))
+
+
+@admin_bp.route("/ne-lazim/<int:item_id>/delete", methods=["POST"])
+@admin_required
+def ne_lazim_delete(item_id: int):
+    if not _require_super_admin():
+        flash("Bu işlemi sadece Süper Admin yapabilir.", "error")
+        return redirect(url_for("admin.ne_lazim"))
+
+    site_id = request.form.get("site_id", type=int)
+
+    try:
+        it = NeedItem.query.get(item_id)
+        if not it:
+            flash("Kayıt bulunamadı.", "error")
+            return redirect(url_for("admin.ne_lazim_manage", site_id=site_id))
+
+        db.session.delete(it)
+        db.session.commit()
+        flash("Silindi.", "success")
+
+    except SQLAlchemyError as exc:
+        db.session.rollback()
+        current_app.logger.exception("Ne Lazım silme hatası: %s", exc)
+        flash("Silinirken hata oluştu.", "error")
+
+    return redirect(url_for("admin.ne_lazim_manage", site_id=site_id))

@@ -580,3 +580,30 @@ def profil():
         user=user,
         apartment=apartment,
     )
+from flask import render_template, session, redirect, url_for, flash
+from models.need_item_model import NeedItem
+from models.user_model import User
+
+@resident_bp.route("/ne-lazim", methods=["GET"])
+@resident_required
+def ne_lazim():
+    user_id = session.get("user_id")
+    user = User.query.get(user_id) if user_id else None
+
+    site_id = session.get("active_site_id") or (user.site_id if user else None)
+    if not site_id:
+        flash("Bu sayfayı görmek için site bilgisi gerekli.", "error")
+        return redirect(url_for("resident.dashboard"))
+
+    items = (
+        NeedItem.query
+        .filter_by(site_id=site_id, is_active=True)
+        .order_by(NeedItem.sort_order.asc(), NeedItem.id.desc())
+        .all()
+    )
+
+    return render_template(
+        "ne_lazim.html",
+        items=items,
+        active_site_name=session.get("active_site_name"),
+    )

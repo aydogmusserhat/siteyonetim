@@ -131,6 +131,7 @@
     'default_brand_name': 'QR Site Yönetim',
     'default_site_name': 'Site / Apartman',
 
+    'menu_need_list': 'Ne Lazım',
     'role_super_admin': 'Sistem Süper Yöneticisi',
     'all_sites_global': 'Tüm Siteler (Genel)'
   },
@@ -167,6 +168,7 @@
     'default_brand_name': 'QR Site Management',
     'default_site_name': 'Site / Building',
 
+    'menu_need_list': 'Need List',
     'role_super_admin': 'System Super Admin',
     'all_sites_global': 'All Sites (Global)'
   },
@@ -208,6 +210,7 @@
     'default_brand_name': 'QR Управление',
     'default_site_name': 'Дом / Комплекс',
 
+    'menu_need_list': 'Что нужно',
     'role_super_admin': 'Супер-администратор системы',
     'all_sites_global': 'Все сайты (Глобально)'
   },
@@ -244,6 +247,7 @@
     'default_brand_name': 'QR Upravljanje',
     'default_site_name': 'Naselje / Zgrada',
 
+    'menu_need_list': 'Šta treba',
     'role_super_admin': 'Sistemski Super Admin',
     'all_sites_global': 'Svi sajtovi (Globalno)'
   }
@@ -392,6 +396,10 @@
            class="sidebar__link {% if endpoint == 'admin.settings' %}sidebar__link--active{% endif %}">
           ⚙️ {{ t('menu_settings') }}
         </a>
+        <a href="{{ url_for('admin.ne_lazim', lang=LANG) }}"
+          class="sidebar__link {% if endpoint == 'admin.ne_lazim' %}sidebar__link--active{% endif %}">
+          🧾 {{ t('menu_need_list') }}
+        </a>
 
       {% elif user_role == "resident" %}
 
@@ -418,6 +426,10 @@
         <a href="{{ url_for('resident.profil', lang=LANG) }}"
            class="sidebar__link {% if endpoint == 'resident.profil' %}sidebar__link--active{% endif %}">
           👤 {{ t('menu_profile') }}
+        </a>
+        <a href="{{ url_for('resident.ne_lazim', lang=LANG) }}"
+          class="sidebar__link {% if endpoint == 'resident.ne_lazim' %}sidebar__link--active{% endif %}">
+          🧾 {{ t('menu_need_list') }}
         </a>
 
       {% else %}

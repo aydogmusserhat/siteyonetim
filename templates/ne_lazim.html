@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Ne Lazım{% endblock %}
+{% block topbar_title %}Ne Lazım{% endblock %}
+
+{% block content %}
+<style>
+  .need-wrap{ max-width:1100px; margin:0 auto; padding:16px; }
+  .need-head{ display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:10px; margin-bottom:14px; }
+  .need-title{ font-size:20px; font-weight:800; color:#0f172a; }
+  .need-sub{ font-size:13px; color:#64748b; margin-top:4px; }
+
+  .need-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+  .btnx{ border:1px solid rgba(15,23,42,.12); background:#fff; border-radius:12px; padding:10px 12px; font-size:13px; cursor:pointer; text-decoration:none; color:#0f172a; }
+  .btnx:hover{ background:#f8fafc; }
+  .btnx.primary{ background:#111827; color:#fff; border-color:#111827; }
+  .btnx.primary:hover{ opacity:.95; }
+
+  .need-list{ display:flex; flex-direction:column; gap:10px; }
+
+  /* tek satır ilan kartı */
+  .need-item{
+    display:grid;
+    grid-template-columns: 72px 1.2fr 1fr;
+    gap:12px;
+    align-items:center;
+    padding:12px;
+    border:1px solid rgba(15,23,42,.10);
+    border-radius:16px;
+    background:#fff;
+    box-shadow: 0 8px 20px rgba(0,0,0,.04);
+  }
+
+  .need-img{
+    width:72px; height:54px;
+    border-radius:12px;
+    background:#f1f5f9;
+    border:1px solid rgba(15,23,42,.08);
+    overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; color:#94a3b8;
+  }
+  .need-img img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+  .need-main{ min-width:0; }
+  .need-main .h{ font-weight:800; color:#0f172a; font-size:14px; line-height:1.2; }
+  .need-main .meta{ margin-top:6px; display:flex; flex-wrap:wrap; gap:6px; }
+  .pill{ display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; font-size:12px; border:1px solid rgba(15,23,42,.10); background:#f8fafc; color:#0f172a; }
+  .muted{ color:#64748b; font-size:12px; margin-top:6px; }
+
+  .need-contact{ display:flex; flex-direction:column; gap:6px; }
+  .c-row{ display:flex; align-items:center; gap:8px; font-size:13px; color:#0f172a; min-width:0; }
+  .c-ico{ width:22px; height:22px; border-radius:8px; background:#f1f5f9; display:flex; align-items:center; justify-content:center; font-size:12px; border:1px solid rgba(15,23,42,.08); }
+  .c-row a{ color:#0f172a; text-decoration:none; }
+  .c-row a:hover{ text-decoration:underline; }
+  .truncate{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+  .empty{
+    border:1px dashed rgba(15,23,42,.18);
+    background:#fff;
+    border-radius:16px;
+    padding:18px;
+    color:#64748b;
+    font-size:13px;
+  }
+
+  /* ✅ mobil */
+  @media (max-width: 720px){
+    .need-item{ grid-template-columns: 72px 1fr; grid-template-rows:auto auto; }
+    .need-contact{ grid-column: 1 / -1; padding-top:8px; border-top:1px solid rgba(15,23,42,.08); }
+  }
+</style>
+
+<div class="need-wrap">
+  <div class="need-head">
+    <div>
+      <div class="need-title">Ne Lazım</div>
+      <div class="need-sub">{{ active_site_name or current_site_name or '' }} için önerilen hizmetler / firmalar</div>
+    </div>
+
+    <div class="need-actions">
+      {% if session.get("user_role") == "super_admin" %}
+        <a class="btnx primary" href="{{ url_for('admin.ne_lazim_manage', lang=LANG) }}">+ Düzenle (Superadmin)</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="need-list">
+    {% if items and items|length > 0 %}
+      {% for it in items %}
+        <div class="need-item">
+          <div class="need-img">
+            {% if it.image_url %}
+              <img src="{{ it.image_url }}" alt="img">
+            {% else %}
+              görsel
+            {% endif %}
+          </div>
+
+          <div class="need-main">
+            <div class="h">{{ it.title }}</div>
+            <div class="meta">
+              {% if it.category %}<span class="pill">🏷 {{ it.category }}</span>{% endif %}
+              {% if it.company_name %}<span class="pill">🏢 {{ it.company_name }}</span>{% endif %}
+            </div>
+            {% if it.address %}<div class="muted">📍 {{ it.address }}</div>{% endif %}
+            {% if it.description %}<div class="muted">{{ it.description }}</div>{% endif %}
+          </div>
+
+          <div class="need-contact">
+            {% if it.phone %}
+              <div class="c-row">
+                <div class="c-ico">📞</div>
+                <a class="truncate" href="tel:{{ it.phone }}">{{ it.phone }}</a>
+              </div>
+            {% endif %}
+
+            {% if it.email %}
+              <div class="c-row">
+                <div class="c-ico">✉️</div>
+                <a class="truncate" href="mailto:{{ it.email }}">{{ it.email }}</a>
+              </div>
+            {% endif %}
+
+            {% if it.website %}
+              <div class="c-row">
+                <div class="c-ico">🌐</div>
+                <a class="truncate" href="{{ it.website }}" target="_blank" rel="noopener">{{ it.website }}</a>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty">
+        Bu site için henüz liste eklenmemiş. (Superadmin “Düzenle” ekranından ekleyebilir.)
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

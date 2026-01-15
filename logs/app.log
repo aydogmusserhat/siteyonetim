@@ -6662,3 +6662,76 @@ sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - c
 2026-01-11 00:04:43,515 [INFO] app: Denetim: CREATE Payment (ID: 10) - Kullanıcı: 1 - Site: 4
 2026-01-11 02:05:02,327 [INFO] app: Denetim: DELETE Payment (ID: 2) - Kullanıcı: 1 - Site: 1
 2026-01-11 02:05:38,786 [INFO] app: Denetim: CREATE Payment (ID: 11) - Kullanıcı: 1 - Site: 1
+2026-01-15 15:08:41,533 [ERROR] app: Exception on /admin/ne-lazim [GET]
+Traceback (most recent call last):
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "C:\Users\Serhat\Desktop\siteyonetimV3.8\routes\admin_routes.py", line 72, in wrapped_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\Serhat\Desktop\siteyonetimV3.8\routes\admin_routes.py", line 3353, in ne_lazim
+    site_id = _get_active_site_id_for_user(admin_user)
+NameError: name '_get_active_site_id_for_user' is not defined
+2026-01-15 15:09:55,309 [ERROR] app: Exception on /admin/ne-lazim [GET]
+Traceback (most recent call last):
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "C:\Users\Serhat\Desktop\siteyonetimV3.8\routes\admin_routes.py", line 72, in wrapped_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\Serhat\Desktop\siteyonetimV3.8\routes\admin_routes.py", line 3353, in ne_lazim
+    site_id = _get_active_site_id_for_user(admin_user)
+NameError: name '_get_active_site_id_for_user' is not defined
+2026-01-15 15:13:35,269 [ERROR] app: Exception on /admin/ne-lazim/manage [GET]
+Traceback (most recent call last):
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "C:\Users\Serhat\Desktop\siteyonetimV3.8\routes\admin_routes.py", line 72, in wrapped_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\Serhat\Desktop\siteyonetimV3.8\routes\admin_routes.py", line 3405, in ne_lazim_manage
+    return render_template(
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 151, in render_template
+    return _render(app, template, context)
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 132, in _render
+    rv = template.render(context)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 1295, in render
+    self.environment.handle_exception()
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\Serhat\Desktop\siteyonetimV3.8\templates\admin\ne_lazim_manage.html", line 1, in top-level template code
+    {% extends "base.html" %}
+  File "C:\Users\Serhat\Desktop\siteyonetimV3.8\templates\base.html", line 545, in top-level template code
+    {% block content %}{% endblock %}
+  File "C:\Users\Serhat\Desktop\siteyonetimV3.8\templates\admin\ne_lazim_manage.html", line 174, in block 'content'
+    onclick='fillForm({{ it.id }}, {{ it|tojson }})'>Düzenle</button>
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\filters.py", line 1726, in do_tojson
+    return htmlsafe_json_dumps(value, dumps=dumps, **kwargs)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\utils.py", line 669, in htmlsafe_json_dumps
+    dumps(obj, **kwargs)
+  File "c:\Program Files\Python39\lib\site-packages\flask\json\provider.py", line 180, in dumps
+    return json.dumps(obj, **kwargs)
+  File "c:\Program Files\Python39\lib\json\__init__.py", line 234, in dumps
+    return cls(
+  File "c:\Program Files\Python39\lib\json\encoder.py", line 199, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+  File "c:\Program Files\Python39\lib\json\encoder.py", line 257, in iterencode
+    return _iterencode(o, 0)
+  File "c:\Program Files\Python39\lib\site-packages\flask\json\provider.py", line 120, in _default
+    raise TypeError(f"Object of type {type(o).__name__} is not JSON serializable")
+TypeError: Object of type NeedItem is not JSON serializable
