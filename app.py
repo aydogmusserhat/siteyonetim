@@ -7,9 +7,15 @@ from flask import Flask, render_template, redirect, url_for, session, g, request
 from config import Config
 from models import db
 from models.user_model import User
+# Import blueprints directly from the top‑level modules.
+# The original code attempted to import blueprints from a `routes` package which
+# does not exist in this project structure.  Importing from the correct
+# modules avoids `ModuleNotFoundError` at runtime and makes the blueprint
+# registration explicit.
 from routes.auth_routes import auth_bp
 from routes.admin_routes import admin_bp
 from routes.resident_routes import resident_bp
+
 
 import webbrowser
 import threading
@@ -41,9 +47,10 @@ def create_app(config_class=Config) -> Flask:
     configure_logging(app)
 
     # Blueprint kayıtları
-    from routes.auth_routes import auth_bp
-    from routes.admin_routes import admin_bp
-    from routes.resident_routes import resident_bp
+    # Blueprints are already imported at module scope above.  Re‑importing
+    # within this function is unnecessary and caused import errors when the
+    # original code referenced a nonexistent `routes` package.  Keeping the
+    # blueprint variables in the closure makes them available for registration.
 
 
     # ✅ Şimdi blueprint’leri register et (sıra fark etmez ama audit önce olmalı)

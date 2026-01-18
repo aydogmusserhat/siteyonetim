@@ -280,19 +280,14 @@ def get_default_monthly_dues_amount(site_id: Optional[int] = None) -> Decimal:
 
 
 
-@admin_bp.app_context_processor
-def inject_site_name():
-    """
-    Tüm admin template'lerine current_site_name verir.
-    Önce session'dan okur, yoksa DB'den çeker ve session'a yazar.
-    """
-    name = session.get("site_name")
-
-    if not name:
-        name = get_site_display_name()  # DB'den oku (SystemSetting)
-        session["site_name"] = name
-
-    return {"current_site_name": name}
+#
+# NOTE:
+# A context processor named `inject_site_name` is defined later in this file.  The
+# original code contained two separate definitions of the same function on the
+# same blueprint, which caused the first one to be silently overridden by the
+# second.  Maintaining a single context processor avoids confusion and makes
+# the behaviour explicit.  The first definition has been removed; see below
+# for the remaining implementation.
 
 
 # ======================
