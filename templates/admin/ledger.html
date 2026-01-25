@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+{% block title %}Daire Ekstresi{% endblock %}
+
+{% block topbar_title %}
+  Daire Ekstresi
+  {% if session.active_site_name %}
+    – {{ session.active_site_name }}
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+<style>
+  .wrap{ padding:16px; }
+  .card{
+    background:#fff; border:1px solid #e5e7eb; border-radius:14px;
+    box-shadow:0 10px 30px rgba(15,23,42,.08);
+    padding:14px; margin-bottom:14px;
+  }
+  .filters{
+    display:grid; grid-template-columns: 160px 160px 1fr 220px 160px;
+    gap:10px; align-items:end;
+  }
+  .filters label{ font-size:12px; color:#475569; font-weight:700; display:block; margin-bottom:6px; }
+  .filters input, .filters select{
+    width:100%; padding:10px 12px; border:1px solid #e5e7eb; border-radius:12px; font-size:14px;
+    outline:none;
+  }
+  .btnbar{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+  .btn{
+    border:1px solid #e5e7eb; background:#0f172a; color:#fff;
+    padding:10px 12px; border-radius:12px; font-weight:800; cursor:pointer; text-decoration:none;
+  }
+  .btn.secondary{ background:#fff; color:#0f172a; }
+  .table{
+    width:100%; border-collapse:collapse; font-size:13px;
+  }
+  .table th{
+    text-align:left; background:#f8fafc; border-bottom:1px solid #e5e7eb;
+    padding:10px; font-size:11px; letter-spacing:.4px; text-transform:uppercase;
+  }
+  .table td{ border-bottom:1px solid #f1f5f9; padding:10px; vertical-align:top; }
+  .right{ text-align:right; }
+  .muted{ color:#64748b; font-size:12px; }
+  .pill{
+    display:inline-block; padding:4px 10px; border-radius:999px; border:1px solid #e5e7eb;
+    background:#fff; font-size:12px; font-weight:800;
+  }
+  .pill.ok{ border-color:#bbf7d0; background:#f0fdf4; color:#166534; }
+  .pill.bad{ border-color:#fecaca; background:#fef2f2; color:#991b1b; }
+  .pill.neu{ border-color:#e5e7eb; background:#f8fafc; color:#0f172a; }
+  details{ background:#f8fafc; border:1px solid #e5e7eb; border-radius:12px; padding:10px 12px; }
+  summary{ cursor:pointer; font-weight:900; }
+  .grid2{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:10px; }
+  .mini{ width:100%; border-collapse:collapse; font-size:12px; }
+  .mini th{ background:#fff; border-bottom:1px solid #e5e7eb; padding:8px; text-transform:uppercase; font-size:10px; }
+  .mini td{ border-bottom:1px solid #eef2f7; padding:8px; }
+  @media (max-width: 900px){
+    .filters{ grid-template-columns: 1fr 1fr; }
+    .grid2{ grid-template-columns: 1fr; }
+  }
+  /* mobil */
+  @media (max-width: 420px){
+    .wrap{ padding:10px; }
+    .card{ padding:12px; }
+    .table{ font-size:12px; }
+  }
+</style>
+
+<div class="wrap">
+
+  <div class="card">
+    <div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+      <div>
+        <div style="font-size:16px; font-weight:900;">Aylık Borç & Ödeme Ekstresi</div>
+        <div class="muted">
+          Dönem: <b>{{ period_start }}</b> – <b>{{ period_end_inclusive }}</b>
+          {% if global_mode %}
+            • <span class="pill neu">Süper Admin – Tüm Siteler</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <form method="get" class="filters" style="margin-top:12px;">
+      <div>
+        <label>Ay (YYYY-AA)</label>
+        <input type="month" name="month" value="{{ month_label }}">
+      </div>
+
+      <div>
+        <label>Daire</label>
+        <select name="apartment_id">
+          <option value="">Tümü</option>
+          {% for a in apartments %}
+            {% set label = (a.block ~ "-" ~ a.floor ~ "-" ~ a.number) %}
+            <option value="{{ a.id }}" {% if selected_apartment_id==a.id %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label>Ara (blok/kat/no/malik)</label>
+        <input name="q" value="{{ q }}" placeholder="Örn: A blok, 3, 12, Ahmet">
+      </div>
+
+      <div style="display:flex; gap:10px;">
+        <button class="btn" type="submit">Filtrele</button>
+        <a class="btn secondary" href="{{ url_for('admin.apartment_ledger') }}">Sıfırla</a>
+      </div>
+
+      <div class="btnbar" style="justify-content:flex-end;">
+        <a class="btn secondary"
+           href="{{ url_for('admin.apartment_ledger_export_xlsx', **args) }}">Excel (XLSX)</a>
+        <a class="btn secondary"
+           href="{{ url_for('admin.apartment_ledger_export_pdf', **args) }}">PDF</a>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <div style="overflow:auto;">
+      <table class="table">
+        <thead>
+          <tr>
+            {% if global_mode %}<th>Site</th>{% endif %}
+            <th>Daire</th>
+            <th>Malik</th>
+            <th class="right">Dönem Borç</th>
+            <th class="right">Dönem Ödeme</th>
+            <th class="right">Net</th>
+            <th class="right">Açık Bakiye (Genel)</th>
+            <th>Detay</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in rows %}
+            {% set apt = r.apartment %}
+            {% set apt_label = (apt.block ~ "-" ~ apt.floor ~ "-" ~ apt.number) %}
+            <tr>
+              {% if global_mode %}
+                <td class="muted">{{ site_map.get(r.site_id, '') }}</td>
+              {% endif %}
+              <td><b>{{ apt_label }}</b></td>
+              <td class="muted">{{ apt.owner_name or "-" }}</td>
+              <td class="right">₺ {{ "%.2f"|format(r.billed) }}</td>
+              <td class="right">₺ {{ "%.2f"|format(r.paid) }}</td>
+              <td class="right">
+                {% if r.net > 0 %}
+                  <span class="pill ok">+ {{ "%.2f"|format(r.net) }}</span>
+                {% elif r.net < 0 %}
+                  <span class="pill bad">{{ "%.2f"|format(r.net) }}</span>
+                {% else %}
+                  <span class="pill neu">0.00</span>
+                {% endif %}
+              </td>
+              <td class="right">
+                {% if r.open_balance > 0 %}
+                  <span class="pill bad">₺ {{ "%.2f"|format(r.open_balance) }}</span>
+                {% elif r.open_balance < 0 %}
+                  <span class="pill ok">₺ {{ "%.2f"|format(r.open_balance) }}</span>
+                {% else %}
+                  <span class="pill neu">₺ 0.00</span>
+                {% endif %}
+              </td>
+              <td>
+                <details>
+                  <summary>İşlemler</summary>
+<div style="display:flex; gap:10px; flex-wrap:wrap; margin:10px 0;">
+  <a class="btn secondary"
+     href="{{ url_for('admin.apartment_ledger', month=month_label, apartment_id=apt.id, q=q) }}">
+    Bu Daireyi Filtrele
+  </a>
+
+  <a class="btn secondary"
+     href="{{ url_for('admin.apartment_ledger_export_xlsx', month=month_label, apartment_id=apt.id, q=q) }}">
+    Bu Daire – Excel
+  </a>
+
+  <a class="btn secondary"
+     href="{{ url_for('admin.apartment_ledger_export_pdf', month=month_label, apartment_id=apt.id, q=q) }}">
+    Bu Daire – PDF
+  </a>
+</div>
+
+                  <div class="grid2">
+
+                    <div>
+                      <div style="font-weight:900; margin-bottom:6px;">Dönem Borçları</div>
+                      <table class="mini">
+                        <thead>
+                          <tr>
+                            <th>Tarih</th>
+                            <th>Açıklama</th>
+                            <th class="right">Tutar</th>
+                            <th>Durum</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {% if r.bills and r.bills|length > 0 %}
+                            {% for b in r.bills %}
+                              <tr>
+                                <td class="muted">{{ b.due_date or (b.created_at.date() if b.created_at else "") }}</td>
+                                <td>{{ b.description or "-" }}</td>
+                                <td class="right">₺ {{ "%.2f"|format(b.amount) }}</td>
+                                <td class="muted">{{ b.status }}</td>
+                              </tr>
+                            {% endfor %}
+                          {% else %}
+                            <tr><td colspan="4" class="muted">Bu dönemde borç yok.</td></tr>
+                          {% endif %}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div>
+                      <div style="font-weight:900; margin-bottom:6px;">Dönem Ödemeleri</div>
+                      <table class="mini">
+                        <thead>
+                          <tr>
+                            <th>Tarih</th>
+                            <th>Yöntem</th>
+                            <th class="right">Tutar</th>
+                            <th>Bill ID</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {% if r.payments and r.payments|length > 0 %}
+                            {% for p in r.payments %}
+                              <tr>
+                                <td class="muted">{{ p.payment_date }}</td>
+                                <td class="muted">{{ p.method or "-" }}</td>
+                                <td class="right">₺ {{ "%.2f"|format(p.amount) }}</td>
+                                <td class="muted">{{ p.bill_id }}</td>
+                              </tr>
+                            {% endfor %}
+                          {% else %}
+                            <tr><td colspan="4" class="muted">Bu dönemde ödeme yok.</td></tr>
+                          {% endif %}
+                        </tbody>
+                      </table>
+                    </div>
+
+                  </div>
+                </details>
+              </td>
+            </tr>
+          {% endfor %}
+
+          {% if rows|length == 0 %}
+            <tr>
+              <td colspan="{% if global_mode %}8{% else %}7{% endif %}" class="muted">
+                Kayıt bulunamadı.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

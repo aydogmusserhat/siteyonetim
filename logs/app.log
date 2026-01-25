@@ -6735,3 +6735,96 @@ Traceback (most recent call last):
   File "c:\Program Files\Python39\lib\site-packages\flask\json\provider.py", line 120, in _default
     raise TypeError(f"Object of type {type(o).__name__} is not JSON serializable")
 TypeError: Object of type NeedItem is not JSON serializable
+2026-01-25 09:24:19,365 [ERROR] app: Exception on /admin/ledger [GET]
+Traceback (most recent call last):
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "C:\Users\Serhat\Desktop\siteyonetimV4.0\routes\admin_routes.py", line 74, in wrapped_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\Serhat\Desktop\siteyonetimV4.0\routes\ledger_module.py", line 283, in apartment_ledger
+    return render_template(
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 151, in render_template
+    return _render(app, template, context)
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 132, in _render
+    rv = template.render(context)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 1295, in render
+    self.environment.handle_exception()
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\Serhat\Desktop\siteyonetimV4.0\templates\admin\ledger.html", line 1, in top-level template code
+    {% extends "base.html" %}
+  File "C:\Users\Serhat\Desktop\siteyonetimV4.0\templates\base.html", line 561, in top-level template code
+    {% block content %}{% endblock %}
+  File "C:\Users\Serhat\Desktop\siteyonetimV4.0\templates\admin\ledger.html", line 77, in block 'content'
+    Dönem: <b>{{ period_start }}</b> – <b>{{ (period_end - timedelta(days=1)) }}</b>
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\utils.py", line 92, in from_obj
+    if hasattr(obj, "jinja_pass_arg"):
+jinja2.exceptions.UndefinedError: 'timedelta' is undefined
+2026-01-25 09:28:18,278 [ERROR] app: Exception on /admin/ledger [GET]
+Traceback (most recent call last):
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "C:\Users\Serhat\Desktop\siteyonetimV4.0\routes\admin_routes.py", line 74, in wrapped_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\Serhat\Desktop\siteyonetimV4.0\routes\ledger_module.py", line 284, in apartment_ledger
+    return render_template(
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 150, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\loaders.py", line 138, in load
+    code = environment.compile(source, name, filename)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 771, in compile
+    self.handle_exception(source=source_hint)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\Serhat\Desktop\siteyonetimV4.0\templates\admin\ledger.html", line 114, in template
+    href="{{ url_for('admin.apartment_ledger_export_xlsx', **.args) }}">Excel (XLSX)</a>
+jinja2.exceptions.TemplateSyntaxError: unexpected '.'
+2026-01-25 12:15:35,986 [ERROR] app: Exception on /admin/ledger [GET]
+Traceback (most recent call last):
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "C:\Users\Serhat\Desktop\siteyonetimV4.1\routes\admin_routes.py", line 74, in wrapped_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\Serhat\Desktop\siteyonetimV4.1\routes\ledger_module.py", line 284, in apartment_ledger
+    return render_template(
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 150, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\loaders.py", line 138, in load
+    code = environment.compile(source, name, filename)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 771, in compile
+    self.handle_exception(source=source_hint)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\Serhat\Desktop\siteyonetimV4.1\templates\admin\ledger.html", line 114, in template
+    href="{{ url_for('admin.apartment_ledger_export_xlsx', **.args) }}">Excel (XLSX)</a>
+jinja2.exceptions.TemplateSyntaxError: unexpected '.'

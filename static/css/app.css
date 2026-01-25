@@ -915,3 +915,14 @@ select {
     max-width: 80vw;
   }
 }
+/* ✅ Tüm sayfalarda içerik alanı çocukları tam genişlikte kalsın */
+.content{
+  align-items: stretch;      /* önemli: flex child'ları ortalamayı engeller */
+}
+
+/* ✅ "wrap" kullanan sayfalarda ortalamayı kır */
+.content .wrap{
+  width: 100%;
+  max-width: none !important;
+  margin: 0 !important;
+}

@@ -127,7 +127,8 @@
     'open_close_menu': 'Menüyü aç/kapa',
     'close_menu': 'Menüyü kapat',
     'language': 'Dil',
-
+    'menu_report': 'Rapor Al',
+    
     'default_brand_name': 'QR Site Yönetim',
     'default_site_name': 'Site / Apartman',
 
@@ -167,6 +168,8 @@
 
     'default_brand_name': 'QR Site Management',
     'default_site_name': 'Site / Building',
+
+    'menu_report': 'Get Report',
 
     'menu_need_list': 'Need List',
     'role_super_admin': 'System Super Admin',
@@ -210,6 +213,8 @@
     'default_brand_name': 'QR Управление',
     'default_site_name': 'Дом / Комплекс',
 
+    'menu_report': 'Получить отчёт',
+
     'menu_need_list': 'Что нужно',
     'role_super_admin': 'Супер-администратор системы',
     'all_sites_global': 'Все сайты (Глобально)'
@@ -247,6 +252,8 @@
     'default_brand_name': 'QR Upravljanje',
     'default_site_name': 'Naselje / Zgrada',
 
+    'menu_report': 'Preuzmi Izvještaj',
+    
     'menu_need_list': 'Šta treba',
     'role_super_admin': 'Sistemski Super Admin',
     'all_sites_global': 'Svi sajtovi (Globalno)'
@@ -395,6 +402,15 @@
         <a href="{{ url_for('admin.settings', lang=LANG) }}"
            class="sidebar__link {% if endpoint == 'admin.settings' %}sidebar__link--active{% endif %}">
           ⚙️ {{ t('menu_settings') }}
+          {# ✅ Daire Borç/Ödeme (Ledger) - admin için her zaman, super_admin için aktif site seçiliyse #}
+        {% if user_role == "admin" or (user_role == "super_admin" and active_site_name) %}
+          <a href="{{ url_for('admin.apartment_ledger', lang=LANG) }}"
+            class="sidebar__link {% if endpoint == 'admin.apartment_ledger' %}sidebar__link--active{% endif %}">
+            📊 {{ t('menu_report') }}
+          </a>
+        {% endif %}
+
+
         </a>
         <a href="{{ url_for('admin.ne_lazim', lang=LANG) }}"
           class="sidebar__link {% if endpoint == 'admin.ne_lazim' %}sidebar__link--active{% endif %}">

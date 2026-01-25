@@ -162,13 +162,13 @@ def configure_logging(app: Flask) -> None:
 app = create_app()
 
 if __name__ == "__main__":
-    PORTS = 5005
+    PORTS = 5000
 
-    def open_browser():
-        webbrowser.open(f"http://127.0.0.1:{PORTS}")
+    # def open_browser():
+    #     webbrowser.open(f"http://127.0.0.1:{PORTS}")
 
     try:
-        threading.Timer(1, open_browser).start()
+    #     threading.Timer(1, open_browser).start()
 
         # Waitress ile sunucuyu başlat
         serve(app, host="0.0.0.0", port=PORTS)

@@ -44,6 +44,8 @@ from audit_logging import AuditLog  # audit_logging.py içindeki model
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
+
+
 # ==================================================
 #  YETKİ KONTROL
 # ==================================================
@@ -3243,6 +3245,10 @@ def update_ticket_status(ticket_id: int):
 
     status_filter = request.args.get("status") or "all"
     return redirect(url_for("admin.manage_tickets", status=status_filter))
+
+# ==================================================================================
+from routes.ledger_module import register_ledger_routes
+register_ledger_routes(admin_bp, admin_required, _get_current_admin, _parse_date_flex)
 
 # ======================
 #  AYARLAR

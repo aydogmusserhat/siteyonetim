@@ -4,9 +4,14 @@
 
 {% block content %}
 <style>
-  .wrap{ max-width:1100px; margin:0 auto; padding:16px; }
+.wrap{
+  width: 100%;
+  max-width: none;     /* ✅ ortalama/limit kalksın */
+  margin: 0;           /* ✅ auto iptal */
+  padding: 16px;
+}
   .grid{ display:grid; grid-template-columns: 1fr 1.2fr; gap:14px; }
-  .card{ background:#fff; border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:14px; box-shadow:0 8px 20px rgba(0,0,0,.04); }
+  .card{ width:100%; background:#fff; border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:14px; box-shadow:0 8px 20px rgba(0,0,0,.04); }
   .h{ font-weight:900; color:#0f172a; margin-bottom:10px; }
   .row{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
   label{ font-size:12px; color:#475569; display:block; margin-bottom:6px; }
@@ -29,10 +34,23 @@
   .trow{ border:1px solid rgba(15,23,42,.10); }
   .titem{
     display:grid; grid-template-columns: 70px 1fr 1fr 140px;
+    width:100%;
+    justify-items:start;
+    text-align:left;
     gap:10px; align-items:center;
     padding:10px; border:1px solid rgba(15,23,42,.10);
     border-radius:14px; background:#fff;
   }
+  .ops{
+  justify-content:flex-end;
+}
+  /* liste container */
+.items-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  align-items:stretch;   /* ✅ sola dayalı */
+}
   .img{ width:70px; height:52px; border-radius:12px; background:#f1f5f9; border:1px solid rgba(15,23,42,.08); overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:12px; color:#94a3b8; }
   .img img{ width:100%; height:100%; object-fit:cover; display:block; }
   .meta{ font-size:12px; color:#64748b; margin-top:4px; }
@@ -146,7 +164,7 @@
       <div class="h">Seçili Site İlanları</div>
 
       {% if items and items|length > 0 %}
-        <div style="display:flex; flex-direction:column; gap:10px;">
+<div class="items-list">
           {% for it in items %}
             <div class="titem">
               <div class="img">
