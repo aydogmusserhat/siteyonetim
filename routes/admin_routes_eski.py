@@ -1217,9 +1217,10 @@ def delete_apartment(apartment_id: int):
 # ======================
 #  KULLANICILAR
 # ======================
-@admin_bp.route("/users", methods=["GET", "POST"])
+@admin_bp.route("/users", methods=["GET", "POST"], endpoint="kullanicilar")
 @admin_required
 def manage_users():
+
     """Kullanıcı listesi ve yeni kullanıcı ekleme (site bazlı)."""
 
     admin_user = _get_current_admin()
@@ -1238,8 +1239,13 @@ def manage_users():
 
         if not name or not email or not password:
             flash("Ad, e-posta ve şifre alanları zorunludur.", "error")
+
+        elif role == "resident" and not apartment_id:
+            flash("Sakin rolü için bağlı daire seçimi zorunludur.", "error")
+
         else:
             try:
+
                 existing = User.query.filter_by(email=email).first()
                 if existing:
                     flash("Bu e-posta adresi ile zaten bir kullanıcı mevcut.", "error")
@@ -1277,11 +1283,12 @@ def manage_users():
     try:
         users = (
             User.query
-            .filter(User.site_id == site_id)
-            .filter(User.is_deleted.is_(False))   # ✅ silinenleri gizle
+            .filter_by(site_id=site_id)
+            .filter(User.is_deleted.is_(False))
             .order_by(User.role.desc(), User.name.asc())
             .all()
         )
+
 
         apartments = (
             Apartment.query
@@ -1669,10 +1676,11 @@ from models.user_model import User
 
 from flask import session, redirect, url_for, flash, request, abort
 
+from sqlalchemy import or_
+
 @admin_bp.post("/users/<int:user_id>/delete")
 @admin_required
 def delete_user(user_id: int):
-    """Sil butonu: kullanıcıyı SOFT DELETE yapar (pasifleştir + listelerden gizle)."""
     actor_id = session.get("user_id")
     if not actor_id:
         abort(401)
@@ -1680,30 +1688,19 @@ def delete_user(user_id: int):
     actor = User.query.get(actor_id)
     target = User.query.get_or_404(user_id)
 
-    # Silinmiş kullanıcı toggle edilemez
-    if getattr(target, 'is_deleted', False):
-        flash('Silinmiş kullanıcı üzerinde işlem yapılamaz.', 'error')
-        return redirect(url_for('admin.manage_users'))
-
     # ❌ kendini silemez
     if actor.id == target.id:
         flash("Kendi hesabınızı silemezsiniz.", "error")
         return redirect(url_for("admin.manage_users"))
-
 
     # ❌ super_admin silinemez
     if target.role == "super_admin":
         flash("Süper yönetici silinemez.", "error")
         return redirect(url_for("admin.manage_users"))
 
-    # ❌ admin sadece kendi sitesinden kullanıcı silebilir
+    # ❌ admin sadece kendi sitesindekini işaretleyebilir
     if actor.role == "admin" and actor.site_id != target.site_id:
         abort(403)
-
-    # Zaten silinmişse tekrar işlem yapma
-    if getattr(target, "is_deleted", False):
-        flash("Bu kullanıcı zaten silinmiş durumda.", "warning")
-        return redirect(url_for("admin.manage_users"))
 
     old_values = {
         "id": target.id,
@@ -1716,31 +1713,153 @@ def delete_user(user_id: int):
         "is_deleted": getattr(target, "is_deleted", False),
     }
 
-    # ✅ Soft delete: pasifleştir + gizle
+    # ✅ SOFT DELETE: pasifleştir + ekranda görünmesin
     target.is_active = False
     target.is_deleted = True
 
     db.session.commit()
 
-    new_values = {
-        "is_active": target.is_active,
-        "is_deleted": target.is_deleted,
-    }
-
-    # ✅ AUDIT LOG
     log_action(
+        actor_id=actor.id,
+        site_id=actor.site_id,
         action="DELETE",
-        entity_type="User",
+        entity="User",
         entity_id=target.id,
-        old_values=old_values,
-        new_values=new_values,
-        description=f"Kullanıcı soft delete: {target.email}",
-        site_id=target.site_id,
-        status="success",
+        old_data=old_values,
+        new_data={"is_active": target.is_active, "is_deleted": target.is_deleted},
     )
 
-    flash("Kullanıcı silindi (pasifleştirildi ve listelerden gizlendi).", "success")
+    flash("Kullanıcı silindi (pasifleştirildi).", "success")
     return redirect(url_for("admin.manage_users"))
+
+
+# ==================================== borç silme için yardımcı========================
+def _bill_audit_dict(bill: Bill) -> dict:
+    """Borç (Bill) kaydını audit log için JSON-dostu sözlüğe çevir."""
+    if not bill:
+        return {}
+
+    return {
+        "id": getattr(bill, "id", None),
+        "site_id": getattr(bill, "site_id", None),
+        "apartment_id": getattr(bill, "apartment_id", None),
+        "type": getattr(bill, "type", None),
+        "amount": str(getattr(bill, "amount", "") or ""),
+        "due_date": (
+            getattr(bill, "due_date", None).strftime("%Y-%m-%d")
+            if getattr(bill, "due_date", None)
+            else None
+        ),
+        "status": getattr(bill, "status", None),
+        "description": (
+            getattr(bill, "description", None)
+            if getattr(bill, "description", None)
+            else getattr(bill, "desc", None)
+        ),
+        "created_at": (
+            getattr(bill, "created_at", None).strftime("%Y-%m-%d %H:%M:%S")
+            if getattr(bill, "created_at", None)
+            else None
+        ),
+    }
+
+# ==================================== borç silme ========================
+@admin_bp.route("/bills/<int:bill_id>/delete", methods=["POST"])
+@admin_required
+def delete_bill(bill_id: int):
+    """Tek bir borç kaydını silmek için (Audit Log dahil)."""
+
+    # --- Aktif site kontrolü ---
+    admin_user = _get_current_admin()
+    site_id = session.get("active_site_id") or (admin_user.site_id if admin_user else None)
+    if not site_id:
+        return jsonify({"ok": False, "error": "Herhangi bir siteye atanmış değilsiniz."}), 403
+
+    try:
+        bill = Bill.query.get(bill_id)
+        if not bill:
+            return jsonify({"ok": False, "error": "Borç kaydı bulunamadı."}), 404
+
+        # 🔴 Başka sitenin borcuysa iptal
+        if bill.site_id != site_id:
+            return jsonify({"ok": False, "error": "Bu borç için yetkiniz yok."}), 403
+
+        # ✅ Audit için eski değer snapshot (silmeden önce)
+        old_snapshot = _bill_audit_dict(bill)
+
+        # Bu borca bağlı ödeme var mı? (varsa silmeyi engelle)
+        payments_count = (
+            db.session.query(func.count(Payment.id))
+            .filter(Payment.bill_id == bill.id)
+            .scalar()
+        ) or 0
+
+        if payments_count > 0:
+            # ✅ Audit Log (FAILURE - DELETE Bill)
+            try:
+                log_action(
+                    action="DELETE",
+                    entity_type="Bill",
+                    entity_id=bill_id,
+                    old_values=old_snapshot,
+                    new_values={"blocked_reason": "Bu borca bağlı ödeme var", "payments_count": int(payments_count)},
+                    description="Borç silme engellendi (bağlı ödeme bulundu).",
+                    site_id=site_id,
+                    status="failure",
+                    error_message=f"Bill({bill_id}) için {payments_count} adet ödeme var. Silme engellendi.",
+                )
+            except Exception:
+                current_app.logger.exception("Audit log yazılamadı (FAILURE DELETE Bill - payments exist)")
+
+            return jsonify({
+                "ok": False,
+                "error": "Bu borca bağlı ödeme(ler) var. Önce ödemeleri silmeden borç silinemez."
+            }), 400
+
+        # Sil
+        db.session.delete(bill)
+        db.session.commit()
+
+        # ✅ Audit Log (DELETE Bill)
+        try:
+            log_action(
+                action="DELETE",
+                entity_type="Bill",
+                entity_id=bill_id,
+                old_values=old_snapshot,
+                new_values=None,
+                description=f"Borç silindi (id={bill_id})",
+                site_id=site_id,
+                status="success",
+            )
+        except Exception:
+            current_app.logger.exception("Audit log yazılamadı (DELETE Bill)")
+
+        return jsonify({"ok": True})
+
+    except SQLAlchemyError as exc:
+        db.session.rollback()
+        current_app.logger.exception("Borç kaydı silinemedi: %s", exc)
+
+        # ✅ Audit Log (FAILURE - DELETE Bill)
+        try:
+            # Bill bulunabildiyse snapshot vardı; yoksa None kalır.
+            log_action(
+                action="DELETE",
+                entity_type="Bill",
+                entity_id=bill_id,
+                old_values=old_snapshot if "old_snapshot" in locals() else None,
+                new_values=None,
+                description="Borç silme başarısız",
+                site_id=site_id,
+                status="failure",
+                error_message=str(exc),
+            )
+        except Exception:
+            current_app.logger.exception("Audit log yazılamadı (FAILURE DELETE Bill)")
+
+        return jsonify({"ok": False, "error": "Borç silinirken bir hata oluştu."}), 500
+
 
 
 @admin_bp.route("/bills/<int:bill_id>/update", methods=["POST"])
@@ -2417,12 +2536,11 @@ def manage_payments():
 
         # Sadece bu sitenin kullanıcıları
         users = (
-        User.query
-        .filter_by(site_id=site_id)
-        .filter(User.is_deleted == False)
-        .order_by(User.name.asc())
-        .all()
-    )
+            User.query
+            .filter_by(site_id=site_id)
+            .order_by(User.name.asc())
+            .all()
+        )
 
         # Sadece bu sitenin ödemeleri
         payments = (

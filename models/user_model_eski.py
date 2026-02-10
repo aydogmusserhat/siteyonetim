@@ -34,9 +34,6 @@ class User(db.Model):
 
     is_active = db.Column(db.Boolean, default=True, nullable=False)
 
-    # Soft delete (sil butonu): kaydı fiziksel olarak silmez, listelerden gizler
-    is_deleted = db.Column(db.Boolean, default=False, nullable=False)
-
     # -------------------
     # Şifre yardımcıları
     # -------------------

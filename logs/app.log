@@ -6828,3 +6828,594 @@ Traceback (most recent call last):
   File "C:\Users\Serhat\Desktop\siteyonetimV4.1\templates\admin\ledger.html", line 114, in template
     href="{{ url_for('admin.apartment_ledger_export_xlsx', **.args) }}">Excel (XLSX)</a>
 jinja2.exceptions.TemplateSyntaxError: unexpected '.'
+2026-02-01 00:16:37,873 [ERROR] app: Exception on /admin/ledger [GET]
+Traceback (most recent call last):
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "C:\Users\Serhat\Desktop\siteyonetimV4.1\routes\admin_routes.py", line 73, in wrapped_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\Serhat\Desktop\siteyonetimV4.1\routes\ledger_module.py", line 377, in apartment_ledger
+    return render_template(
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 150, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\loaders.py", line 138, in load
+    code = environment.compile(source, name, filename)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 771, in compile
+    self.handle_exception(source=source_hint)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\Serhat\Desktop\siteyonetimV4.1\templates\admin\ledger.html", line 142, in template
+    {% set apt_label = (apt.block ~ "-" ~ apt.floor ~ "-" ~ a pt.number) %}
+jinja2.exceptions.TemplateSyntaxError: expected token ')', got 'pt'
+2026-02-01 01:27:57,438 [INFO] app: payments.description kolonu eklendi.
+2026-02-01 01:28:45,618 [INFO] app: Denetim: CREATE Payment (ID: 12) - Kullanıcı: 1 - Site: 2
+2026-02-01 01:29:40,582 [INFO] app: Denetim: CREATE Payment (ID: 13) - Kullanıcı: 1 - Site: 2
+2026-02-01 01:30:32,786 [INFO] app: Makbuz dili (payment_receipt) = tr
+2026-02-01 01:34:48,909 [INFO] app: Denetim: CREATE Payment (ID: 14) - Kullanıcı: 1 - Site: 2
+2026-02-01 01:53:19,926 [INFO] app: Denetim: CREATE Payment (ID: 15) - Kullanıcı: 1 - Site: 2
+2026-02-01 02:20:59,633 [INFO] app: İlk super_admin kullanıcısı oluşturuldu: superadmin@example.com / superadmin123
+2026-02-01 02:23:59,082 [INFO] app: Denetim: CREATE Payment (ID: 1) - Kullanıcı: 1 - Site: 1
+2026-02-01 02:26:33,258 [INFO] app: Denetim: CREATE Payment (ID: 2) - Kullanıcı: 1 - Site: 1
+2026-02-01 14:13:26,931 [ERROR] app: İlk super admin oluşturulurken hata: (sqlite3.OperationalError) no such column: users.is_deleted
+[SQL: SELECT users.id AS users_id, users.name AS users_name, users.email AS users_email, users.phone AS users_phone, users.password_hash AS users_password_hash, users.role AS users_role, users.site_id AS users_site_id, users.apartment_id AS users_apartment_id, users.is_active AS users_is_active, users.is_deleted AS users_is_deleted 
+FROM users 
+WHERE users.role = ?
+ LIMIT ? OFFSET ?]
+[parameters: ('super_admin', 1, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+Traceback (most recent call last):
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\engine\base.py", line 1964, in _exec_single_context
+    self.dialect.do_execute(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\engine\default.py", line 945, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: no such column: users.is_deleted
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Serhat\Desktop\siteyonetimV4.1\app.py", line 124, in create_app
+    existing_super = User.query.filter_by(role="super_admin").first()
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 2759, in first
+    return self.limit(1)._iter().first()  # type: ignore
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 2858, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\session.py", line 2365, in execute
+    return self._execute_internal(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\session.py", line 2251, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\engine\base.py", line 1416, in execute
+    return meth(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\sql\elements.py", line 523, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\engine\base.py", line 1638, in _execute_clauseelement
+    ret = self._execute_context(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\engine\base.py", line 1843, in _execute_context
+    return self._exec_single_context(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\engine\base.py", line 1983, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\engine\base.py", line 2352, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\engine\base.py", line 1964, in _exec_single_context
+    self.dialect.do_execute(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\engine\default.py", line 945, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such column: users.is_deleted
+[SQL: SELECT users.id AS users_id, users.name AS users_name, users.email AS users_email, users.phone AS users_phone, users.password_hash AS users_password_hash, users.role AS users_role, users.site_id AS users_site_id, users.apartment_id AS users_apartment_id, users.is_active AS users_is_active, users.is_deleted AS users_is_deleted 
+FROM users 
+WHERE users.role = ?
+ LIMIT ? OFFSET ?]
+[parameters: ('super_admin', 1, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-02-01 14:18:50,295 [ERROR] app: Login sırasında veritabanı hatası: (sqlite3.OperationalError) no such column: users.is_deleted
+[SQL: SELECT users.id AS users_id, users.name AS users_name, users.email AS users_email, users.phone AS users_phone, users.password_hash AS users_password_hash, users.role AS users_role, users.site_id AS users_site_id, users.apartment_id AS users_apartment_id, users.is_active AS users_is_active, users.is_deleted AS users_is_deleted 
+FROM users 
+WHERE users.email = ?
+ LIMIT ? OFFSET ?]
+[parameters: ('superadmin@example.com', 1, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+Traceback (most recent call last):
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\engine\base.py", line 1964, in _exec_single_context
+    self.dialect.do_execute(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\engine\default.py", line 945, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: no such column: users.is_deleted
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Serhat\Desktop\siteyonetimV4.1\routes\auth_routes.py", line 44, in login
+    user = User.query.filter_by(email=email).first()
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 2759, in first
+    return self.limit(1)._iter().first()  # type: ignore
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\query.py", line 2858, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\session.py", line 2365, in execute
+    return self._execute_internal(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\session.py", line 2251, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\engine\base.py", line 1416, in execute
+    return meth(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\sql\elements.py", line 523, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\engine\base.py", line 1638, in _execute_clauseelement
+    ret = self._execute_context(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\engine\base.py", line 1843, in _execute_context
+    return self._exec_single_context(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\engine\base.py", line 1983, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\engine\base.py", line 2352, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\engine\base.py", line 1964, in _exec_single_context
+    self.dialect.do_execute(
+  File "c:\Program Files\Python39\lib\site-packages\sqlalchemy\engine\default.py", line 945, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such column: users.is_deleted
+[SQL: SELECT users.id AS users_id, users.name AS users_name, users.email AS users_email, users.phone AS users_phone, users.password_hash AS users_password_hash, users.role AS users_role, users.site_id AS users_site_id, users.apartment_id AS users_apartment_id, users.is_active AS users_is_active, users.is_deleted AS users_is_deleted 
+FROM users 
+WHERE users.email = ?
+ LIMIT ? OFFSET ?]
+[parameters: ('superadmin@example.com', 1, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-02-01 14:23:32,125 [INFO] app: Denetim: DELETE User (ID: 3) - Kullanıcı: 1 - Site: 1
+2026-02-01 14:23:32,127 [ERROR] app: Exception on /admin/users/3/delete [POST]
+Traceback (most recent call last):
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "C:\Users\Serhat\Desktop\siteyonetimV4.1\routes\admin_routes.py", line 73, in wrapped_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\Serhat\Desktop\siteyonetimV4.1\routes\admin_routes.py", line 1741, in delete_user
+    return redirect(url_for("admin.kullanicilar"))
+  File "c:\Program Files\Python39\lib\site-packages\flask\helpers.py", line 225, in url_for
+    return current_app.url_for(
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1697, in url_for
+    return self.handle_url_build_error(error, endpoint, values)
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1686, in url_for
+    rv = url_adapter.build(  # type: ignore[union-attr]
+  File "c:\Program Files\Python39\lib\site-packages\werkzeug\routing\map.py", line 924, in build
+    raise BuildError(endpoint, values, method, self)
+werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'admin.kullanicilar'. Did you mean 'admin.update_bill' instead?
+2026-02-01 14:28:25,952 [ERROR] app: Exception on /admin/users/3/delete [POST]
+Traceback (most recent call last):
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "C:\Users\Serhat\Desktop\siteyonetimV4.1\routes\admin_routes.py", line 73, in wrapped_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\Serhat\Desktop\siteyonetimV4.1\routes\admin_routes.py", line 1685, in delete_user
+    return redirect(url_for('admin.kullanicilar'))
+  File "c:\Program Files\Python39\lib\site-packages\flask\helpers.py", line 225, in url_for
+    return current_app.url_for(
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1697, in url_for
+    return self.handle_url_build_error(error, endpoint, values)
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1686, in url_for
+    rv = url_adapter.build(  # type: ignore[union-attr]
+  File "c:\Program Files\Python39\lib\site-packages\werkzeug\routing\map.py", line 924, in build
+    raise BuildError(endpoint, values, method, self)
+werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'admin.kullanicilar'. Did you mean 'admin.update_bill' instead?
+2026-02-01 14:35:16,189 [ERROR] app: Exception on /admin/users/3/delete [POST]
+Traceback (most recent call last):
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "C:\Users\Serhat\Desktop\siteyonetimV4.1\routes\admin_routes.py", line 73, in wrapped_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\Serhat\Desktop\siteyonetimV4.1\routes\admin_routes.py", line 1685, in delete_user
+    return redirect(url_for('admin.kullanicilar'))
+  File "c:\Program Files\Python39\lib\site-packages\flask\helpers.py", line 225, in url_for
+    return current_app.url_for(
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1697, in url_for
+    return self.handle_url_build_error(error, endpoint, values)
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1686, in url_for
+    rv = url_adapter.build(  # type: ignore[union-attr]
+  File "c:\Program Files\Python39\lib\site-packages\werkzeug\routing\map.py", line 924, in build
+    raise BuildError(endpoint, values, method, self)
+werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'admin.kullanicilar'. Did you mean 'admin.update_bill' instead?
+2026-02-01 14:38:31,140 [ERROR] app: Exception on /admin/sites [GET]
+Traceback (most recent call last):
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "C:\Users\Serhat\Desktop\siteyonetimV4.1\routes\admin_routes.py", line 238, in wrapped_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\Serhat\Desktop\siteyonetimV4.1\routes\admin_routes.py", line 352, in manage_sites
+    return render_template(
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 151, in render_template
+    return _render(app, template, context)
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 132, in _render
+    rv = template.render(context)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 1295, in render
+    self.environment.handle_exception()
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\Serhat\Desktop\siteyonetimV4.1\templates\admin\sites.html", line 144, in top-level template code
+    {{ I18N_PAGE.get(LANG, I18N_PAGE['tr']).get(k, I18N_PAGE['tr'].get(k, k)) }}
+  File "C:\Users\Serhat\Desktop\siteyonetimV4.1\templates\base.html", line 379, in top-level template code
+    <a href="{{ url_for('admin.manage_users', lang=LANG) }}"
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1697, in url_for
+    return self.handle_url_build_error(error, endpoint, values)
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1686, in url_for
+    rv = url_adapter.build(  # type: ignore[union-attr]
+  File "c:\Program Files\Python39\lib\site-packages\werkzeug\routing\map.py", line 924, in build
+    raise BuildError(endpoint, values, method, self)
+werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'admin.manage_users' with values ['lang']. Did you mean 'admin.manage_sites' instead?
+2026-02-01 14:41:07,835 [ERROR] app: Exception on /admin/users/3/delete [POST]
+Traceback (most recent call last):
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "C:\Users\Serhat\Desktop\siteyonetimV4.1\routes\admin_routes.py", line 73, in wrapped_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\Serhat\Desktop\siteyonetimV4.1\routes\admin_routes.py", line 1685, in delete_user
+    return redirect(url_for('admin.kullanicilar'))
+  File "c:\Program Files\Python39\lib\site-packages\flask\helpers.py", line 225, in url_for
+    return current_app.url_for(
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1697, in url_for
+    return self.handle_url_build_error(error, endpoint, values)
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1686, in url_for
+    rv = url_adapter.build(  # type: ignore[union-attr]
+  File "c:\Program Files\Python39\lib\site-packages\werkzeug\routing\map.py", line 924, in build
+    raise BuildError(endpoint, values, method, self)
+werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'admin.kullanicilar'. Did you mean 'admin.update_bill' instead?
+2026-02-01 14:46:06,261 [INFO] app: Denetim: DELETE User (ID: 4) - Kullanıcı: 1 - Site: 1
+2026-02-01 14:56:09,019 [INFO] app: Denetim: DELETE User (ID: 5) - Kullanıcı: 1 - Site: 1
+2026-02-05 16:29:36,327 [ERROR] app: Exception on /admin/dues-summary [GET]
+Traceback (most recent call last):
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\routes\admin_routes.py", line 73, in wrapped_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\routes\admin_routes.py", line 2057, in dues_summary
+    return render_template(
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 150, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 64, in get_source
+    return self._get_source_fast(environment, template)
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 98, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: admin/aidat_durumu.html
+2026-02-05 16:30:13,159 [ERROR] app: Exception on /admin/dues-summary [GET]
+Traceback (most recent call last):
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\routes\admin_routes.py", line 73, in wrapped_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\routes\admin_routes.py", line 2057, in dues_summary
+    return render_template(
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 150, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 64, in get_source
+    return self._get_source_fast(environment, template)
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 98, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: admin/aidat_durumu.html
+2026-02-05 16:30:23,164 [ERROR] app: Exception on /admin/dues-summary [GET]
+Traceback (most recent call last):
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\routes\admin_routes.py", line 73, in wrapped_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\routes\admin_routes.py", line 2057, in dues_summary
+    return render_template(
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 150, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 64, in get_source
+    return self._get_source_fast(environment, template)
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 98, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: admin/aidat_durumu.html
+2026-02-05 16:31:42,188 [ERROR] app: Exception on /admin/dues-summary [GET]
+Traceback (most recent call last):
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\routes\admin_routes.py", line 73, in wrapped_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\routes\admin_routes.py", line 2057, in dues_summary
+    return render_template(
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 150, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 64, in get_source
+    return self._get_source_fast(environment, template)
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 98, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: admin/aidat_durumu.html
+2026-02-05 16:31:47,988 [ERROR] app: Exception on /admin/dues-summary [GET]
+Traceback (most recent call last):
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\routes\admin_routes.py", line 73, in wrapped_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\routes\admin_routes.py", line 2057, in dues_summary
+    return render_template(
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 150, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 64, in get_source
+    return self._get_source_fast(environment, template)
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 98, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: admin/aidat_durumu.html
+2026-02-05 16:35:03,955 [ERROR] app: Exception on /admin/bills [GET]
+Traceback (most recent call last):
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\routes\admin_routes.py", line 73, in wrapped_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\routes\admin_routes.py", line 1647, in manage_bills
+    return render_template(
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 151, in render_template
+    return _render(app, template, context)
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 132, in _render
+    rv = template.render(context)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 1295, in render
+    self.environment.handle_exception()
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\templates\admin\aidat_durumu.html", line 152, in top-level template code
+    {% set MONTHS = {
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\templates\base.html", line 571, in top-level template code
+    {% block content %}{% endblock %}
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\templates\admin\aidat_durumu.html", line 196, in block 'content'
+    min="{{ current_year - 5 }}"
+jinja2.exceptions.UndefinedError: 'current_year' is undefined
+2026-02-05 16:35:14,195 [ERROR] app: Exception on /admin/bills [GET]
+Traceback (most recent call last):
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\routes\admin_routes.py", line 73, in wrapped_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\routes\admin_routes.py", line 1647, in manage_bills
+    return render_template(
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 151, in render_template
+    return _render(app, template, context)
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 132, in _render
+    rv = template.render(context)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 1295, in render
+    self.environment.handle_exception()
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\templates\admin\aidat_durumu.html", line 152, in top-level template code
+    {% set MONTHS = {
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\templates\base.html", line 571, in top-level template code
+    {% block content %}{% endblock %}
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\templates\admin\aidat_durumu.html", line 196, in block 'content'
+    min="{{ current_year - 5 }}"
+jinja2.exceptions.UndefinedError: 'current_year' is undefined
+2026-02-05 16:48:11,173 [ERROR] app: Exception on /admin/bills [GET]
+Traceback (most recent call last):
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\routes\admin_routes.py", line 73, in wrapped_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\routes\admin_routes.py", line 1647, in manage_bills
+    return render_template(
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 151, in render_template
+    return _render(app, template, context)
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 132, in _render
+    rv = template.render(context)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 1295, in render
+    self.environment.handle_exception()
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\templates\admin\aidat_durumu.html", line 152, in top-level template code
+    {% set MONTHS = {
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\templates\base.html", line 571, in top-level template code
+    {% block content %}{% endblock %}
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\templates\admin\aidat_durumu.html", line 196, in block 'content'
+    min="{{ current_year - 5 }}"
+jinja2.exceptions.UndefinedError: 'current_year' is undefined
+2026-02-05 16:52:39,230 [ERROR] app: Exception on /admin/bills [GET]
+Traceback (most recent call last):
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\routes\admin_routes.py", line 73, in wrapped_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\routes\admin_routes.py", line 1647, in manage_bills
+    return render_template(
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 151, in render_template
+    return _render(app, template, context)
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 132, in _render
+    rv = template.render(context)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 1295, in render
+    self.environment.handle_exception()
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\templates\admin\aidat_durumu.html", line 152, in top-level template code
+    {% set MONTHS = {
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\templates\base.html", line 571, in top-level template code
+    {% block content %}{% endblock %}
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\templates\admin\aidat_durumu.html", line 196, in block 'content'
+    min="{{ current_year - 5 }}"
+jinja2.exceptions.UndefinedError: 'current_year' is undefined
+2026-02-05 16:53:26,768 [ERROR] app: Exception on /admin/bills [GET]
+Traceback (most recent call last):
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\routes\admin_routes.py", line 73, in wrapped_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\routes\admin_routes.py", line 1647, in manage_bills
+    return render_template(
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 151, in render_template
+    return _render(app, template, context)
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 132, in _render
+    rv = template.render(context)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 1295, in render
+    self.environment.handle_exception()
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\templates\admin\aidat_durumu.html", line 152, in top-level template code
+    {% set MONTHS = {
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\templates\base.html", line 571, in top-level template code
+    {% block content %}{% endblock %}
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\templates\admin\aidat_durumu.html", line 196, in block 'content'
+    min="{{ current_year - 5 }}"
+jinja2.exceptions.UndefinedError: 'current_year' is undefined
+2026-02-05 16:55:35,688 [ERROR] app: Exception on /admin/bills [GET]
+Traceback (most recent call last):
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "c:\Program Files\Python39\lib\site-packages\flask\app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\routes\admin_routes.py", line 73, in wrapped_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\routes\admin_routes.py", line 1647, in manage_bills
+    return render_template(
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 151, in render_template
+    return _render(app, template, context)
+  File "c:\Program Files\Python39\lib\site-packages\flask\templating.py", line 132, in _render
+    rv = template.render(context)
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 1295, in render
+    self.environment.handle_exception()
+  File "c:\Program Files\Python39\lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\templates\admin\aidat_durumu.html", line 152, in top-level template code
+    {% set MONTHS = {
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\templates\base.html", line 571, in top-level template code
+    {% block content %}{% endblock %}
+  File "C:\Users\Serhat\Desktop\siteyonetimV5.0\templates\admin\aidat_durumu.html", line 196, in block 'content'
+    min="{{ current_year - 5 }}"
+jinja2.exceptions.UndefinedError: 'current_year' is undefined

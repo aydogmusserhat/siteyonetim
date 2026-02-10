@@ -91,7 +91,17 @@
       .lang-menu { left: auto; right: 0; }
       .lang-btn { padding: 6px 8px; }
     }
+    /* ✅ Sadece küçük ekranda: sidebar yüksekse kendi içinde scroll olsun */
+@media (max-width: 900px){
+  .sidebar{
+    max-height: 100vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
   </style>
+  
 </head>
 
 <body class="{% block body_class %}{% endblock %}">

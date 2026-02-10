@@ -24,10 +24,12 @@ class Payment(db.Model):
     payment_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     method = db.Column(db.String(50), nullable=True)
 
+    description = db.Column(db.String(255), nullable=True)
+    
     user = db.relationship("User", backref="payments", lazy=True)
 
     def __repr__(self) -> str:
         return (
             f"<Payment id={self.id} site_id={self.site_id} "
-            f"amount={self.amount} method={self.method}>"
+            f"amount={self.amount} method={self.method} desc={self.description}>"
         )

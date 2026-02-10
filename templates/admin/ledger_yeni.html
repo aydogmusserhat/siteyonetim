@@ -293,7 +293,7 @@
 
     <form method="get" class="filters" style="margin-top:12px;">
       <div>
-        <label>Ay (AA-YYYY)</label>
+        <label>Ay (YYYY-AA)</label>
         <input type="month" name="month" value="{{ month_label }}">
       </div>
 
@@ -462,13 +462,20 @@
                         <tbody>
                           {% if r.bills and r.bills|length > 0 %}
                             {% for b in r.bills %}
+                              {% set ns = namespace(paid=0) %}
+                              {% for p in (r.payments or []) %}
+                                {% if p.bill_id and b.id and (p.bill_id == b.id) %}
+                                  {% set ns.paid = ns.paid + (p.amount or 0) %}
+                                {% endif %}
+                              {% endfor %}
+                              {% set remaining = (b.amount or 0) - ns.paid %}
                               <tr>
                                 <td class="m nowrap">{{ b.due_date or (b.created_at.date() if b.created_at else "") }}</td>
                                 <td>{{ b.description or "-" }}</td>
-                                <td class="r">₺ {{ "%.2f"|format(b.amount) }}</td>
-                                 <td class="r">₺ {{ "%.2f"|format((b._paid_total if b._paid_total is not none else 0) or 0) }}</td>
-                                 <td class="r">₺ {{ "%.2f"|format((b._remaining_total if b._remaining_total is not none else b.amount) or 0) }}</td>
-                                 <td class="m nowrap">{{ b.status }}</td>
+                                <td class="r">₺ {{ "%.2f"|format(b.amount or 0) }}</td>
+                                <td class="r">₺ {{ "%.2f"|format(ns.paid or 0) }}</td>
+                                <td class="r">₺ {{ "%.2f"|format(remaining if remaining is not none else 0) }}</td>
+                                <td class="m nowrap">{{ b.status }}</td>
                               </tr>
                             {% endfor %}
                           {% else %}
@@ -516,24 +523,34 @@
                           <tr>
                             <th>Tarih</th>
                             <th>Açıklama</th>
-                            <th class="r">Kalan</th>
+                            <th class="r">Dönem Başı Kalan</th>
+                            <th class="r">Bu Dönem Ödeme</th>
+                            <th class="r">Güncel Kalan</th>
                             <th>Durum</th>
                           </tr>
                         </thead>
                         <tbody>
                           {% if r.carry_bills and r.carry_bills|length > 0 %}
                             {% for b in r.carry_bills %}
+                              {% set start_remaining = (b._remaining if b._remaining is not none else b.amount) or 0 %}
+                              {% set ns = namespace(paid=0) %}
+                              {% for p in (r.carry_payments or []) %}
+                                {% if p.bill_id and b.id and (p.bill_id == b.id) %}
+                                  {% set ns.paid = ns.paid + (p.amount or 0) %}
+                                {% endif %}
+                              {% endfor %}
+                              {% set current_remaining = start_remaining - ns.paid %}
                               <tr>
                                 <td class="m nowrap">{{ b.due_date or (b.created_at.date() if b.created_at else "") }}</td>
                                 <td>{{ b.description or "-" }}</td>
-                                <td class="r">
-                                  ₺ {{ "%.2f"|format((b._remaining if b._remaining is not none else b.amount) or 0) }}
-                                </td>
+                                <td class="r">₺ {{ "%.2f"|format(start_remaining) }}</td>
+                                <td class="r">₺ {{ "%.2f"|format(ns.paid or 0) }}</td>
+                                <td class="r">₺ {{ "%.2f"|format(current_remaining if current_remaining is not none else 0) }}</td>
                                 <td class="m nowrap">{{ b.status }}</td>
                               </tr>
                             {% endfor %}
                           {% else %}
-                            <tr><td colspan="4" class="m">Devreden borç yok.</td></tr>
+                            <tr><td colspan="6" class="m">Devreden borç yok.</td></tr>
                           {% endif %}
                         </tbody>
                       </table>

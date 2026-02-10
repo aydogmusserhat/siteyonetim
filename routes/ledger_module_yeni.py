@@ -227,7 +227,7 @@ def register_ledger_routes(admin_bp, admin_required, _get_current_admin, _parse_
         open_map = {r.apartment_id: r.open_sum for r in open_q.all()}
 
         # --- detaylar (period içinde borç/ödeme listesi) ---
-        bill_detail_q = db.session.query(Bill, func.coalesce(pay_sum_subq.c.paid_sum, 0).label("paid_sum")).join(Apartment, Bill.apartment_id == Apartment.id).outerjoin(pay_sum_subq, pay_sum_subq.c.bill_id == Bill.id)
+        bill_detail_q = db.session.query(Bill).join(Apartment, Bill.apartment_id == Apartment.id)
         if not global_mode:
             bill_detail_q = bill_detail_q.filter(Bill.site_id == site_id)
         bill_detail_q = bill_detail_q.filter(
@@ -239,39 +239,15 @@ def register_ledger_routes(admin_bp, admin_required, _get_current_admin, _parse_
         if apartment_id:
             bill_detail_q = bill_detail_q.filter(Bill.apartment_id == apartment_id)
 
-        bills_rows = bill_detail_q.order_by(Bill.due_date.desc().nullslast(), Bill.created_at.desc()).all()
+        bills = bill_detail_q.order_by(Bill.due_date.desc().nullslast(), Bill.created_at.desc()).all()
         bills_by_apt = defaultdict(list)
-        period_bill_ids_by_apt = defaultdict(list)
-        all_period_bill_ids = []
-        for b, paid_sum in bills_rows:
-            # Template/export için: bill üzerinde toplam ödenen + kalan tutarı taşıyalım (tüm zamanlar)
-            try:
-                paid_total = float(paid_sum or 0)
-            except Exception:
-                paid_total = float(0)
-            try:
-                amount_f = float(getattr(b, 'amount', 0) or 0)
-            except Exception:
-                amount_f = 0.0
-            remaining_f = max(0.0, amount_f - paid_total)
-            try:
-                setattr(b, '_paid_total', paid_total)
-                setattr(b, '_remaining_total', remaining_f)
-            except Exception:
-                pass
+        for b in bills:
             bills_by_apt[b.apartment_id].append(b)
-            period_bill_ids_by_apt[b.apartment_id].append(b.id)
-            all_period_bill_ids.append(b.id)
 
         pay_detail_q = db.session.query(Payment).join(Apartment, Payment.apartment_id == Apartment.id)
         if not global_mode:
             pay_detail_q = pay_detail_q.filter(Payment.site_id == site_id)
-        # ✅ Dönem Ödemeleri: 'dönem borçlarına bağlı' ödemeleri göster (tarih dönem dışı olsa bile)
-        if all_period_bill_ids:
-            pay_detail_q = pay_detail_q.filter(Payment.bill_id.in_(all_period_bill_ids))
-        else:
-            # dönem borcu yoksa, eskisi gibi sadece dönem içindeki ödemeler listelensin
-            pay_detail_q = pay_detail_q.filter(Payment.payment_date >= start, Payment.payment_date < end)
+        pay_detail_q = pay_detail_q.filter(Payment.payment_date >= start, Payment.payment_date < end)
         if apartment_id:
             pay_detail_q = pay_detail_q.filter(Payment.apartment_id == apartment_id)
 
@@ -523,7 +499,7 @@ def register_ledger_routes(admin_bp, admin_required, _get_current_admin, _parse_
         b_headers = []
         if global_mode:
             b_headers.append("Site")
-        b_headers += ["Daire", "Malik", "Tarih", "Açıklama", "Tutar", "Ödenen", "Kalan", "Durum", "Bill ID"]
+        b_headers += ["Daire", "Malik", "Tarih", "Açıklama", "Tutar", "Durum", "Bill ID"]
         ws_b.append(b_headers)
 
         for r in rows:
@@ -539,9 +515,7 @@ def register_ledger_routes(admin_bp, admin_required, _get_current_admin, _parse_
                 line = []
                 if global_mode:
                     line.append(site_map.get(r["site_id"], ""))
-                paid_total = float(getattr(b, "_paid_total", 0) or 0)
-                remaining_total = float(getattr(b, "_remaining_total", max(0.0, amount - paid_total)) or 0)
-                line += [apt_label, owner, _fmt_dt(b_date), desc, amount, paid_total, remaining_total, status, getattr(b, "id", None)]
+                line += [apt_label, owner, _fmt_dt(b_date), desc, amount, status, getattr(b, "id", None)]
                 ws_b.append(line)
 
         for col in range(1, len(b_headers) + 1):
@@ -992,15 +966,13 @@ def register_ledger_routes(admin_bp, admin_required, _get_current_admin, _parse_
                     desc = getattr(b, "description", None) or getattr(b, "desc", None) or ""
                     status = getattr(b, "status", "") or ""
                     amount = float(getattr(b, "amount", 0) or 0)
-                    paid_total = float(getattr(b, "_paid_total", 0) or 0)
-                    remaining_total = float(getattr(b, "_remaining_total", max(0.0, amount - paid_total)) or 0)
-                    table_rows.append([_fmt_dt(b_date), desc, _money(amount), _money(paid_total), _money(remaining_total), status])
+                    table_rows.append([_fmt_dt(b_date), desc, _money(amount), status])
 
                 _draw_table(
-                    headers=["Tarih", "Açıklama", "Tutar", "Ödenen", "Kalan", "Durum"],
+                    headers=["Tarih", "Açıklama", "Tutar", "Durum"],
                     rows_data=table_rows,
-                    col_widths=[75, 210, 70, 70, 70, 65],
-                    right_align_cols={2,3,4}
+                    col_widths=[80, 260, 90, 90],
+                    right_align_cols={2}
                 )
 
             # 2) Dönem Ödemeleri

@@ -51,8 +51,6 @@
 
     'btn_deactivate': 'Pasifleştir',
     'btn_activate': 'Aktifleştir',
-    'btn_delete': 'Sil',
-    'confirm_delete': 'Bu kullanıcı silinecek (pasifleştirilecek ve listelerden gizlenecek). Emin misiniz?' ,
 
     'label_password_confirm': 'Şifre (Tekrar)',
     'ph_password_confirm': 'Şifreyi tekrar girin',
@@ -105,8 +103,6 @@
 
     'btn_deactivate': 'Deactivate',
     'btn_activate': 'Activate',
-    'btn_delete': 'Delete',
-    'confirm_delete': 'This user will be deleted (deactivated and hidden from lists). Are you sure?' ,
 
     'label_password_confirm': 'Confirm Password',
     'ph_password_confirm': 'Re-enter password',
@@ -159,8 +155,6 @@
 
     'btn_deactivate': 'Deaktiviraj',
     'btn_activate': 'Aktiviraj',
-    'btn_delete': 'Obriši',
-    'confirm_delete': 'Korisnik će biti obrisan (deaktiviran i sakriven sa lista). Da li ste sigurni?' ,
 
     'label_password_confirm': 'Lozinka (Ponovo)',
     'ph_password_confirm': 'Ponovo unesite lozinku',
@@ -213,8 +207,6 @@
 
     'btn_deactivate': 'Деактивировать',
     'btn_activate': 'Активировать',
-    'btn_delete': 'Удалить',
-    'confirm_delete': 'Пользователь будет удалён (деактивирован и скрыт из списков). Вы уверены?' ,
 
     'label_password_confirm': 'Пароль (повтор)',
     'ph_password_confirm': 'Введите пароль ещё раз',
@@ -359,39 +351,19 @@
 <script>
 (function () {
   const form = document.getElementById("create-user-form");
-  if (!form) return;
+  if (!form) return; // Bu sayfa değilse çalışmasın
 
-  const roleEl = document.getElementById("role");
-  const aptEl  = document.getElementById("apartment_id");
-  const errorBox = document.getElementById("password_error");
-
-  function syncApartmentRequired() {
-    if (!roleEl || !aptEl) return;
-    const isResident = (roleEl.value || "").toLowerCase() === "resident";
-    if (isResident) {
-      aptEl.setAttribute("required", "required");
-    } else {
-      aptEl.removeAttribute("required");
-    }
-  }
-
-  // sayfa açılışında uygula
-  syncApartmentRequired();
-
-  // rol değişince uygula
-  if (roleEl) {
-    roleEl.addEventListener("change", syncApartmentRequired);
-  }
-
-  // mevcut şifre eşleşme kontrolün
   form.addEventListener("submit", function(e) {
-    syncApartmentRequired(); // submit anında da garanti
     const passEl = document.getElementById("password");
     const confirmEl = document.getElementById("password_confirm");
+    const errorBox = document.getElementById("password_error");
 
-    if (!passEl || !confirmEl) return;
+    if (!passEl || !confirmEl) return; // input yoksa karışma
 
-    if (passEl.value !== confirmEl.value) {
+    const pass = passEl.value;
+    const confirm = confirmEl.value;
+
+    if (pass !== confirm) {
       e.preventDefault();
       if (errorBox) errorBox.style.display = "block";
     } else {
@@ -400,7 +372,6 @@
   });
 })();
 </script>
-
 
 
       </form>
@@ -468,16 +439,18 @@
                                      {% endif %}">
                         {% if user.is_active %}{{ tp('btn_deactivate') }}{% else %}{{ tp('btn_activate') }}{% endif %}
                       </button>
+                      <form method="post"
+                          action="{{ url_for('admin.delete_user', user_id=user.id) }}"
+                          style="display:inline;"
+                          onsubmit="return confirm('Bu kullanıcı kalıcı olarak silinecek. Emin misiniz?');">
+                        <button type="submit"
+                                style="padding:4px 10px; border-radius:999px; border:none;
+                                      font-size:11px; cursor:pointer;
+                                      background:#ef4444; color:white;">
+                            Sil
+                        </button>
                     </form>
 
-                    <form method="post"
-                          action="{{ url_for('admin.delete_user', user_id=user.id) }}"
-                          style="display:inline; margin-left:6px;"
-                          onsubmit="return confirm('{{ tp('confirm_delete') }}');">
-                      <button type="submit"
-                              style="padding:4px 8px; border-radius:999px; border:none; font-size:11px; cursor:pointer; background:#111827; color:#fff;">
-                        {{ tp('btn_delete') }}
-                      </button>
                     </form>
                   </td>
                 </tr>

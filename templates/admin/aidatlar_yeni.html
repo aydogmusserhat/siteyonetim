@@ -629,14 +629,7 @@
                 <th style="text-align:left; padding:6px 4px;">
                   {{ sort_link(tp('col_amount'), 'amount') }}
                 </th>
-                
                 <th style="text-align:left; padding:6px 4px;">
-                  {{ tp('paid_col') }}
-                </th>
-                <th style="text-align:left; padding:6px 4px;">
-                  {{ tp('remaining_col') }}
-                </th>
-<th style="text-align:left; padding:6px 4px;">
                   {{ sort_link(tp('col_due'), 'due_date') }}
                 </th>
                 <th style="text-align:left; padding:6px 4px;">
@@ -663,16 +656,7 @@
                   <td style="padding:6px 4px; white-space:nowrap;">
                     ₺ {{ "%.2f"|format(bill.amount) }}
                   </td>
-                  
-                  {% set paid_amt = bill._paid if bill._paid is defined else 0 %}
-                  {% set rem_amt = bill._remaining if bill._remaining is defined else (bill.amount or 0) %}
-                  <td style="padding:6px 4px; white-space:nowrap; color:#16a34a; font-weight:600;">
-                    ₺ {{ "%.2f"|format(paid_amt) }}
-                  </td>
-                  <td style="padding:6px 4px; white-space:nowrap; color:{{ '#b91c1c' if rem_amt > 0 else '#15803d' }}; font-weight:600;">
-                    ₺ {{ "%.2f"|format(rem_amt) }}
-                  </td>
-<td style="padding:6px 4px; white-space:nowrap;">
+                  <td style="padding:6px 4px; white-space:nowrap;">
                     {% if bill.due_date %}
                       {{ bill.due_date.strftime('%d.%m.%Y') }}
                     {% else %}
